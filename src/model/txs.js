@@ -269,7 +269,7 @@ module.exports = {
    * @param entity
    * @constructor
    */
-  outStakingTransaction: function (entity) {
+  outStakingTransaction: function (entity, lockTime) {
     //console.log(entity);
     Transaction.call(this);
     //对象属性结构
@@ -277,9 +277,66 @@ module.exports = {
       throw "Data Wrong!";
     }
     this.type = 6;
+    if (lockTime) {
+      this.time = lockTime;
+    }
+
     let bw = new Serializers();
     bw.writeBytesWithLength(sdk.getBytesAddress(entity.address));
     bw.getBufWriter().write(Buffer.from(entity.agentHash, 'hex'));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * 批量退出staking
+   * @param entity
+   * @constructor
+   */
+  batchOutStakingTransaction: function (entity, lockTime) {
+    //console.log(entity);
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity || !entity.address || !entity.agentHash || !entity.agentHash.length) {
+      throw "Data Wrong!";
+    }
+    this.type = 32;
+    if (lockTime) {
+      this.time = lockTime;
+    }
+
+    let bw = new Serializers();
+    bw.writeBytesWithLength(sdk.getBytesAddress(entity.address));
+    bw.getBufWriter().writeVarintNum(entity.agentHash.length)
+    for (let item of entity.agentHash) {
+      bw.getBufWriter().write(Buffer.from(item, 'hex'));
+    }
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * 批量合并
+   * @param entity
+   * @constructor
+   */
+  batchMergeTransaction: function (entity) {
+    //console.log(entity);
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity || !entity.deposit || !entity.address || !entity.assetsChainId || !entity.assetsId || !entity.agentHash || !entity.agentHash.length) {
+      throw "Data Wrong!";
+    }
+    this.type = 33;
+    let bw = new Serializers();
+    bw.writeBigInt(entity.deposit);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.address));
+    bw.getBufWriter().writeUInt16LE(entity.assetsChainId);
+    bw.getBufWriter().writeUInt16LE(entity.assetsId);
+    bw.getBufWriter().write(Buffer.from([entity.depositType]));
+    bw.getBufWriter().write(Buffer.from([entity.timeType]));
+    bw.getBufWriter().writeVarintNum(entity.agentHash.length)
+    for (let item of entity.agentHash) {
+      bw.getBufWriter().write(Buffer.from(item, 'hex'));
+    }
     this.txData = bw.getBufWriter().toBuffer();
   },
 
@@ -354,6 +411,21 @@ module.exports = {
   },
 
   /**
+   * @desc 提现追加手续费
+   */
+  AdditionFeeTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity || !entity.txHash) {
+      throw "Data Wrong!";
+    }
+    this.type = 56;
+    let bw = new Serializers();
+    bw.getBufWriter().write(Buffer.from(entity.txHash, 'hex'));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
    * @disc: 创建交易对
    * @params:
    * @date: 2020-08-20 12:00
@@ -363,16 +435,17 @@ module.exports = {
     Transaction.call(this);
     this.type = 228;
     let bw = new Serializers();
+    bw.getBufWriter().write(sdk.getBytesAddress(coinTrading.address))
     bw.getBufWriter().writeUInt16LE(coinTrading.baseAssetChainId);
     bw.getBufWriter().writeUInt16LE(coinTrading.baseAssetId);
-    bw.getBufWriter().writeUInt8(coinTrading.baseMinDecimal);
-    bw.writeBigInt(coinTrading.baseMinSize);
+    bw.getBufWriter().writeUInt8(coinTrading.scaleBaseDecimal);
 
     bw.getBufWriter().writeUInt16LE(coinTrading.quoteAssetChainId);
     bw.getBufWriter().writeUInt16LE(coinTrading.quoteAssetId);
-    bw.getBufWriter().writeUInt8(coinTrading.quoteMinDecimal);
-    bw.writeBigInt(coinTrading.quoteMinSize);
+    bw.getBufWriter().writeUInt8(coinTrading.scaleQuoteDecimal);
 
+    bw.writeBigInt(coinTrading.minBaseAmount);
+    bw.writeBigInt(coinTrading.minQuoteAmount);
     this.txData = bw.getBufWriter().toBuffer();
   },
 

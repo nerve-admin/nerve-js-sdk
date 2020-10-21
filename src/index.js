@@ -90,8 +90,9 @@ module.exports = {
       tt = new txs.CreateAgentTransaction(info);
     } else if (type === 5) { //加入staking
       tt = new txs.addStakingTransaction(info);
-    } else if (type === 6) { //退出staking
-      tt = new txs.outStakingTransaction(info);
+    } else if (type === 6) { //nvt退出staking 锁定7天
+      outputs[0].lockTime ? tt = new txs.outStakingTransaction(info, outputs[0].lockTime - 86400 * 7) : tt = new txs.outStakingTransaction(info)
+      // tt = new txs.outStakingTransaction(info, outputs[0].lockTime - 86400 * 7);
     } else if (type === 9) { //注销节点  锁定15天 =86400*15
       tt = new txs.StopAgentTransaction(info, outputs[0].lockTime - 86400 * 15);
     } else if (type === 10) { //跨链转账
@@ -100,8 +101,14 @@ module.exports = {
       tt = new txs.DepositTransaction(info);
     } else if (type === 29) { //退出保证金
       tt = new txs.WithdrawTransaction(info);
+    } else if (type === 32) { //批量退出
+      outputs[0].lockTime ? tt = new txs.batchOutStakingTransaction(info, outputs[0].lockTime - 86400 * 7) : tt = new txs.batchOutStakingTransaction(info)
+    } else if (type === 33) { //批量合并
+      tt = new txs.batchMergeTransaction(info);
     } else if (type === 43) { //跨链提现
       tt = new txs.WithdrawalTransaction(info);
+    } else if (type === 56) { //提现追加手续费
+      tt = new txs.AdditionFeeTransaction(info);
     } else if (type === 228) {  //创建交易对
       tt = new txs.CoinTradingTransaction(info);
     } else if (type === 229) {  //委托挂单
