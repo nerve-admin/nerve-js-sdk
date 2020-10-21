@@ -151,7 +151,7 @@ module.exports = {
       }
     }
     let bytes = bs58.decode(stringAddress);
-    result.chainId = bytes.readInt16LE(0);
+    result.chainId = bytes.readUInt16LE(0);
     result.type = bytes.readInt8(2);
     let temp = '';
     let xor = 0x00;
