@@ -54,7 +54,7 @@ BufferReader.prototype.isFinished = function () {
     return this.buf.length == this.cursor;
 };
 BufferReader.prototype.readBoolean = function () {
-    result = this.buf.readUInt8();
+    var result = this.buf.readUInt8();
     this.cursor += 1;
     return result != 0;
 };
