@@ -401,12 +401,13 @@ module.exports = {
   WithdrawalTransaction: function (entity) {
     Transaction.call(this);
     //对象属性结构
-    if (!entity || !entity.heterogeneousAddress) {
+    if (!entity || !entity.heterogeneousAddress || !entity.heterogeneousChainId) {
       throw "Data Wrong!";
     }
     this.type = 43;
     let bw = new Serializers();
     bw.writeString(entity.heterogeneousAddress);
+    bw.getBufWriter().writeUInt16LE(entity.heterogeneousChainId);
     this.txData = bw.getBufWriter().toBuffer();
   },
 
@@ -421,7 +422,7 @@ module.exports = {
     }
     this.type = 56;
     let bw = new Serializers();
-    bw.getBufWriter().write(Buffer.from(entity.txHash, 'hex'));
+    bw.writeString(entity.txHash)
     this.txData = bw.getBufWriter().toBuffer();
   },
 
