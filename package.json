@@ -1,6 +1,6 @@
 {
   "name": "nerve-sdk-js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "nerve nerve-js nerve-sdk nerve-js-sdk",
   "main": "index.js",
   "files": [
@@ -23,10 +23,6 @@
     "nerve-sdk"
   ],
   "devDependencies": {
-    "@babel/cli": "^7.12.1",
-    "@babel/core": "^7.12.3",
-    "@babel/plugin-transform-modules-commonjs": "^7.12.1",
-    "@babel/preset-env": "^7.12.1",
     "buffer-equal": "^1.0.0",
     "chai": "*",
     "jshint": "^2.9.6",
@@ -41,6 +37,8 @@
     "watchify": "^3.11.0"
   },
   "dependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
     "@babel/plugin-proposal-class-properties": "^7.0.0",
     "@babel/plugin-proposal-decorators": "^7.0.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
@@ -51,6 +49,7 @@
     "@babel/plugin-syntax-dynamic-import": "^7.0.0",
     "@babel/plugin-syntax-import-meta": "^7.0.0",
     "@babel/plugin-transform-runtime": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
     "acorn": "7.1.1",
     "axios": "^0.18.1",
     "bignumber.js": "^9.0.0",
