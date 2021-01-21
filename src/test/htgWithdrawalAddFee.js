@@ -15,12 +15,12 @@ let addFeeAmount = '3';
 
 let remark = 'withdrawal add fee transaction remark...';
 //调用
-withdrawalAddFee(pri, fromAddress, withdrawalTxHash, addFeeAmount, remark);
+withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, remark);
 
 /**
  * 异构链提现追加手续费交易
  */
-async function withdrawalAddFee(pri, fromAddress, withdrawalTxHash, addFeeAmount, remark) {
+async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, remark) {
     let feeAddress = nerve.getAddressByPub(NERVE_INFO.chainId, NERVE_INFO.assetId, NERVE_INFO.feePubkey, NERVE_INFO.prefix);
     let transferInfo = {
         fromAddress: fromAddress,

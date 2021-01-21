@@ -26,12 +26,12 @@ let withdrawalFeeOfNVT = '0.005';
 
 let remark = 'withdrawal transaction remark...';
 //调用
-withdrawal(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark);
+withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark);
 
 /**
  * 异构链提现交易
  */
-async function withdrawal(pri, fromAddress, toAddress, heterogeneousChainId, assetsChainId, assetsId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark) {
+async function withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, assetsChainId, assetsId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark) {
     let newAmount = timesDecimals(withdrawalAmount, withdrawalDecimals);
     let transferInfo = {
         fromAddress: fromAddress,
