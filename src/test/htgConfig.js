@@ -2,6 +2,9 @@
 
 const BigNumber = require('bignumber.js');
 
+//异构网络信息 测试网:ropsten, 主网:homestead
+const HTGNET = 'ropsten';
+
 // NERVE网络信息
 const NERVE_INFO = {
     chainId: 5,
@@ -68,4 +71,4 @@ function Minus(nu, arg) {
     return newMinus.minus(arg);
 }
 
-module.exports = {NERVE_INFO, RPC_URL, Minus, Plus, timesDecimals}
+module.exports = {NERVE_INFO, HTGNET, RPC_URL, Minus, Plus, timesDecimals}

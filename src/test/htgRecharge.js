@@ -1,4 +1,4 @@
-const {NERVE_INFO} = require('./htgConfig');
+const {NERVE_INFO, HTGNET} = require('./htgConfig');
 
 const {
     getProvider,
@@ -11,8 +11,7 @@ const {
     validateAddress
 } = require('./api_ethers');
 
-//异构网络信息 测试网:ropsten, 主网:homestead
-const HTGNET = 'ropsten';
+
 
 // crossMainAssetTest();
 crossTokenTest();
