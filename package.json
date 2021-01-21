@@ -67,7 +67,8 @@
     "nan": "2.11.1",
     "randombytes": "2.0.6",
     "rimraf": "^2.6.3",
-    "sha256": "^0.2.0"
+    "sha256": "^0.2.0",
+    "ethers": "^4.0.47"
   },
   "optionalDependencies": {
     "secp256k1": "3.7.1"

@@ -396,12 +396,17 @@ module.exports = {
    */
   async getNulsBalance(address, chainId = 5, assetId = 1) {
     return await http.post('/', 'getAccountBalance', [chainId, assetId, address])
-      .then((response) => {
-        return {success: true, data: {'balance': response.result.balance, 'nonce': response.result.nonce}};
-      })
-      .catch((error) => {
-        return {success: false, data: error};
-      });
+        .then((response) => {
+          //console.log(response);
+          if (response.hasOwnProperty("result")) {
+            return {success: true, data: {balance: response.result.balance, nonce: response.result.nonce}}
+          } else {
+            return {success: false, data: response}
+          }
+        })
+        .catch((error) => {
+          return {success: false, data: error};
+        });
   },
 
   /**
