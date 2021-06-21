@@ -23,13 +23,16 @@ function token(chainId, assetId) {
 async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
     let farmInfo = {
         fromAddress: fromAddress,
-        toAddress: 'TNVTdTSQWhb5F2pdWRd6W2m5622btcyFWaeZ6',//根据空hash+ 类型=5，计算出地址
+        toAddress: fromAddress,//根据空hash+ 类型=5，计算出地址
         fee: 0,
         assetsChainId: tokenA.chainId,
         assetsId: tokenA.assetId,
         amount: 0,
     };
     let balance = await getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
+
+    balance.data.nonce = "9e8e4ca8aef43a32";
+
     let inOrOutputs = await inputsOrOutputs(farmInfo, balance.data);
     if (!inOrOutputs.success) {
         //console.log(inOrOutputs);

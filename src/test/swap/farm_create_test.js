@@ -32,6 +32,7 @@ async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
         amount: 1000000000000,
     };
     let balance = await getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
+    balance.data.nonce = '0000000000000000';
     let inOrOutputs = await inputsOrOutputs(farmInfo, balance.data);
     //console.log(inOrOutputs);
     if (!inOrOutputs.success) {
