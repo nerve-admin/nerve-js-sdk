@@ -432,12 +432,15 @@ module.exports = {
   SwapCreatePairTransaction: function (entity) {
     Transaction.call(this);
     //对象属性结构
-    if (!entity || !entity.txHash) {
+    if (!entity || !entity.tokenA || !entity.tokenB) {
       throw "Data Wrong!";
     }
     this.type = 61;
     let bw = new Serializers();
-    bw.writeString(entity.txHash)
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.assetId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.assetId);
     this.txData = bw.getBufWriter().toBuffer();
   },
 

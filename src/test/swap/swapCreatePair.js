@@ -1,7 +1,7 @@
 const nerve = require('../../index');
 const sdk = require('../../api/sdk');
 
-const {getNulsBalance, validateTx, broadcastTx} = require('../api/util');
+const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx} = require('../api/util');
 const _chainId = 5;
 const _assetId = 1;
 
@@ -12,7 +12,7 @@ let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 // 接收地址
 let toAddress = '0xc11D9943805e56b630A401D4bd9A29550353EFa1';
 
-let remark = 'withdrawal transaction remark...';
+let remark = 'swap create pair remark...';
 //调用
 swapCreatePairTest(pri, fromAddress, token(5, 1), token(5, 6), remark);
 
@@ -27,11 +27,12 @@ async function swapCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
         fromAddress: fromAddress,
         toAddress: fromAddress,
         fee: 0,
-        chainId: _chainId,
-        assetId: _assetId,
+        assetsChainId: _chainId,
+        assetsId: _assetId,
         amount: 0,
     };
-    let inOrOutputs = await inputsOrOutputs(transferInfo);
+    let balance = await getNulsBalance(transferInfo.fromAddress, transferInfo.chainId, transferInfo.assetId);
+    let inOrOutputs = await inputsOrOutputs(transferInfo, balance.data);
     //console.log(inOrOutputs);
     if (!inOrOutputs.success) {
         throw "inputs、outputs组装错误";
@@ -58,7 +59,7 @@ async function swapCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
     let txhex = tAssemble.txSerialize().toString("hex");
     console.log(txhex.toString('hex'));
 
-    let result = await validateTx(txhex);
+    /*let result = await validateTx(txhex);
     if (result.success) {
         console.log(result.data.value);
         let results = await broadcastTx(txhex);
@@ -69,71 +70,7 @@ async function swapCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
         }
     } else {
         console.log("验证交易失败:" + JSON.stringify(result.error))
-    }
-}
-
-/**
- * 获取inputs and outputs
- * @param transferInfo
- * @returns {*}
- **/
-async function inputsOrOutputs(transferInfo) {
-    let withdrawalBalance = await getNulsBalance(transferInfo.fromAddress, transferInfo.chainId, transferInfo.assetId);
-    let mainBalance = await getNulsBalance(transferInfo.fromAddress, NERVE_INFO.chainId, NERVE_INFO.assetId);
-
-    let newFee = Number(timesDecimals(Plus(transferInfo.withdrawalFee, transferInfo.fee), NERVE_INFO.decimals));
-    let newAmount = Number(Plus(transferInfo.amount, newFee));
-    let inputs = [];
-    if (transferInfo.chainId === NERVE_INFO.chainId && transferInfo.assetId === NERVE_INFO.assetId) {
-        inputs.push({
-            address: transferInfo.fromAddress,
-            amount: newAmount,
-            assetsChainId: transferInfo.chainId,
-            assetsId: transferInfo.assetId,
-            nonce: withdrawalBalance.data.nonce,
-            locked: 0,
-        });
-    } else {
-        inputs = [
-            {
-                address: transferInfo.fromAddress,
-                amount: transferInfo.amount,
-                assetsChainId: transferInfo.chainId,
-                assetsId: transferInfo.assetId,
-                nonce: withdrawalBalance.data.nonce,
-                locked: 0,
-            },
-            {
-                address: transferInfo.fromAddress,
-                amount: newFee,
-                assetsChainId: NERVE_INFO.chainId,
-                assetsId: NERVE_INFO.assetId,
-                nonce: mainBalance.data.nonce,
-                locked: 0,
-            }
-        ];
-    }
-
-
-    let feeAddress = nerve.getAddressByPub(NERVE_INFO.chainId, NERVE_INFO.assetId, NERVE_INFO.feePubkey, NERVE_INFO.prefix);
-
-    let outputs = [
-        {
-            address: NERVE_INFO.blockHoleAddress, //黑洞地址
-            amount: transferInfo.amount,
-            assetsChainId: transferInfo.chainId,
-            assetsId: transferInfo.assetId,
-            locked: 0
-        },
-        {
-            address: feeAddress, //提现费用地址
-            amount: Number(timesDecimals(transferInfo.withdrawalFee, NERVE_INFO.decimals)),
-            assetsChainId: NERVE_INFO.chainId,
-            assetsId: NERVE_INFO.assetId,
-            locked: 0
-        },
-    ];
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
+    }*/
 }
 
 
