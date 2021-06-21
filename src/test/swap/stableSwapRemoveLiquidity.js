@@ -8,21 +8,34 @@ const _assetId = 1;
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
-// 流动性份额接收地址
+// 移除流动性份额接收地址
 let toAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
 // 交易对地址
 let stablePairAddress = "TNVTdTSQkXMz7PGy5j48LfuQbAbVzHcYTMAzM";
-let remark = 'stable swap add liquidity remark...';
+let remark = 'stable swap remove liquidity remark...';
 //调用
-stableSwapAddLiquidityTest(_chainId, pri, fromAddress, stablePairAddress,
-    [util.tokenAmount(5, 6, "60000000000"), util.tokenAmount(5, 7, "700000000"), util.tokenAmount(5, 8, "800000000"), util.tokenAmount(5, 9, "900000000")],
-    util.currentTime() + 300, toAddress, remark);
+stableSwapRemoveLiquidityTest(_chainId, pri, fromAddress, stablePairAddress,
+    util.tokenAmount(5, 18, "2698778989"),
+    [4, 2, 3, 1], util.currentTime() + 300, toAddress, remark);
+
 
 /**
- * 添加Stable-Swap流动性
+ * 移除Stable-Swap流动性
  */
-async function stableSwapAddLiquidityTest(chainId, pri, fromAddress, stablePairAddress, tokenAmounts, deadline, to, remark) {
-    let inOrOutputs = await inputsOrOutputs(fromAddress, stablePairAddress, tokenAmounts);
+async function stableSwapRemoveLiquidityTest(chainId, pri, fromAddress, stablePairAddress, tokenAmountLP, receiveOrderIndexs, deadline, to, remark) {
+    let pairAddress = stablePairAddress;
+    let transferInfo = {
+        fromAddress: fromAddress,
+        toAddress: pairAddress,
+        fee: 0,
+        assetsChainId: tokenAmountLP.chainId,
+        assetsId: tokenAmountLP.assetId,
+        amount: tokenAmountLP.amount,
+    };
+    let balance = await util.getNulsBalance(transferInfo.fromAddress, transferInfo.assetsChainId, transferInfo.assetsId);
+    let inOrOutputs = await util.inputsOrOutputs(transferInfo, balance.data);
+
+    // let inOrOutputs = await inputsOrOutputs(fromAddress, to, tokenAmountA, tokenAmountB, pairAddress);
     if (!inOrOutputs.success) {
         throw "inputs、outputs组装错误";
     }
@@ -31,8 +44,9 @@ async function stableSwapAddLiquidityTest(chainId, pri, fromAddress, stablePairA
         inOrOutputs.data.inputs,
         inOrOutputs.data.outputs,
         remark,
-        73,
+        74,
         {
+            indexs: Buffer.from(receiveOrderIndexs),
             to: to
         }
     );
@@ -61,30 +75,5 @@ async function stableSwapAddLiquidityTest(chainId, pri, fromAddress, stablePairA
     }*/
 }
 
-async function inputsOrOutputs(fromAddress, to, tokenAmounts) {
-    let inputs = [];
-    let outputs = [];
-    let length = tokenAmounts.length;
-    for (let i = 0; i < length; i++) {
-        let tokenAmount = tokenAmounts[i];
-        let balance = await util.getNulsBalance(fromAddress, tokenAmount.chainId, tokenAmount.assetId);
-        inputs.push({
-            address: fromAddress,
-            amount: tokenAmount.amount,
-            assetsChainId: tokenAmount.chainId,
-            assetsId: tokenAmount.assetId,
-            nonce: balance.data.nonce,
-            locked: 0,
-        });
-        outputs.push({
-            address: to,
-            amount: tokenAmount.amount,
-            assetsChainId: tokenAmount.chainId,
-            assetsId: tokenAmount.assetId,
-            locked: 0
-        });
-    }
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
-}
 
 

@@ -8,32 +8,39 @@ const _assetId = 1;
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
-// 流动性份额接收地址
+// 资产接收地址
 let toAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
 // 交易对地址
 let stablePairAddress = "TNVTdTSQkXMz7PGy5j48LfuQbAbVzHcYTMAzM";
-let remark = 'stable swap add liquidity remark...';
+// 交易手续费取出一部分给指定的接收地址
+let feeTo = null;
+let remark = 'stable swap trade remark...';
 //调用
-stableSwapAddLiquidityTest(_chainId, pri, fromAddress, stablePairAddress,
-    [util.tokenAmount(5, 6, "60000000000"), util.tokenAmount(5, 7, "700000000"), util.tokenAmount(5, 8, "800000000"), util.tokenAmount(5, 9, "900000000")],
-    util.currentTime() + 300, toAddress, remark);
+stableSwapTradeTest(_chainId, pri, fromAddress, stablePairAddress,
+    [util.tokenAmount(5, 6, "600000000"), util.tokenAmount(5, 9, "90000000")],
+    3, feeTo, util.currentTime() + 300, toAddress, remark);
 
 /**
- * 添加Stable-Swap流动性
+ * Stable-Swap币币交换
  */
-async function stableSwapAddLiquidityTest(chainId, pri, fromAddress, stablePairAddress, tokenAmounts, deadline, to, remark) {
-    let inOrOutputs = await inputsOrOutputs(fromAddress, stablePairAddress, tokenAmounts);
+async function stableSwapTradeTest(chainId, pri, fromAddress, stablePairAddress, amountIns, tokenOutIndex, feeTo, deadline, to, remark) {
+    let inOrOutputs = await inputsOrOutputs(fromAddress, stablePairAddress, amountIns);
     if (!inOrOutputs.success) {
         throw "inputs、outputs组装错误";
+    }
+    if (feeTo == null) {
+        feeTo = '';
     }
 
     let tAssemble = await nerve.transactionAssemble(
         inOrOutputs.data.inputs,
         inOrOutputs.data.outputs,
         remark,
-        73,
+        72,
         {
-            to: to
+            to: to,
+            tokenOutIndex: Buffer.from(tokenOutIndex + ''),
+            feeTo: feeTo,
         }
     );
     //获取hash

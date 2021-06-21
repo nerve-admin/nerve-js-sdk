@@ -579,7 +579,9 @@ module.exports = {
     let bw = new Serializers();
     bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
     bw.getBufWriter().write(entity.tokenOutIndex);
-    bw.writeBytesWithLength(sdk.getBytesAddress(entity.feeTo));
+    if (entity.feeTo) {
+      bw.getBufWriter().write(sdk.getBytesAddress(entity.feeTo));
+    }
     this.txData = bw.getBufWriter().toBuffer();
   },
 
