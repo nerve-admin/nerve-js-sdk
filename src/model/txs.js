@@ -445,6 +445,76 @@ module.exports = {
   },
 
   /**
+   * @desc swap添加流动性
+   */
+  SwapAddLiquidityTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 64;
+    let bw = new Serializers();
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.assetId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.assetId);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.getBufWriter().writeUInt32LE(entity.deadline);
+    bw.writeBigInt(entity.amountAMin);
+    bw.writeBigInt(entity.amountBMin);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc swap移除流动性
+   */
+  SwapRemoveLiquidityTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 65;
+    let bw = new Serializers();
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.assetId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.assetId);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.getBufWriter().writeUInt32LE(entity.deadline);
+    bw.writeBigInt(entity.amountAMin);
+    bw.writeBigInt(entity.amountBMin);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc swap币币交易
+   */
+  SwapTradeTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 63;
+    let bw = new Serializers();
+    bw.writeBigInt(entity.amountOutMin);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.writeBytesWithLength(sdk.getBytesAddress(entity.feeTo));
+    bw.getBufWriter().writeUInt32LE(entity.deadline);
+    let tokenPath = entity.tokenPath;
+    let length = tokenPath.length;
+    bw.getBufWriter().writeUInt8(length);
+    for (let i = 0; i < length; i++) {
+      let token = tokenPath[i];
+      bw.getBufWriter().writeUInt16LE(token.chainId);
+      bw.getBufWriter().writeUInt16LE(token.assetId);
+    }
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
    * @disc: 创建交易对
    * @params:
    * @date: 2020-08-20 12:00

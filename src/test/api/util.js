@@ -1,4 +1,6 @@
 const http = require('./https.js');
+const sdk = require('../../api/sdk');
+const cryptos = require("crypto");
 
 module.exports = {
 
@@ -660,5 +662,48 @@ module.exports = {
       .catch((error) => {
         return {success: false, data: error};
       });
-  }
+  },
+
+  currentTime() {
+    var times = new Date().valueOf();
+    return Number(times.toString().substr(0, times.toString().length - 3)); //交易时间
+  },
+  token(chainId, assetId) {
+    return {chainId: chainId, assetId: assetId};
+  },
+  tokenAmount(chainId, assetId, amount) {
+    return {chainId: chainId, assetId: assetId, amount: amount};
+  },
+  tokenSort(token0, token1) {
+    let positiveSequence = token0.chainId < token1.chainId || (token0.chainId == token1.chainId && token0.assetId < token1.assetId);
+    if (positiveSequence) {
+      return [token0, token1];
+    }
+    return [token1, token0];
+  },
+  int32ToBytes(x) {
+    return Buffer.concat([
+      Buffer.from([0xFF & x]),
+      Buffer.from([0xFF & x >> 8]),
+      Buffer.from([0xFF & x >> 16]),
+      Buffer.from([0xFF & x >> 24])
+    ]);
+  },
+  getStringPairAddress(chainId, token0, token1) {
+    let array = this.tokenSort(token0, token1);
+    let all = Buffer.concat([
+      cryptos.createHash('sha256').update(this.int32ToBytes(array[0].chainId)).digest(),
+      cryptos.createHash('sha256').update(this.int32ToBytes(array[0].assetId)).digest(),
+      cryptos.createHash('sha256').update(this.int32ToBytes(array[1].chainId)).digest(),
+      cryptos.createHash('sha256').update(this.int32ToBytes(array[1].assetId)).digest()
+    ]);
+    let prefix = null;
+    if (5 === chainId) {
+      prefix = 'TNVT';
+    } else if (9 === chainId) {
+      prefix = "NERVE";
+    }
+    return sdk.getStringAddressBase(chainId, 4, null, cryptos.createHash('sha256').update(all).digest(), prefix);
+  },
+
 };

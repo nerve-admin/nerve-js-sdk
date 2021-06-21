@@ -8,26 +8,40 @@ const _assetId = 1;
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
-
-let remark = 'swap create pair remark...';
+// 资产接收地址
+let toAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
+// 交易手续费取出一部分给指定的接收地址
+let feeTo = null;
+let remark = 'swap trade remark...';
 //调用
-swapCreatePairTest(pri, fromAddress, util.token(5, 1), util.token(5, 6), remark);
-
+swapTradeTest(_chainId, pri, fromAddress, "14000000000",
+    [util.token(5, 1), util.token(5, 6)], "9899567",
+    feeTo, util.currentTime() + 300, toAddress, remark);
+// test();
+function test() {
+    let aaa = sdk.getBytesAddress(null);
+    console.log(aaa.length);
+}
 /**
- * 创建Swap交易对
+ * Swap币币交换
  */
-async function swapCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
+async function swapTradeTest(chainId, pri, fromAddress, amountIn, tokenPath, amountOutMin, feeTo, deadline, to, remark) {
+    if (feeTo == null) {
+        feeTo = '';
+    }
+    let firstTokenIn = tokenPath[0];
+    let pairAddress = util.getStringPairAddress(chainId, firstTokenIn, tokenPath[1]);
     let transferInfo = {
         fromAddress: fromAddress,
-        toAddress: fromAddress,
+        toAddress: pairAddress,
         fee: 0,
-        assetsChainId: _chainId,
-        assetsId: _assetId,
-        amount: 0,
+        assetsChainId: firstTokenIn.chainId,
+        assetsId: firstTokenIn.assetId,
+        amount: amountIn,
     };
-    let balance = await util.getNulsBalance(transferInfo.fromAddress, transferInfo.chainId, transferInfo.assetId);
+    let balance = await util.getNulsBalance(transferInfo.fromAddress, transferInfo.assetsChainId, transferInfo.assetsId);
     let inOrOutputs = await util.inputsOrOutputs(transferInfo, balance.data);
-    //console.log(inOrOutputs);
+
     if (!inOrOutputs.success) {
         throw "inputs、outputs组装错误";
     }
@@ -36,10 +50,13 @@ async function swapCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
         inOrOutputs.data.inputs,
         inOrOutputs.data.outputs,
         remark,
-        61,
+        63,
         {
-            tokenA: tokenA,
-            tokenB: tokenB
+            amountOutMin: amountOutMin,
+            to: to,
+            feeTo: feeTo,
+            deadline: deadline,
+            tokenPath: tokenPath
         }
     );
     //获取hash
@@ -66,5 +83,6 @@ async function swapCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
         console.log("验证交易失败:" + JSON.stringify(result.error))
     }*/
 }
+
 
 
