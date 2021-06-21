@@ -513,6 +513,75 @@ module.exports = {
     }
     this.txData = bw.getBufWriter().toBuffer();
   },
+  /**
+   * @desc 创建stable-swap交易对
+   */
+  StableSwapCreatePairTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 71;
+    let bw = new Serializers();
+    let coins = entity.coins;
+    let length = coins.length;
+    bw.getBufWriter().writeUInt8(length);
+    for (let i = 0; i < length; i++) {
+      let coin = coins[i];
+      bw.getBufWriter().writeUInt16LE(coin.chainId);
+      bw.getBufWriter().writeUInt16LE(coin.assetId);
+    }
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc stable-swap添加流动性
+   */
+  StableSwapAddLiquidityTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 73;
+    let bw = new Serializers();
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc stable-swap移除流动性
+   */
+  StableSwapRemoveLiquidityTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 74;
+    let bw = new Serializers();
+    bw.writeBytesWithLength(entity.indexs);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc stable-swap币币交易
+   */
+  StableSwapTradeTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 72;
+    let bw = new Serializers();
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.getBufWriter().write(entity.tokenOutIndex);
+    bw.writeBytesWithLength(sdk.getBytesAddress(entity.feeTo));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
 
   /**
    * @disc: 创建交易对

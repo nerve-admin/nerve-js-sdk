@@ -123,6 +123,14 @@ module.exports = {
       tt = new txs.FarmStakeTransaction(info);
     } else if (type === 67) { //退出质押
       tt = new txs.FarmWithdrawTransaction(info);
+    } else if (type === 71) { //创建Stable-Swap交易对
+      tt = new txs.StableSwapCreatePairTransaction(info);
+    } else if (type === 73) { //Stable-Swap添加流动性
+      tt = new txs.StableSwapAddLiquidityTransaction(info);
+    } else if (type === 74) { //Stable-Swap移除流动性
+      tt = new txs.StableSwapRemoveLiquidityTransaction(info);
+    } else if (type === 72) { //Stable-Swap币币交易
+      tt = new txs.StableSwapTradeTransaction(info);
     } else if (type === 228) {  //创建交易对
       tt = new txs.CoinTradingTransaction(info);
     } else if (type === 229) {  //委托挂单
