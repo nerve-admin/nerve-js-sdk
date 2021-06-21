@@ -109,6 +109,8 @@ module.exports = {
       tt = new txs.WithdrawalTransaction(info);
     } else if (type === 56) { //提现追加手续费
       tt = new txs.AdditionFeeTransaction(info);
+    } else if (type === 61) { //创建Swap交易对
+      tt = new txs.SwapCreatePairTransaction(info);
     } else if (type === 228) {  //创建交易对
       tt = new txs.CoinTradingTransaction(info);
     } else if (type === 229) {  //委托挂单

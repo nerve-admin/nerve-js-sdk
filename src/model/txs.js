@@ -427,6 +427,21 @@ module.exports = {
   },
 
   /**
+   * @desc 创建swap交易对
+   */
+  SwapCreatePairTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity || !entity.txHash) {
+      throw "Data Wrong!";
+    }
+    this.type = 61;
+    let bw = new Serializers();
+    bw.writeString(entity.txHash)
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
    * @disc: 创建交易对
    * @params:
    * @date: 2020-08-20 12:00
