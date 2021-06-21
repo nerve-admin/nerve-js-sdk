@@ -494,5 +494,41 @@ module.exports = {
     this.txData = bw.getBufWriter().toBuffer();
   },
 
+  FarmCreateTransaction: function (entity) {
+    Transaction.call(this);
+    this.type = 62;
+    let bw = new Serializers();
+
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.assetId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.assetId);
+    bw.writeBigInt(entity.syrupPerBlock)
+    bw.writeBigInt(entity.totalSyrupAmount)
+    bw.writeUInt64LE(entity.startBlockHeight);
+    bw.writeUInt64LE(entity.lockedTime);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  FarmStakeTransaction: function (entity) {
+    Transaction.call(this);
+    this.type = 66;
+    let bw = new Serializers();
+    let hash = Buffer.from(entity.farmHash, 'hex');
+    bw.getBufWriter().write(hash);
+    bw.writeBigInt(entity.amount);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  FarmWithdrawTransaction: function (entity) {
+    Transaction.call(this);
+    this.type = 67;
+    let bw = new Serializers();
+    let hash = Buffer.from(entity.farmHash, 'hex');
+    bw.getBufWriter().write(hash);
+    bw.writeBigInt(entity.amount);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
 };
 

@@ -111,6 +111,12 @@ module.exports = {
       tt = new txs.AdditionFeeTransaction(info);
     } else if (type === 61) { //创建Swap交易对
       tt = new txs.SwapCreatePairTransaction(info);
+    } else if (type === 62) { //创建Swap交易对
+      tt = new txs.FarmCreateTransaction(info);
+    } else if (type === 66) { //创建Swap交易对
+      tt = new txs.FarmStakeTransaction(info);
+    } else if (type === 67) { //创建Swap交易对
+      tt = new txs.FarmWithdrawTransaction(info);
     } else if (type === 228) {  //创建交易对
       tt = new txs.CoinTradingTransaction(info);
     } else if (type === 229) {  //委托挂单
