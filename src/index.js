@@ -117,6 +117,12 @@ module.exports = {
       tt = new txs.SwapRemoveLiquidityTransaction(info);
     } else if (type === 63) { //Swap币币交易
       tt = new txs.SwapTradeTransaction(info);
+    } else if (type === 62) { //创建挖矿池
+      tt = new txs.FarmCreateTransaction(info);
+    } else if (type === 66) { //质押挖矿
+      tt = new txs.FarmStakeTransaction(info);
+    } else if (type === 67) { //退出质押
+      tt = new txs.FarmWithdrawTransaction(info);
     } else if (type === 228) {  //创建交易对
       tt = new txs.CoinTradingTransaction(info);
     } else if (type === 229) {  //委托挂单
