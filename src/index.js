@@ -3,9 +3,32 @@ const txsignatures = require("./model/txsignatures");
 const sdk = require('./api/sdk');
 const txs = require('./model/txs');
 const eccrypto = require("./crypto/eciesCrypto");
+const axios = require('axios');
+let API_CHAIN_ID;
 
 module.exports = {
-
+  mainnet() {
+    API_CHAIN_ID = 9;
+    axios.defaults.timeout = 9000;
+    axios.defaults.baseURL = 'https://public.nerve.network';
+  },
+  testnet() {
+    API_CHAIN_ID = 5;
+    axios.defaults.timeout = 9000;
+    axios.defaults.baseURL = 'http://beta.public.nerve.network';
+  },
+  customnet(chainId, url, timeout) {
+    API_CHAIN_ID = chainId;
+    axios.defaults.baseURL = url;
+    if (!timeout) {
+      axios.defaults.timeout = 9000;
+    } else {
+      axios.defaults.timeout = timeout;
+    }
+  },
+  chainId() {
+    return API_CHAIN_ID;
+  },
   /**
    * 生成地址
    * @param chainId
@@ -241,6 +264,8 @@ module.exports = {
     // 结果
     //console.log(tx.txSerialize().toString("hex"));
     return {success: true, data: {hash: tx.getHash().toString("hex"), hex: tx.txSerialize().toString("hex")}}
-  }
+  },
 
 };
+const swap = require("./utils/swap");
+module.exports.swap = swap;

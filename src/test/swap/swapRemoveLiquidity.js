@@ -1,8 +1,11 @@
+/**
+ * 移除Swap流动性
+ */
 const nerve = require('../../index');
-const sdk = require('../../api/sdk');
-const util = require('../api/util');
-
-const _chainId = 5;
+const swap = nerve.swap;
+// 设置网络环境
+nerve.testnet();
+const _chainId = nerve.chainId();
 const _assetId = 1;
 
 // 账户信息
@@ -12,14 +15,17 @@ let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 let toAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
 let remark = 'swap remove liquidity remark...';
 //调用
-swapRemoveLiquidityTest(_chainId, pri, fromAddress,
-    util.tokenAmount(5, 18, "2698778989"),
-    util.tokenAmount(5, 1, "140000000000"), util.tokenAmount(5, 6, "100000000"), util.currentTime() + 300, toAddress, remark);
+test();
+async function test() {
+    let txhex = await swap.swapRemoveLiquidity(pri, fromAddress,
+        swap.tokenAmount(5, 18, "2698778989"),
+        swap.tokenAmount(5, 1, "140000000000"), swap.tokenAmount(5, 6, "100000000"), swap.currentTime() + 300, toAddress, remark);
+    console.log(txhex);
+}
 
 
-/**
- * 移除Swap流动性
- */
+
+
 async function swapRemoveLiquidityTest(chainId, pri, fromAddress, tokenAmountLP, tokenAmountAMin, tokenAmountBMin, deadline, to, remark) {
     let pairAddress = util.getStringPairAddress(chainId, tokenAmountAMin, tokenAmountBMin);
     let transferInfo = {

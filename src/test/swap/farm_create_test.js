@@ -1,8 +1,8 @@
 const nerve = require('../../index');
 const sdk = require('../../api/sdk');
-
-const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx} = require('../api/util');
-const _chainId = 5;
+nerve.testnet();
+const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx, token} = require('../api/util');
+const _chainId = nerve.chainId();
 const _assetId = 1;
 
 // 账户信息
@@ -12,10 +12,6 @@ let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 let remark = 'farm create pair remark...';
 //调用
 farmCreatePairTest(pri, fromAddress, token(5, 8), token(5, 1), remark);
-
-function token(chainId, assetId) {
-    return {chainId: chainId, assetId: assetId};
-}
 
 /**
  * 创建farm

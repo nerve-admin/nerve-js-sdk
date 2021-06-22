@@ -1,26 +1,22 @@
 const nerve = require('../../index');
 const sdk = require('../../api/sdk');
-
-const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx} = require('../api/util');
-const _chainId = 5;
+nerve.testnet();
+const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx, token} = require('../api/util');
+const _chainId = nerve.chainId();
 const _assetId = 1;
 
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 
-let remark = 'farm create pair remark...';
+let remark = 'farm stake remark...';
 //调用
-farmCreatePairTest(pri, fromAddress, token(5, 1), token(5, 6), remark);
-
-function token(chainId, assetId) {
-    return {chainId: chainId, assetId: assetId};
-}
+farmStakeTest(pri, fromAddress, token(5, 1), token(5, 6), remark);
 
 /**
  * 创建farm
  */
-async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
+async function farmStakeTest(pri, fromAddress, tokenA, tokenB, remark) {
     let farmInfo = {
         fromAddress: fromAddress,
         toAddress: 'TNVTdTSQWhb5F2pdWRd6W2m5622btcyFWaeZ6',//根据空hash+ 类型=5，计算出地址
