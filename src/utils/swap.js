@@ -79,6 +79,10 @@ function int32ToBytes(x) {
 }
 
 module.exports = {
+    /**
+     * 当前时间，单位秒
+     * @returns {number}
+     */
     currentTime() {
         var times = new Date().valueOf();
         return Number(times.toString().substr(0, times.toString().length - 3)); //交易时间
@@ -86,9 +90,16 @@ module.exports = {
     token(chainId, assetId) {
         return {chainId: chainId, assetId: assetId};
     },
+    /**
+     * @param amount 资产数量
+     * @returns {{amount: *, chainId: *, assetId: *}}
+     */
     tokenAmount(chainId, assetId, amount) {
         return {chainId: chainId, assetId: assetId, amount: amount};
     },
+    /**
+     * 按`chainId`和`assetId`排序两个token
+     */
     tokenSort(token0, token1) {
         let positiveSequence = token0.chainId < token1.chainId || (token0.chainId == token1.chainId && token0.assetId < token1.assetId);
         if (positiveSequence) {
@@ -96,6 +107,9 @@ module.exports = {
         }
         return [token1, token0];
     },
+    /**
+     * 根据token计算swap交易对地址
+     */
     getStringPairAddress(chainId, token0, token1) {
         let array = this.tokenSort(token0, token1);
         let all = Buffer.concat([
@@ -112,6 +126,16 @@ module.exports = {
         }
         return sdk.getStringAddressBase(chainId, 4, null, cryptos.createHash('sha256').update(all).digest(), prefix);
     },
+    /**
+     * 组装交易: swap创建交易对
+     *
+     * @param pri                   私钥
+     * @param fromAddress           用户地址
+     * @param tokenA                资产A的类型，示例：nerve.swap.token(5,1)
+     * @param tokenB                资产B的类型，示例：nerve.swap.token(5,6)
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
     async swapCreatePair(pri, fromAddress, tokenA, tokenB, remark) {
         let transferInfo = {
             fromAddress: fromAddress,
@@ -147,6 +171,22 @@ module.exports = {
         let txhex = tAssemble.txSerialize().toString("hex");
         return txhex;
     },
+    /**
+     * 组装交易: swap添加流动性
+     *
+     * @param pri                   私钥
+     * @param fromAddress           用户地址
+     * @param tokenAmountA          添加的资产A的数量，示例：nerve.swap.tokenAmount(5, 1, "140000000000")
+     * @param tokenAmountB          添加的资产B的数量，示例：nerve.swap.tokenAmount(5, 6, "100000000")
+     * @param amountAMin            资产A最小添加值
+     *                                  ==>可通过swap-api的`calMinAmountOnSwapAddLiquidity`接口获得
+     * @param amountBMin            资产B最小添加值
+     *                                  ==>可通过swap-api的`calMinAmountOnSwapAddLiquidity`接口获得
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    流动性份额接收地址
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
     async swapAddLiquidity(pri, fromAddress, tokenAmountA, tokenAmountB, amountAMin, amountBMin, deadline, to, remark) {
         let pairAddress = this.getStringPairAddress(nerve.chainId(), tokenAmountA, tokenAmountB);
         let inOrOutputs = await inputsOrOutputsOfSwapAddLiquidity(fromAddress, to, tokenAmountA, tokenAmountB, pairAddress);
@@ -180,6 +220,21 @@ module.exports = {
         return txhex;
     },
 
+    /**
+     * 组装交易: swap移除流动性
+     *
+     * @param pri                   私钥
+     * @param fromAddress           用户地址
+     * @param tokenAmountLP         移除的资产LP的数量，示例：nerve.swap.tokenAmount(5, 18, "2698778989")
+     * @param tokenAmountAMin       资产A最小移除值，示例：nerve.swap.tokenAmount(5, 1, "140000000000")
+     *                                  ==>可通过swap-api的`calMinAmountOnSwapRemoveLiquidity`接口获得
+     * @param tokenAmountBMin       资产B最小移除值，示例：nerve.swap.tokenAmount(5, 6, "100000000")
+     *                                  ==>可通过swap-api的`calMinAmountOnSwapRemoveLiquidity`接口获得
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    移除流动性份额接收地址
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
     async swapRemoveLiquidity(pri, fromAddress, tokenAmountLP, tokenAmountAMin, tokenAmountBMin, deadline, to, remark) {
         let pairAddress = this.getStringPairAddress(nerve.chainId(), tokenAmountAMin, tokenAmountBMin);
         let transferInfo = {
@@ -222,6 +277,24 @@ module.exports = {
         let txhex = tAssemble.txSerialize().toString("hex");
         return txhex;
     },
+    /**
+     * 组装交易: swap币币交易
+     *
+     * @param pri                   私钥
+     * @param fromAddress           用户地址
+     * @param amountIn              卖出的资产数量
+     * @param tokenPath             币币交换资产路径，路径中最后一个资产，是用户要买进的资产，
+     *                                      如卖A买B: [A, B] or [A, C, B]，
+     *                                      示例: [nerve.swap.token(5, 1), nerve.swap.token(5, 6)]
+     *                                  ==>可通过swap-api的`getBestTradeExactIn`接口获得
+     * @param amountOutMin          最小买进的资产数量
+     *                                  ==> 可通过swap-api的`getBestTradeExactIn`接口获得
+     * @param feeTo                 交易手续费取出一部分给指定的接收地址
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    资产接收地址
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
     async swapTrade(pri, fromAddress, amountIn, tokenPath, amountOutMin, feeTo, deadline, to, remark) {
         if (feeTo == null) {
             feeTo = '';
@@ -267,6 +340,15 @@ module.exports = {
         let txhex = tAssemble.txSerialize().toString("hex");
         return txhex;
     },
+    /**
+     * 组装交易: stable-swap创建交易对
+     *
+     * @param pri                   私钥
+     * @param fromAddress           用户地址
+     * @param coins                 资产类型列表，示例：[nerve.swap.token(5, 6), nerve.swap.token(5, 9), nerve.swap.token(5, 7), nerve.swap.token(5, 8)]
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
     async stableSwapCreatePair(pri, fromAddress, coins, remark) {
         let transferInfo = {
             fromAddress: fromAddress,
@@ -302,6 +384,18 @@ module.exports = {
         let txhex = tAssemble.txSerialize().toString("hex");
         return txhex;
     },
+    /**
+     * 组装交易: stable-swap添加流动性
+     *
+     * @param pri                   私钥
+     * @param fromAddress           用户地址
+     * @param stablePairAddress     交易对地址
+     * @param tokenAmounts          添加的资产数量列表，示例：[swap.tokenAmount(5, 6, "60000000000"), swap.tokenAmount(5, 7, "700000000"), swap.tokenAmount(5, 8, "800000000"), swap.tokenAmount(5, 9, "900000000")]
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    流动性份额接收地址
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
     async stableSwapAddLiquidity(pri, fromAddress, stablePairAddress, tokenAmounts, deadline, to, remark) {
         let inOrOutputs = await inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, stablePairAddress, tokenAmounts);
         if (!inOrOutputs.success) {
@@ -328,6 +422,19 @@ module.exports = {
         let txhex = tAssemble.txSerialize().toString("hex");
         return txhex;
     },
+    /**
+     * 组装交易: stable-swap移除流动性
+     *
+     * @param pri                   私钥
+     * @param fromAddress           用户地址
+     * @param stablePairAddress     交易对地址
+     * @param tokenAmountLP         移除的资产LP的数量，示例：nerve.swap.tokenAmount(5, 18, "2698778989")
+     * @param receiveOrderIndexs    按币种索引顺序接收资产，示例：[4, 2, 3, 1]
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    移除流动性份额接收地址
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
     async stableSwapRemoveLiquidity(pri, fromAddress, stablePairAddress, tokenAmountLP, receiveOrderIndexs, deadline, to, remark) {
         let pairAddress = stablePairAddress;
         let transferInfo = {
@@ -366,6 +473,20 @@ module.exports = {
         let txhex = tAssemble.txSerialize().toString("hex");
         return txhex;
     },
+    /**
+     * 组装交易：StableSwap币币交易
+     *
+     * @param pri                   私钥
+     * @param fromAddress           用户地址
+     * @param stablePairAddress     交易对地址
+     * @param amountIns             卖出的资产数量列表，示例：[nerve.swap.tokenAmount(5, 6, "600000000"), nerve.swap.tokenAmount(5, 9, "90000000")]
+     * @param tokenOutIndex         买进的资产索引，示例：3
+     * @param feeTo                 交易手续费取出一部分给指定的接收地址
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    资产接收地址
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
     async stableSwapTrade(pri, fromAddress, stablePairAddress, amountIns, tokenOutIndex, feeTo, deadline, to, remark) {
         let inOrOutputs = await inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, stablePairAddress, amountIns);
         if (!inOrOutputs.success) {
