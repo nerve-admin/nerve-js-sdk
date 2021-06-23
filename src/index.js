@@ -3,9 +3,32 @@ const txsignatures = require("./model/txsignatures");
 const sdk = require('./api/sdk');
 const txs = require('./model/txs');
 const eccrypto = require("./crypto/eciesCrypto");
+const axios = require('axios');
+let API_CHAIN_ID;
 
 module.exports = {
-
+  mainnet() {
+    API_CHAIN_ID = 9;
+    axios.defaults.timeout = 9000;
+    axios.defaults.baseURL = 'https://public.nerve.network';
+  },
+  testnet() {
+    API_CHAIN_ID = 5;
+    axios.defaults.timeout = 9000;
+    axios.defaults.baseURL = 'http://beta.public.nerve.network';
+  },
+  customnet(chainId, url, timeout) {
+    API_CHAIN_ID = chainId;
+    axios.defaults.baseURL = url;
+    if (!timeout) {
+      axios.defaults.timeout = 9000;
+    } else {
+      axios.defaults.timeout = timeout;
+    }
+  },
+  chainId() {
+    return API_CHAIN_ID;
+  },
   /**
    * 生成地址
    * @param chainId
@@ -111,12 +134,26 @@ module.exports = {
       tt = new txs.AdditionFeeTransaction(info);
     } else if (type === 61) { //创建Swap交易对
       tt = new txs.SwapCreatePairTransaction(info);
-    } else if (type === 62) { //创建Swap交易对
+    } else if (type === 64) { //Swap添加流动性
+      tt = new txs.SwapAddLiquidityTransaction(info);
+    } else if (type === 65) { //Swap移除流动性
+      tt = new txs.SwapRemoveLiquidityTransaction(info);
+    } else if (type === 63) { //Swap币币交易
+      tt = new txs.SwapTradeTransaction(info);
+    } else if (type === 62) { //创建挖矿池
       tt = new txs.FarmCreateTransaction(info);
-    } else if (type === 66) { //创建Swap交易对
+    } else if (type === 66) { //质押挖矿
       tt = new txs.FarmStakeTransaction(info);
-    } else if (type === 67) { //创建Swap交易对
+    } else if (type === 67) { //退出质押
       tt = new txs.FarmWithdrawTransaction(info);
+    } else if (type === 71) { //创建Stable-Swap交易对
+      tt = new txs.StableSwapCreatePairTransaction(info);
+    } else if (type === 73) { //Stable-Swap添加流动性
+      tt = new txs.StableSwapAddLiquidityTransaction(info);
+    } else if (type === 74) { //Stable-Swap移除流动性
+      tt = new txs.StableSwapRemoveLiquidityTransaction(info);
+    } else if (type === 72) { //Stable-Swap币币交易
+      tt = new txs.StableSwapTradeTransaction(info);
     } else if (type === 228) {  //创建交易对
       tt = new txs.CoinTradingTransaction(info);
     } else if (type === 229) {  //委托挂单
@@ -227,6 +264,8 @@ module.exports = {
     // 结果
     //console.log(tx.txSerialize().toString("hex"));
     return {success: true, data: {hash: tx.getHash().toString("hex"), hex: tx.txSerialize().toString("hex")}}
-  }
+  },
 
 };
+const swap = require("./utils/swap");
+module.exports.swap = swap;

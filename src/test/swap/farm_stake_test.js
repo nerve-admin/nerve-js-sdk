@@ -1,8 +1,8 @@
 const nerve = require('../../index');
 const sdk = require('../../api/sdk');
-
-const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx} = require('../api/util');
-const _chainId = 5;
+nerve.testnet();
+const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx, token} = require('../api/util');
+const _chainId = nerve.chainId();
 const _assetId = 1;
 
 // 账户信息
@@ -15,11 +15,13 @@ farmCreatePairTest(pri, fromAddress, token(5, 1),5,"TNVT",100000000, "1e51dea44f
 function token(chainId, assetId) {
     return {chainId: chainId, assetId: assetId};
 }
+farmStakeTest(pri, fromAddress, token(5, 1), token(5, 6), remark);
 
 /**
  * 创建farm
  */
 async function farmCreatePairTest(pri, fromAddress, tokenA,  chainId,addressPrefix,amount,farmHash) {
+async function farmStakeTest(pri, fromAddress, tokenA, tokenB, remark) {
     let farmInfo = {
         fromAddress: fromAddress,
         toAddress: sdk.getStringSpecAddress(chainId,5,"0000000000000000000000000000000000000000000000000000000000000000",addressPrefix),//根据空hash+ 类型=5，计算出地址
