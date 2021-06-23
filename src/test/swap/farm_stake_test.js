@@ -9,8 +9,9 @@ const _assetId = 1;
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 
+let remark = 'farm stake remark...';
 //调用
-farmStakeTest(pri, fromAddress, token(5, 1),5,"TNVT",100000000, "1e51dea44f9e295ac3e44c7fb98eec719459ad023051aff7c6195c3970a14469");
+farmStakeTest(pri, fromAddress, token(5, 1),5,"TNVT",100000000, "1e51dea44f9e295ac3e44c7fb98eec719459ad023051aff7c6195c3970a14469",remark);
 
 /**
  * 创建farm
@@ -37,7 +38,7 @@ async function farmStakeTest(pri, fromAddress, tokenA,  chainId,addressPrefix,am
     let tAssemble = await nerve.transactionAssemble(
         inOrOutputs.data.inputs,
         inOrOutputs.data.outputs,
-        "",
+        remark,
         66,
         {
             farmHash: farmHash,

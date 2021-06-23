@@ -8,10 +8,10 @@ const _assetId = 1;
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
-
+let remark = 'farm create remark...';
 
 //调用
-farmCreateTest(pri, fromAddress, token(5, 8), token(5, 1),5, 1000000000000,100000000,1,1,"TNVT");
+farmCreateTest(pri, fromAddress, token(5, 8), token(5, 1),5, 1000000000000,100000000,1,1,"TNVT",remark);
 
 /**
  * 创建farm
@@ -38,7 +38,7 @@ async function farmCreateTest(pri, fromAddress, tokenA, tokenB, chainId,syrupTot
     let tAssemble = await nerve.transactionAssemble(
         inOrOutputs.data.inputs,
         inOrOutputs.data.outputs,
-        "",
+        remark,
         62,
         {
             tokenA: tokenA,
