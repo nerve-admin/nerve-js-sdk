@@ -8,10 +8,10 @@ const _assetId = 1;
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
+var emptyHash = "0000000000000000000000000000000000000000000000000000000000000000";
 
-let remark = 'farm create pair remark...';
 //调用
-farmCreatePairTest(pri, fromAddress, token(5, 8), token(5, 1), remark);
+farmCreatePairTest(pri, fromAddress, token(5, 8), token(5, 1),5, 1000000000000,100000000,1,1,"TNVT");
 
 function token(chainId, assetId) {
     return {chainId: chainId, assetId: assetId};
@@ -20,19 +20,19 @@ function token(chainId, assetId) {
 /**
  * 创建farm
  */
-async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
+async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, chainId,syrupTotalAmount,syrupPerBlock,startBlockHeight,lockedTime,addressPrefix) {
     let farmInfo = {
         tokenA: tokenA,
         tokenB: tokenB,
         fromAddress: fromAddress,
-        toAddress: 'TNVTdTSQWhb5F2pdWRd6W2m5622btcyFWaeZ6',//根据空hash+ 类型=5，计算出地址
+        toAddress: sdk.getStringSpecAddress(chainId,5,emptyHash,addressPrefix),//根据空hash+ 类型=5，计算出地址
         fee: 0,
         assetsChainId: tokenB.chainId,
         assetsId: tokenB.assetId,
-        amount: 1000000000000,
+        amount: syrupTotalAmount,
     };
     let balance = await getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
-    balance.data.nonce = '0000000000000000';
+    balance.data.nonce = '0000000000000000';//todo 临时增加的
     let inOrOutputs = await inputsOrOutputs(farmInfo, balance.data);
     //console.log(inOrOutputs);
     if (!inOrOutputs.success) {
@@ -42,15 +42,15 @@ async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
     let tAssemble = await nerve.transactionAssemble(
         inOrOutputs.data.inputs,
         inOrOutputs.data.outputs,
-        remark,
+        "",
         62,
         {
             tokenA: tokenA,
             tokenB: tokenB,
-            syrupPerBlock: 100000000 ,
-            totalSyrupAmount:1000000000000,
-            startBlockHeight:1,
-            lockedTime:1
+            syrupPerBlock: syrupPerBlock ,
+            totalSyrupAmount:syrupTotalAmount,
+            startBlockHeight:startBlockHeight,
+            lockedTime:lockedTime
         }
     );
     //获取hash

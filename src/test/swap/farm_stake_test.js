@@ -8,10 +8,10 @@ const _assetId = 1;
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
+var emptyHash = "0000000000000000000000000000000000000000000000000000000000000000";
 
-let remark = 'farm create pair remark...';
 //调用
-farmCreatePairTest(pri, fromAddress, token(5, 1), token(5, 6), remark);
+farmCreatePairTest(pri, fromAddress, token(5, 1),5,"TNVT",100000000, "1e51dea44f9e295ac3e44c7fb98eec719459ad023051aff7c6195c3970a14469");
 
 function token(chainId, assetId) {
     return {chainId: chainId, assetId: assetId};
@@ -20,18 +20,18 @@ function token(chainId, assetId) {
 /**
  * 创建farm
  */
-async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
+async function farmCreatePairTest(pri, fromAddress, tokenA,  chainId,addressPrefix,amount,farmHash) {
     let farmInfo = {
         fromAddress: fromAddress,
-        toAddress: 'TNVTdTSQWhb5F2pdWRd6W2m5622btcyFWaeZ6',//根据空hash+ 类型=5，计算出地址
+        toAddress: sdk.getStringSpecAddress(chainId,5,emptyHash,addressPrefix),//根据空hash+ 类型=5，计算出地址
         fee: 0,
         assetsChainId: tokenA.chainId,
         assetsId: tokenA.assetId,
-        amount: 100000000,
+        amount: amount,
     };
     let balance = await getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
 
-    balance.data.nonce = "0481a2eb12212cba"
+    balance.data.nonce = "0481a2eb12212cba";//todo 临时处理
 
     let inOrOutputs = await inputsOrOutputs(farmInfo, balance.data);
     if (!inOrOutputs.success) {
@@ -42,11 +42,11 @@ async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, remark) {
     let tAssemble = await nerve.transactionAssemble(
         inOrOutputs.data.inputs,
         inOrOutputs.data.outputs,
-        remark,
+        "",
         66,
         {
-            farmHash: "1e51dea44f9e295ac3e44c7fb98eec719459ad023051aff7c6195c3970a14469",
-            amount: 100000000
+            farmHash: farmHash,
+            amount: amount
         }
     );
     //获取hash
