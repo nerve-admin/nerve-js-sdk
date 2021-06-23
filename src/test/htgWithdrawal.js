@@ -1,4 +1,5 @@
 const nerve = require('../index');
+nerve.testnet();
 const sdk = require('../api/sdk');
 const {NERVE_INFO, Plus, timesDecimals} = require('./htgConfig');
 
@@ -69,18 +70,9 @@ async function withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId,
     let txhex = tAssemble.txSerialize().toString("hex");
     console.log(txhex.toString('hex'));
 
-    let result = await validateTx(txhex);
-    if (result.success) {
-        console.log(result.data.value);
-        let results = await broadcastTx(txhex);
-        if (results && results.value) {
-            console.log("交易完成")
-        } else {
-            console.log("广播交易失败: " + JSON.stringify(results))
-        }
-    } else {
-        console.log("验证交易失败:" + JSON.stringify(result.error))
-    }
+
+    let result = await nerve.broadcastTx(txhex);
+    console.log(result);
 }
 
 /**

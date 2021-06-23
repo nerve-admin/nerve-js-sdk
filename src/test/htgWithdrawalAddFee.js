@@ -1,4 +1,5 @@
 const nerve = require('../index');
+nerve.testnet();
 const sdk = require('../api/sdk');
 const {NERVE_INFO, Plus, timesDecimals} = require('./htgConfig');
 
@@ -9,7 +10,7 @@ let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 
 // 发出的提现交易hash
-let withdrawalTxHash = '4ac93222a3a88a554c9d12c11e8d1b1e03f43a4324b9e745514ef52c1b60b1cd';
+let withdrawalTxHash = '3dbf85763e6af2032dce3f509b89c6d67c8988851883e8129622956d271b561b';
 // 追加的NVT手续费，此处设置为追加2个NVT
 let addFeeAmount = '3';
 
@@ -56,18 +57,8 @@ async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAm
     let txhex = tAssemble.txSerialize().toString("hex");
     console.log(txhex.toString('hex'));
 
-    let result = await validateTx(txhex);
-    if (result.success) {
-        console.log(result.data.value);
-        let results = await broadcastTx(txhex);
-        if (results && results.value) {
-            console.log("交易完成")
-        } else {
-            console.log("广播交易失败")
-        }
-    } else {
-        console.log("验证交易失败:" + JSON.stringify(result.error))
-    }
+    let result = await nerve.broadcastTx(txhex);
+    console.log(result);
 }
 
 /**

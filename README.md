@@ -6,8 +6,10 @@ $ npm i nerve-sdk-js
 # Usage
 ```js
 const nerve = require('./index');
+// 指定网络环境 testnet/mainnet/customnet
+nerve.testnet();
 
-let chainId = 4; //链ID 3:NVT主网 4：TNVT测试网
+let chainId = nerve.chainId(); //链ID 9:NVT主网 5：TNVT测试网
 let passWord = "";
 let prefix = "TNVT"; //链前缀
 

@@ -269,3 +269,18 @@ module.exports = {
 };
 const swap = require("./utils/swap");
 module.exports.swap = swap;
+const rpcUtil = require('./test/api/util');
+const broadcastTx = async function(txhex) {
+  let result = await rpcUtil.validateTx(txhex);
+  if (result.success) {
+    let results = await rpcUtil.broadcastTx(txhex);
+    if (results && results.value) {
+      return results.hash;
+    } else {
+      return "广播交易失败: " + JSON.stringify(results);
+    }
+  } else {
+    return "验证交易失败:" + JSON.stringify(result.error);
+  }
+}
+module.exports.broadcastTx = broadcastTx;

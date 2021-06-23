@@ -517,5 +517,124 @@ module.exports = {
         let txhex = tAssemble.txSerialize().toString("hex");
         return txhex;
     },
+    /**
+     * 创建farm
+     */
+    async farmCreate(pri, fromAddress, tokenA, tokenB, chainId, syrupTotalAmount, syrupPerBlock, startBlockHeight, lockedTime, addressPrefix, remark) {
+        let farmInfo = {
+            tokenA: tokenA,
+            tokenB: tokenB,
+            fromAddress: fromAddress,
+            toAddress: sdk.getStringSpecAddress(chainId, 5, "0000000000000000000000000000000000000000000000000000000000000000", addressPrefix),//根据空hash+ 类型=5，计算出地址
+            fee: 0,
+            assetsChainId: tokenB.chainId,
+            assetsId: tokenB.assetId,
+            amount: syrupTotalAmount,
+        };
+        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
+        let inOrOutputs = await util.inputsOrOutputs(farmInfo, balance.data);
+        if (!inOrOutputs.success) {
+            throw "inputs、outputs组装错误";
+        }
+        let tAssemble = await nerve.transactionAssemble(
+            inOrOutputs.data.inputs,
+            inOrOutputs.data.outputs,
+            remark,
+            62,
+            {
+                tokenA: tokenA,
+                tokenB: tokenB,
+                syrupPerBlock: syrupPerBlock ,
+                totalSyrupAmount:syrupTotalAmount,
+                startBlockHeight:startBlockHeight,
+                lockedTime:lockedTime
+            }
+        );
+        //获取hash
+        let hash = await tAssemble.getHash();
 
+        //交易签名
+        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
+        //通过拼接签名、公钥获取HEX
+        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
+        tAssemble.signatures = signData;
+        let txhex = tAssemble.txSerialize().toString("hex");
+        return txhex;
+    },
+    /**
+     * 质押farm
+     */
+    async farmStake(pri, fromAddress, tokenA, chainId, addressPrefix, amount, farmHash, remark) {
+        let farmInfo = {
+            fromAddress: fromAddress,
+            toAddress: sdk.getStringSpecAddress(chainId, 5, "0000000000000000000000000000000000000000000000000000000000000000", addressPrefix),//根据空hash+ 类型=5，计算出地址
+            fee: 0,
+            assetsChainId: tokenA.chainId,
+            assetsId: tokenA.assetId,
+            amount: amount,
+        };
+        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
+        let inOrOutputs = await util.inputsOrOutputs(farmInfo, balance.data);
+        if (!inOrOutputs.success) {
+            throw "inputs、outputs组装错误";
+        }
+        let tAssemble = await nerve.transactionAssemble(
+            inOrOutputs.data.inputs,
+            inOrOutputs.data.outputs,
+            remark,
+            66,
+            {
+                farmHash: farmHash,
+                amount: amount
+            }
+        );
+        //获取hash
+        let hash = await tAssemble.getHash();
+
+        //交易签名
+        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
+        //通过拼接签名、公钥获取HEX
+        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
+        tAssemble.signatures = signData;
+        let txhex = tAssemble.txSerialize().toString("hex");
+        return txhex;
+    },
+    /**
+     * 退出farm
+     */
+    async farmWithdraw(pri, fromAddress, tokenA, amount, farmHash, remark) {
+        let farmInfo = {
+            fromAddress: fromAddress,
+            toAddress: fromAddress,//根据空hash+ 类型=5，计算出地址
+            fee: 0,
+            assetsChainId: tokenA.chainId,
+            assetsId: tokenA.assetId,
+            amount: 0,
+        };
+        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
+        let inOrOutputs = await util.inputsOrOutputs(farmInfo, balance.data);
+        if (!inOrOutputs.success) {
+            throw "inputs、outputs组装错误";
+        }
+        let tAssemble = await nerve.transactionAssemble(
+            inOrOutputs.data.inputs,
+            inOrOutputs.data.outputs,
+            remark,
+            67,
+            {
+                farmHash:farmHash,
+                amount: amount
+            }
+        );
+        //获取hash
+        let hash = await tAssemble.getHash();
+
+        //交易签名
+        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
+        //通过拼接签名、公钥获取HEX
+        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
+        tAssemble.signatures = signData;
+        let txhex = tAssemble.txSerialize().toString("hex");
+        return txhex;
+    }
 }
