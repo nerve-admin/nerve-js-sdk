@@ -8,7 +8,7 @@ const _assetId = 1;
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
-var emptyHash = "0000000000000000000000000000000000000000000000000000000000000000";
+
 
 //调用
 farmCreatePairTest(pri, fromAddress, token(5, 8), token(5, 1),5, 1000000000000,100000000,1,1,"TNVT");
@@ -25,7 +25,7 @@ async function farmCreatePairTest(pri, fromAddress, tokenA, tokenB, chainId,syru
         tokenA: tokenA,
         tokenB: tokenB,
         fromAddress: fromAddress,
-        toAddress: sdk.getStringSpecAddress(chainId,5,emptyHash,addressPrefix),//根据空hash+ 类型=5，计算出地址
+        toAddress: sdk.getStringSpecAddress(chainId,5,"0000000000000000000000000000000000000000000000000000000000000000",addressPrefix),//根据空hash+ 类型=5，计算出地址
         fee: 0,
         assetsChainId: tokenB.chainId,
         assetsId: tokenB.assetId,
