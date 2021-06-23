@@ -10,18 +10,12 @@ let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 
 //调用
-farmCreatePairTest(pri, fromAddress, token(5, 1),5,"TNVT",100000000, "1e51dea44f9e295ac3e44c7fb98eec719459ad023051aff7c6195c3970a14469");
-
-function token(chainId, assetId) {
-    return {chainId: chainId, assetId: assetId};
-}
-farmStakeTest(pri, fromAddress, token(5, 1), token(5, 6), remark);
+farmStakeTest(pri, fromAddress, token(5, 1),5,"TNVT",100000000, "1e51dea44f9e295ac3e44c7fb98eec719459ad023051aff7c6195c3970a14469");
 
 /**
  * 创建farm
  */
-async function farmCreatePairTest(pri, fromAddress, tokenA,  chainId,addressPrefix,amount,farmHash) {
-async function farmStakeTest(pri, fromAddress, tokenA, tokenB, remark) {
+async function farmStakeTest(pri, fromAddress, tokenA,  chainId,addressPrefix,amount,farmHash) {
     let farmInfo = {
         fromAddress: fromAddress,
         toAddress: sdk.getStringSpecAddress(chainId,5,"0000000000000000000000000000000000000000000000000000000000000000",addressPrefix),//根据空hash+ 类型=5，计算出地址

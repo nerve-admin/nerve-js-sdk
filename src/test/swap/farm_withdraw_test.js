@@ -9,20 +9,11 @@ const _assetId = 1;
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 
-let remark = 'farm withdraw remark...';
 //调用
-farmWithdrawTest(pri, fromAddress, token(5, 1), token(5, 6), remark);
-farmCreatePairTest(pri, fromAddress, token(5, 1),  100000000, "1e51dea44f9e295ac3e44c7fb98eec719459ad023051aff7c6195c3970a14469");
+farmWithdrawTest(pri, fromAddress, token(5, 1),  100000000, "1e51dea44f9e295ac3e44c7fb98eec719459ad023051aff7c6195c3970a14469");
 
-function token(chainId, assetId) {
-    return {chainId: chainId, assetId: assetId};
-}
 
-/**
- * 创建farm
- */
-async function farmWithdrawTest(pri, fromAddress, tokenA, tokenB, remark) {
-async function farmCreatePairTest(pri, fromAddress, tokenA, amount,farmHash) {
+async function farmWithdrawTest(pri, fromAddress, tokenA, amount,farmHash) {
     let farmInfo = {
         fromAddress: fromAddress,
         toAddress: fromAddress,//根据空hash+ 类型=5，计算出地址
