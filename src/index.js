@@ -29,6 +29,12 @@ module.exports = {
   chainId() {
     return API_CHAIN_ID;
   },
+  getPubByPri(pri) {
+    return sdk.getPub(pri);
+  },
+  getAddressByPri(chainId, pri) {
+    return sdk.getStringAddress(chainId, pri);
+  },
   /**
    * 生成地址
    * @param chainId
@@ -52,13 +58,13 @@ module.exports = {
   /**
    * 根据公钥获取地址
    * @param chainId
-   * @param assetId
+   * @param type
    * @param pub
    * @param prefix
    * @returns {*|string}
    */
-  getAddressByPub(chainId, assetId, pub, prefix) {
-    return sdk.getStringAddressBase(chainId, assetId, '', pub, prefix);
+  getAddressByPub(chainId, type, pub, prefix) {
+    return sdk.getStringAddressBase(chainId, type, '', pub, prefix);
   },
 
   /**

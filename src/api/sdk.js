@@ -60,12 +60,12 @@ module.exports = {
 
     /**
      * 获取公钥
-     * @param randombytes
+     * @param privateKey 私钥
      * @returns {string}
      */
-    getPub: function (randombytes) {
-        let privateKey = Buffer.from(randombytes, 'hex');
-        let val = BigInteger.fromBuffer(privateKey);
+    getPub: function (privateKey) {
+        let privateKeyBuf = Buffer.from(privateKey, 'hex');
+        let val = BigInteger.fromBuffer(privateKeyBuf);
 
         if (val.compareTo(BigInteger.valueOf(1)) <= 0) {
             throw "private key is wrong!";
@@ -120,6 +120,10 @@ module.exports = {
             prefix = 'NULS';
         } else if (2 === chainId) {
             prefix = "tNULS";
+        } else if (5 === chainId) {
+            prefix = "TNVT";
+        } else if (9 === chainId) {
+            prefix = "NERVE";
         } else if (prefix) {
             prefix = prefix.toUpperCase();
         } else {
@@ -203,6 +207,10 @@ module.exports = {
             prefix = 'NULS';
         } else if (2 === chainId) {
             prefix = "tNULS";
+        } else if (5 === chainId) {
+            prefix = "TNVT";
+        } else if (9 === chainId) {
+            prefix = "NERVE";
         } else if (prefix) {
             prefix = prefix.toUpperCase();
         } else {
@@ -261,6 +269,10 @@ module.exports = {
             prefix = 'NULS';
         } else if (2 === chainId) {
             prefix = "tNULS";
+        } else if (5 === chainId) {
+            prefix = "TNVT";
+        } else if (9 === chainId) {
+            prefix = "NERVE";
         } else if (prefix) {
             prefix = prefix.toUpperCase();
         } else {
@@ -294,6 +306,10 @@ module.exports = {
             prefix = 'NULS';
         } else if (2 === chainId) {
             prefix = "tNULS";
+        } else if (5 === chainId) {
+            prefix = "TNVT";
+        } else if (9 === chainId) {
+            prefix = "NERVE";
         }
         let constant = ['a', 'b', 'c', 'd', 'e'];
         return prefix + constant[prefix.length - 1] + bs58.encode(tempBuffer);
