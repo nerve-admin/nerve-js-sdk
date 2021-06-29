@@ -5,7 +5,7 @@ const nerve = require('../index');
 
 async function inputsOrOutputsOfSwapAddLiquidity(fromAddress, to, tokenAmountA, tokenAmountB, pairAddress) {
     let balanceA = await util.getNulsBalance(fromAddress, tokenAmountA.chainId, tokenAmountA.assetId);
-    let balanceB = await util.getNulsBalance(fromAddress, tokenAmountA.chainId, tokenAmountA.assetId);
+    let balanceB = await util.getNulsBalance(fromAddress, tokenAmountB.chainId, tokenAmountB.assetId);
     let inputs = [
         {
             address: fromAddress,

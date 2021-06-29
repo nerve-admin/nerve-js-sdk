@@ -4,6 +4,7 @@
 const nerve = require('../../index');
 // 设置网络环境
 nerve.testnet();
+// nerve.customnet(5, "http://192.168.1.110:17003/")
 
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";

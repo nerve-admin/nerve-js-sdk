@@ -1,6 +1,7 @@
 const http = require('./https.js');
 const sdk = require('../../api/sdk');
 const cryptos = require("crypto");
+const numberUtil = require("../../utils/numberUtil");
 
 module.exports = {
 
@@ -45,10 +46,10 @@ module.exports = {
    * @returns {*}
    */
   mutiInputsOrOutputs(transferInfo, balanceInfo, type) {
-    let newAmount = transferInfo.from.amount + transferInfo.fee;
+    let newAmount = numberUtil.Plus(transferInfo.from.amount, transferInfo.fee);
     let newLocked = 0;
     let newNonce = balanceInfo.nonce;
-    if (balanceInfo.balance < newAmount) {
+    if (numberUtil.isLessThan(balanceInfo.balance, newAmount)) {
       return {success: false, data: "Your balance is not enough."}
     }
     let inputs = [{
@@ -81,7 +82,7 @@ module.exports = {
    * @returns {*}
    */
   inputsOrOutputs(transferInfo, balanceInfo, type) {
-    let newAmount = transferInfo.amount + transferInfo.fee;
+    let newAmount = numberUtil.Plus(transferInfo.amount, transferInfo.fee);
     let newLocked = 0;
     let newNonce = balanceInfo.nonce;
     let newoutputAmount = transferInfo.amount;
@@ -116,7 +117,7 @@ module.exports = {
           address: transferInfo.fromAddress,
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
-          amount: transferInfo.amount + transferInfo.fee,
+          amount: newAmount.toString(),
           locked: 0,
           nonce: balanceInfo.nonce
         });
@@ -170,14 +171,14 @@ module.exports = {
           address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
-          amount: transferInfo.amount - transferInfo.fee,
+          amount: numberUtil.Minus(transferInfo.amount, transferInfo.fee).toString(),
           lockTime: 0
         });
       }
 
       return {success: true, data: {inputs: inputs, outputs: outputs}};
     } else if (type === 9) { //注销节点
-      newoutputAmount = transferInfo.amount - transferInfo.fee;
+      newoutputAmount = numberUtil.Minus(transferInfo.amount, transferInfo.fee);
       let times = (new Date()).valueOf() + 3600000 * 72;//锁定三天
       newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
       for (let item of transferInfo.nonceList) {
@@ -196,14 +197,14 @@ module.exports = {
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: newoutputAmount,
+        amount: newoutputAmount.toString(),
         lockTime: newLockTime
       });
       return {success: true, data: {inputs: inputs, outputs: outputs}};
     } else if (type === 28) { //追加保证金
       newLockTime = -1;
     } else if (type === 29) { //退出保证金
-      newoutputAmount = transferInfo.amount - transferInfo.fee;
+      newoutputAmount = numberUtil.Minus(transferInfo.amount, transferInfo.fee);
       //锁定三天
       let times = (new Date()).valueOf() + 3600000 * 72;
       newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
@@ -224,18 +225,19 @@ module.exports = {
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: newoutputAmount,
+        amount: newoutputAmount.toString(),
         lockTime: newLockTime
       });
       let allAmount = 0;
       for (let item of transferInfo.nonceList) {
-        allAmount = allAmount + Number(item.deposit)
+        // allAmount = allAmount + Number(item.deposit);
+        allAmount = numberUtil.Plus(allAmount, item.deposit);
       }
       outputs.push({
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: allAmount - transferInfo.amount,
+        amount: numberUtil.Minus(allAmount, transferInfo.amount).toString(),
         lockTime: -1
       });
 
@@ -246,7 +248,7 @@ module.exports = {
       address: transferInfo.fromAddress,
       assetsChainId: transferInfo.assetsChainId,
       assetsId: transferInfo.assetsId,
-      amount: newAmount,
+      amount: newAmount.toString(),
       locked: newLocked,
       nonce: newNonce
     });
