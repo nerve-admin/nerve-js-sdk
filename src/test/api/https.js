@@ -1,7 +1,11 @@
 const axios = require('axios');
+// 测试网服务
 const API_CHAIN_ID = 5;
-axios.defaults.timeout = 9000;
 axios.defaults.baseURL = 'http://beta.public.nerve.network';
+// 主网服务
+// const API_CHAIN_ID = 9;
+// axios.defaults.baseURL = 'https://public.nerve.network';
+axios.defaults.timeout = 9000;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
 /**

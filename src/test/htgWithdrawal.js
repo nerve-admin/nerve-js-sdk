@@ -1,8 +1,29 @@
 const nerve = require('../index');
 const sdk = require('../api/sdk');
-const {NERVE_INFO, Plus, timesDecimals} = require('./htgConfig');
-
+const {Plus, timesDecimals} = require('./htgConfig');
 const {getNulsBalance, validateTx, broadcastTx} = require('./api/util');
+// NERVE 测试网信息
+const NERVE_INFO = {
+    chainId: 5,
+    assetId: 1,
+    prefix: "TNVT",
+    symbol: "NVT",
+    decimals: 8,
+    blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+    blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
+    feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+};
+// NERVE 主网信息
+/*const NERVE_INFO = {
+    chainId: 9,
+    assetId: 1,
+    prefix: "NERVE",
+    symbol: "NVT",
+    decimals: 8,
+    blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+    blockHoleAddress: "NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L",
+    feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+};*/
 
 // 提现账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
@@ -14,15 +35,13 @@ let toAddress = '0xc11D9943805e56b630A401D4bd9A29550353EFa1';
 let withdrawalAmount = '0.008';
 // 提现资产小数位
 let withdrawalDecimals = 18;
-// 提现异构链网络ID
+// 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104)
 let heterogeneousChainId = 103;
-
 // 提现资产信息
 let withdrawalAssetChainId = 5;
 let withdrawalAssetId = 9;
-
 // 提现手续费(NVT)
-let withdrawalFeeOfNVT = '0.005';
+let withdrawalFeeOfNVT = '5';
 
 let remark = 'withdrawal transaction remark...';
 //调用
