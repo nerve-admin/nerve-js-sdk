@@ -660,5 +660,23 @@ module.exports = {
       .catch((error) => {
         return {success: false, data: error};
       });
-  }
+  },
+
+  /**
+   * 查询资产的USD价格
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  async getSymbolPriceOfUsdt(chainId, assetId) {
+    return await http.postComplete('/', 'getBestSymbolPrice', [chainId, assetId])
+        .then((response) => {
+          if (response.hasOwnProperty("result")) {
+            return response.result;
+          } else {
+            return response.error;
+          }
+        })
+        .catch((error) => {
+          return {success: false, data: error};
+        });
+  },
 };

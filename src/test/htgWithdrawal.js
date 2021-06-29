@@ -1,7 +1,7 @@
 const nerve = require('../index');
 const sdk = require('../api/sdk');
 const {Plus, timesDecimals} = require('./htgConfig');
-const {getNulsBalance, validateTx, broadcastTx} = require('./api/util');
+const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt} = require('./api/util');
 // NERVE 测试网信息
 const NERVE_INFO = {
     chainId: 5,
@@ -45,8 +45,12 @@ let withdrawalFeeOfNVT = '5';
 
 let remark = 'withdrawal transaction remark...';
 //调用
-withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark);
-
+// withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark);
+test();
+async function test() {
+    let price = await getSymbolPriceOfUsdt(5, 2);
+    console.log(price);
+}
 /**
  * 异构链提现交易
  */

@@ -2,8 +2,8 @@
 
 const BigNumber = require('bignumber.js');
 
-//异构网络信息 测试网:ropsten, 主网:homestead
-const HTGNET = 'ropsten';
+//异构网络信息 测试网:test, 主网:main
+const HTGNET = 'test';
 
 // NERVE网络信息
 const NERVE_INFO = {
@@ -19,12 +19,16 @@ const NERVE_INFO = {
 
 const RPC_URL = {
     BNB: {
-        ropsten: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-        homestead: "https://bsc-dataseed.binance.org/"
+        test: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+        main: "https://bsc-dataseed.binance.org/"
     },
     HT: {
-        ropsten: "https://http-testnet.hecochain.com",
-        homestead: "https://http-mainnet.hecochain.com"
+        test: "https://http-testnet.hecochain.com",
+        main: "https://http-mainnet.hecochain.com"
+    },
+    OKT: {
+        test: "https://exchaintestrpc.okex.org",
+        main: "https://exchainrpc.okex.org"
     }
 };
 
