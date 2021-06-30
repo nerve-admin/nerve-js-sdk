@@ -349,5 +349,9 @@ module.exports = {
         let finalResult = ethers.utils.parseUnits(ceil.toString(), 8);
         // console.log('finalResult: ' + finalResult);
         return finalResult.toString();
+    },
+
+    formatNVT(amount) {
+        return ethers.utils.formatUnits(amount, 8).toString();
     }
 }

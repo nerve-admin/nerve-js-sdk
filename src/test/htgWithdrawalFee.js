@@ -55,43 +55,38 @@ withdrawalToHECO();
 withdrawalToOKT();
 
 async function withdrawalToETH() {
-    let provider = api_ethers.getProvider("ETH", "test");
-    let nvt = NERVE_ASSET_INFO.testnet.nvt;
-    let eth = NERVE_ASSET_INFO.testnet.eth;
-    let nvtPrice = await util.getSymbolPriceOfUsdt(nvt.chainId, nvt.assetId);
-    let ethPrice = await util.getSymbolPriceOfUsdt(eth.chainId, eth.assetId);
-    let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, ethPrice, true);
-    console.log("提现到eth网络:" + result.toString());
+    let isMainnet = false;
+    let nvtNumber = await calcFee("ETH", isMainnet);
+    console.log("提现到ETH网络:" + nvtNumber);
 }
 
 async function withdrawalToBSC() {
-    let provider = api_ethers.getProvider("BNB", "test");
-    let nvt = NERVE_ASSET_INFO.testnet.nvt;
-    let bnb = NERVE_ASSET_INFO.testnet.bnb;
-    let nvtPrice = await util.getSymbolPriceOfUsdt(nvt.chainId, nvt.assetId);
-    let bnbPrice = await util.getSymbolPriceOfUsdt(bnb.chainId, bnb.assetId);
-    let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, bnbPrice, true);
-    console.log("提现到bsc网络:" + result.toString());
+    let isMainnet = false;
+    let nvtNumber = await calcFee("BNB", isMainnet);
+    console.log("提现到BSC网络:" + nvtNumber);
 }
 
 async function withdrawalToHECO() {
-    let provider = api_ethers.getProvider("HT", "test");
-    let nvt = NERVE_ASSET_INFO.testnet.nvt;
-    let ht = NERVE_ASSET_INFO.testnet.ht;
-    let nvtPrice = await util.getSymbolPriceOfUsdt(nvt.chainId, nvt.assetId);
-    let htPrice = await util.getSymbolPriceOfUsdt(ht.chainId, ht.assetId);
-    let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, htPrice, true);
-    console.log("提现到heco网络:" + result.toString());
+    let isMainnet = false;
+    let nvtNumber = await calcFee("HT", isMainnet);
+    console.log("提现到HECO网络:" + nvtNumber);
 }
 
 async function withdrawalToOKT() {
-    let provider = api_ethers.getProvider("OKT", "test");
-    let nvt = NERVE_ASSET_INFO.testnet.nvt;
-    let okt = NERVE_ASSET_INFO.testnet.okt;
+    let isMainnet = false;
+    let nvtNumber = await calcFee("OKT", isMainnet);
+    console.log("提现到OKT网络:" + nvtNumber);
+}
+
+async function calcFee(chain, isMainnet) {
+    let provider = api_ethers.getProvider(chain, isMainnet ? "main" : "test");
+    let net = isMainnet ? "mainnet" : "testnet";
+    let nvt = NERVE_ASSET_INFO[net].nvt;
+    let htg = NERVE_ASSET_INFO[net][chain.toLowerCase()];
     let nvtPrice = await util.getSymbolPriceOfUsdt(nvt.chainId, nvt.assetId);
-    let oktPrice = await util.getSymbolPriceOfUsdt(okt.chainId, okt.assetId);
-    let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, oktPrice, true);
-    console.log("提现到okt网络:" + result.toString());
+    let htgPrice = await util.getSymbolPriceOfUsdt(htg.chainId, htg.assetId);
+    let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, htgPrice, true);
+    return api_ethers.formatNVT(result);
 }
 
 
