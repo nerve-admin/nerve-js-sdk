@@ -18,7 +18,14 @@ let remark = 'swap trade remark...';
 //调用
 test();
 async function test() {
-    let txhex = await nerve.swap.swapTrade(pri, fromAddress, amountIn, tokenPath, amountOutMin,
+    let tx = await nerve.swap.swapTrade(fromAddress, amountIn, tokenPath, amountOutMin,
         feeTo, deadline, toAddress, remark);
-    console.log(txhex);
+    console.log('hash: ' + tx.hash);
+    console.log('hex: ' + tx.hex);
+    // 签名交易
+    let signedTx = nerve.appendSignature(tx.hex, pri);
+    console.log('signedTx hash: ' + signedTx.data.hash);
+    console.log('signedTx hex: ' + signedTx.data.hex);
+    // 广播交易
+    // nerve.broadcastTx(signedTx.data.hex);
 }

@@ -17,7 +17,14 @@ let remark = 'stable swap add liquidity remark...';
 //调用
 test();
 async function test() {
-    let txhex = await nerve.swap.stableSwapAddLiquidity(pri, fromAddress, stablePairAddress,
+    let tx = await nerve.swap.stableSwapAddLiquidity(fromAddress, stablePairAddress,
         tokenAmounts, deadline, toAddress, remark);
-    console.log(txhex);
+    console.log('hash: ' + tx.hash);
+    console.log('hex: ' + tx.hex);
+    // 签名交易
+    let signedTx = nerve.appendSignature(tx.hex, pri);
+    console.log('signedTx hash: ' + signedTx.data.hash);
+    console.log('signedTx hex: ' + signedTx.data.hex);
+    // 广播交易
+    // nerve.broadcastTx(signedTx.data.hex);
 }

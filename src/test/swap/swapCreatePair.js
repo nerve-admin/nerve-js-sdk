@@ -2,6 +2,7 @@
  * 创建swap交易对
  */
 const nerve = require('../../index');
+const txs = require('../../model/txs');
 // 设置网络环境
 nerve.testnet();
 
@@ -14,6 +15,13 @@ let remark = 'swap create pair remark...';
 //调用
 test();
 async function test() {
-    let txhex = await nerve.swap.swapCreatePair(pri, fromAddress, tokenA, tokenB, remark);
-    console.log(txhex);
+    let tx = await nerve.swap.swapCreatePair(fromAddress, tokenA, tokenB, remark);
+    console.log('hash: ' + tx.hash);
+    console.log('hex: ' + tx.hex);
+    // 签名交易
+    let signedTx = nerve.appendSignature(tx.hex, pri);
+    console.log('signedTx hash: ' + signedTx.data.hash);
+    console.log('signedTx hex: ' + signedTx.data.hex);
+    // 广播交易
+    // nerve.broadcastTx(signedTx.data.hex);
 }

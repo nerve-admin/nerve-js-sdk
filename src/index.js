@@ -272,6 +272,20 @@ module.exports = {
     return {success: true, data: {hash: tx.getHash().toString("hex"), hex: tx.txSerialize().toString("hex")}}
   },
 
+  /**
+   * 反序列化交易
+   * @param txHex
+   * @returns {Transaction}
+   */
+  deserializationTx(txHex) {
+    // 解析交易
+    let bufferReader = new BufferReader(Buffer.from(txHex, "hex"), 0);
+    // 反序列回交易对象
+    let tx = new txs.Transaction();
+    tx.parse(bufferReader);
+    return tx;
+  },
+
 };
 const swap = require("./utils/swap");
 module.exports.swap = swap;

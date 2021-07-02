@@ -129,14 +129,13 @@ module.exports = {
     /**
      * 组装交易: swap创建交易对
      *
-     * @param pri                   私钥
      * @param fromAddress           用户地址
      * @param tokenA                资产A的类型，示例：nerve.swap.token(5,1)
      * @param tokenB                资产B的类型，示例：nerve.swap.token(5,6)
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async swapCreatePair(pri, fromAddress, tokenA, tokenB, remark) {
+    async swapCreatePair(fromAddress, tokenA, tokenB, remark) {
         let transferInfo = {
             fromAddress: fromAddress,
             toAddress: fromAddress,
@@ -163,18 +162,12 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 组装交易: swap添加流动性
      *
-     * @param pri                   私钥
      * @param fromAddress           用户地址
      * @param tokenAmountA          添加的资产A的数量，示例：nerve.swap.tokenAmount(5, 1, "140000000000")
      * @param tokenAmountB          添加的资产B的数量，示例：nerve.swap.tokenAmount(5, 6, "100000000")
@@ -187,7 +180,7 @@ module.exports = {
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async swapAddLiquidity(pri, fromAddress, tokenAmountA, tokenAmountB, amountAMin, amountBMin, deadline, to, remark) {
+    async swapAddLiquidity(fromAddress, tokenAmountA, tokenAmountB, amountAMin, amountBMin, deadline, to, remark) {
         let pairAddress = this.getStringPairAddress(nerve.chainId(), tokenAmountA, tokenAmountB);
         let inOrOutputs = await inputsOrOutputsOfSwapAddLiquidity(fromAddress, to, tokenAmountA, tokenAmountB, pairAddress);
         if (!inOrOutputs.success) {
@@ -210,20 +203,13 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
 
     /**
      * 组装交易: swap移除流动性
      *
-     * @param pri                   私钥
      * @param fromAddress           用户地址
      * @param tokenAmountLP         移除的资产LP的数量，示例：nerve.swap.tokenAmount(5, 18, "2698778989")
      * @param tokenAmountAMin       资产A最小移除值，示例：nerve.swap.tokenAmount(5, 1, "140000000000")
@@ -235,7 +221,7 @@ module.exports = {
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async swapRemoveLiquidity(pri, fromAddress, tokenAmountLP, tokenAmountAMin, tokenAmountBMin, deadline, to, remark) {
+    async swapRemoveLiquidity(fromAddress, tokenAmountLP, tokenAmountAMin, tokenAmountBMin, deadline, to, remark) {
         let pairAddress = this.getStringPairAddress(nerve.chainId(), tokenAmountAMin, tokenAmountBMin);
         let transferInfo = {
             fromAddress: fromAddress,
@@ -268,19 +254,12 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 组装交易: swap币币交易
      *
-     * @param pri                   私钥
      * @param fromAddress           用户地址
      * @param amountIn              卖出的资产数量
      * @param tokenPath             币币交换资产路径，路径中最后一个资产，是用户要买进的资产，
@@ -295,7 +274,7 @@ module.exports = {
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async swapTrade(pri, fromAddress, amountIn, tokenPath, amountOutMin, feeTo, deadline, to, remark) {
+    async swapTrade(fromAddress, amountIn, tokenPath, amountOutMin, feeTo, deadline, to, remark) {
         if (feeTo == null) {
             feeTo = '';
         }
@@ -331,25 +310,18 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 组装交易: stable-swap创建交易对
      *
-     * @param pri                   私钥
      * @param fromAddress           用户地址
      * @param coins                 资产类型列表，示例：[nerve.swap.token(5, 6), nerve.swap.token(5, 9), nerve.swap.token(5, 7), nerve.swap.token(5, 8)]
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async stableSwapCreatePair(pri, fromAddress, coins, remark) {
+    async stableSwapCreatePair(fromAddress, coins, remark) {
         let transferInfo = {
             fromAddress: fromAddress,
             toAddress: fromAddress,
@@ -375,19 +347,12 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 组装交易: stable-swap添加流动性
      *
-     * @param pri                   私钥
      * @param fromAddress           用户地址
      * @param stablePairAddress     交易对地址
      * @param tokenAmounts          添加的资产数量列表，示例：[swap.tokenAmount(5, 6, "60000000000"), swap.tokenAmount(5, 7, "700000000"), swap.tokenAmount(5, 8, "800000000"), swap.tokenAmount(5, 9, "900000000")]
@@ -396,7 +361,7 @@ module.exports = {
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async stableSwapAddLiquidity(pri, fromAddress, stablePairAddress, tokenAmounts, deadline, to, remark) {
+    async stableSwapAddLiquidity(fromAddress, stablePairAddress, tokenAmounts, deadline, to, remark) {
         let inOrOutputs = await inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, stablePairAddress, tokenAmounts);
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
@@ -413,19 +378,12 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 组装交易: stable-swap移除流动性
      *
-     * @param pri                   私钥
      * @param fromAddress           用户地址
      * @param stablePairAddress     交易对地址
      * @param tokenAmountLP         移除的资产LP的数量，示例：nerve.swap.tokenAmount(5, 18, "2698778989")
@@ -435,7 +393,7 @@ module.exports = {
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async stableSwapRemoveLiquidity(pri, fromAddress, stablePairAddress, tokenAmountLP, receiveOrderIndexs, deadline, to, remark) {
+    async stableSwapRemoveLiquidity(fromAddress, stablePairAddress, tokenAmountLP, receiveOrderIndexs, deadline, to, remark) {
         let pairAddress = stablePairAddress;
         let transferInfo = {
             fromAddress: fromAddress,
@@ -464,19 +422,12 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 组装交易：StableSwap币币交易
      *
-     * @param pri                   私钥
      * @param fromAddress           用户地址
      * @param stablePairAddress     交易对地址
      * @param amountIns             卖出的资产数量列表，示例：[nerve.swap.tokenAmount(5, 6, "600000000"), nerve.swap.tokenAmount(5, 9, "90000000")]
@@ -487,7 +438,7 @@ module.exports = {
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async stableSwapTrade(pri, fromAddress, stablePairAddress, amountIns, tokenOutIndex, feeTo, deadline, to, remark) {
+    async stableSwapTrade(fromAddress, stablePairAddress, amountIns, tokenOutIndex, feeTo, deadline, to, remark) {
         let inOrOutputs = await inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, stablePairAddress, amountIns);
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
@@ -508,19 +459,13 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 创建farm
      */
-    async farmCreate(pri, fromAddress, tokenA, tokenB, chainId, syrupTotalAmount, syrupPerBlock, startBlockHeight, lockedTime, addressPrefix, remark) {
+    async farmCreate(fromAddress, tokenA, tokenB, chainId, syrupTotalAmount, syrupPerBlock, startBlockHeight, lockedTime, addressPrefix, remark) {
         let farmInfo = {
             tokenA: tokenA,
             tokenB: tokenB,
@@ -531,7 +476,7 @@ module.exports = {
             assetsId: tokenB.assetId,
             amount: syrupTotalAmount,
         };
-        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
+        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetsId);
         let inOrOutputs = await util.inputsOrOutputs(farmInfo, balance.data);
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
@@ -552,19 +497,13 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 质押farm
      */
-    async farmStake(pri, fromAddress, tokenA, chainId, addressPrefix, amount, farmHash, remark) {
+    async farmStake(fromAddress, tokenA, chainId, addressPrefix, amount, farmHash, remark) {
         let farmInfo = {
             fromAddress: fromAddress,
             toAddress: sdk.getStringSpecAddress(chainId, 5, "0000000000000000000000000000000000000000000000000000000000000000", addressPrefix),//根据空hash+ 类型=5，计算出地址
@@ -573,7 +512,7 @@ module.exports = {
             assetsId: tokenA.assetId,
             amount: amount,
         };
-        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
+        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetsId);
         let inOrOutputs = await util.inputsOrOutputs(farmInfo, balance.data);
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
@@ -590,19 +529,13 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     },
     /**
      * 退出farm
      */
-    async farmWithdraw(pri, fromAddress, tokenA, amount, farmHash, remark) {
+    async farmWithdraw(fromAddress, tokenA, amount, farmHash, remark) {
         let farmInfo = {
             fromAddress: fromAddress,
             toAddress: fromAddress,//根据空hash+ 类型=5，计算出地址
@@ -611,7 +544,7 @@ module.exports = {
             assetsId: tokenA.assetId,
             amount: 0,
         };
-        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetId);
+        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetsId);
         let inOrOutputs = await util.inputsOrOutputs(farmInfo, balance.data);
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
@@ -628,13 +561,7 @@ module.exports = {
         );
         //获取hash
         let hash = await tAssemble.getHash();
-
-        //交易签名
-        let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
-        //通过拼接签名、公钥获取HEX
-        let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
-        tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        return txhex;
+        return {hash: hash.toString('hex'), hex: txhex};
     }
 }
