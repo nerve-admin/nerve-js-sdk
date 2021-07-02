@@ -1,4 +1,5 @@
 const nerve = require('../index');
+nerve.testnet();
 const api_ethers = require('./api_ethers');
 const util = require('./api/util');
 // NERVE 网络资产信息
