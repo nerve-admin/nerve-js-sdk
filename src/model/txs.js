@@ -427,6 +427,165 @@ module.exports = {
   },
 
   /**
+   * @desc 创建swap交易对
+   */
+  SwapCreatePairTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity || !entity.tokenA || !entity.tokenB) {
+      throw "Data Wrong!";
+    }
+    this.type = 61;
+    let bw = new Serializers();
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.assetId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.assetId);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc swap添加流动性
+   */
+  SwapAddLiquidityTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 64;
+    let bw = new Serializers();
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.assetId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.assetId);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.getBufWriter().writeUInt32LE(entity.deadline);
+    bw.writeBigInt(entity.amountAMin);
+    bw.writeBigInt(entity.amountBMin);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc swap移除流动性
+   */
+  SwapRemoveLiquidityTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 65;
+    let bw = new Serializers();
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.assetId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.assetId);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.getBufWriter().writeUInt32LE(entity.deadline);
+    bw.writeBigInt(entity.amountAMin);
+    bw.writeBigInt(entity.amountBMin);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc swap币币交易
+   */
+  SwapTradeTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 63;
+    let bw = new Serializers();
+    bw.writeBigInt(entity.amountOutMin);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.writeBytesWithLength(sdk.getBytesAddress(entity.feeTo));
+    bw.getBufWriter().writeUInt32LE(entity.deadline);
+    let tokenPath = entity.tokenPath;
+    let length = tokenPath.length;
+    bw.getBufWriter().writeUInt8(length);
+    for (let i = 0; i < length; i++) {
+      let token = tokenPath[i];
+      bw.getBufWriter().writeUInt16LE(token.chainId);
+      bw.getBufWriter().writeUInt16LE(token.assetId);
+    }
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+  /**
+   * @desc 创建stable-swap交易对
+   */
+  StableSwapCreatePairTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 71;
+    let bw = new Serializers();
+    let coins = entity.coins;
+    let length = coins.length;
+    bw.getBufWriter().writeUInt8(length);
+    for (let i = 0; i < length; i++) {
+      let coin = coins[i];
+      bw.getBufWriter().writeUInt16LE(coin.chainId);
+      bw.getBufWriter().writeUInt16LE(coin.assetId);
+    }
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc stable-swap添加流动性
+   */
+  StableSwapAddLiquidityTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 73;
+    let bw = new Serializers();
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc stable-swap移除流动性
+   */
+  StableSwapRemoveLiquidityTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 74;
+    let bw = new Serializers();
+    bw.writeBytesWithLength(entity.indexs);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc stable-swap币币交易
+   */
+  StableSwapTradeTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 72;
+    let bw = new Serializers();
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.getBufWriter().write(entity.tokenOutIndex);
+    if (entity.feeTo && entity.feeTo.length > 0) {
+      bw.getBufWriter().write(sdk.getBytesAddress(entity.feeTo));
+    }
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
    * @disc: 创建交易对
    * @params:
    * @date: 2020-08-20 12:00
@@ -473,6 +632,42 @@ module.exports = {
     let bw = new Serializers();
     let hash = Buffer.from(tradingOrder.orderHash, 'hex');
     bw.getBufWriter().write(hash);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  FarmCreateTransaction: function (entity) {
+    Transaction.call(this);
+    this.type = 62;
+    let bw = new Serializers();
+
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenA.assetId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.tokenB.assetId);
+    bw.writeBigInt(entity.syrupPerBlock)
+    bw.writeBigInt(entity.totalSyrupAmount)
+    bw.writeUInt64LE(entity.startBlockHeight);
+    bw.writeUInt64LE(entity.lockedTime);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  FarmStakeTransaction: function (entity) {
+    Transaction.call(this);
+    this.type = 66;
+    let bw = new Serializers();
+    let hash = Buffer.from(entity.farmHash, 'hex');
+    bw.getBufWriter().write(hash);
+    bw.writeBigInt(entity.amount);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  FarmWithdrawTransaction: function (entity) {
+    Transaction.call(this);
+    this.type = 67;
+    let bw = new Serializers();
+    let hash = Buffer.from(entity.farmHash, 'hex');
+    bw.getBufWriter().write(hash);
+    bw.writeBigInt(entity.amount);
     this.txData = bw.getBufWriter().toBuffer();
   },
 

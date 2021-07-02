@@ -1,4 +1,7 @@
 const http = require('./https.js');
+const sdk = require('../../api/sdk');
+const cryptos = require("crypto");
+const numberUtil = require("../../utils/numberUtil");
 
 module.exports = {
 
@@ -43,10 +46,10 @@ module.exports = {
    * @returns {*}
    */
   mutiInputsOrOutputs(transferInfo, balanceInfo, type) {
-    let newAmount = transferInfo.from.amount + transferInfo.fee;
+    let newAmount = numberUtil.Plus(transferInfo.from.amount, transferInfo.fee);
     let newLocked = 0;
     let newNonce = balanceInfo.nonce;
-    if (balanceInfo.balance < newAmount) {
+    if (numberUtil.isLessThan(balanceInfo.balance, newAmount)) {
       return {success: false, data: "Your balance is not enough."}
     }
     let inputs = [{
@@ -79,7 +82,7 @@ module.exports = {
    * @returns {*}
    */
   inputsOrOutputs(transferInfo, balanceInfo, type) {
-    let newAmount = transferInfo.amount + transferInfo.fee;
+    let newAmount = numberUtil.Plus(transferInfo.amount, transferInfo.fee);
     let newLocked = 0;
     let newNonce = balanceInfo.nonce;
     let newoutputAmount = transferInfo.amount;
@@ -114,7 +117,7 @@ module.exports = {
           address: transferInfo.fromAddress,
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
-          amount: transferInfo.amount + transferInfo.fee,
+          amount: newAmount.toString(),
           locked: 0,
           nonce: balanceInfo.nonce
         });
@@ -168,14 +171,14 @@ module.exports = {
           address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
-          amount: transferInfo.amount - transferInfo.fee,
+          amount: numberUtil.Minus(transferInfo.amount, transferInfo.fee).toString(),
           lockTime: 0
         });
       }
 
       return {success: true, data: {inputs: inputs, outputs: outputs}};
     } else if (type === 9) { //注销节点
-      newoutputAmount = transferInfo.amount - transferInfo.fee;
+      newoutputAmount = numberUtil.Minus(transferInfo.amount, transferInfo.fee);
       let times = (new Date()).valueOf() + 3600000 * 72;//锁定三天
       newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
       for (let item of transferInfo.nonceList) {
@@ -194,14 +197,14 @@ module.exports = {
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: newoutputAmount,
+        amount: newoutputAmount.toString(),
         lockTime: newLockTime
       });
       return {success: true, data: {inputs: inputs, outputs: outputs}};
     } else if (type === 28) { //追加保证金
       newLockTime = -1;
     } else if (type === 29) { //退出保证金
-      newoutputAmount = transferInfo.amount - transferInfo.fee;
+      newoutputAmount = numberUtil.Minus(transferInfo.amount, transferInfo.fee);
       //锁定三天
       let times = (new Date()).valueOf() + 3600000 * 72;
       newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
@@ -222,18 +225,19 @@ module.exports = {
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: newoutputAmount,
+        amount: newoutputAmount.toString(),
         lockTime: newLockTime
       });
       let allAmount = 0;
       for (let item of transferInfo.nonceList) {
-        allAmount = allAmount + Number(item.deposit)
+        // allAmount = allAmount + Number(item.deposit);
+        allAmount = numberUtil.Plus(allAmount, item.deposit);
       }
       outputs.push({
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: allAmount - transferInfo.amount,
+        amount: numberUtil.Minus(allAmount, transferInfo.amount).toString(),
         lockTime: -1
       });
 
@@ -244,7 +248,7 @@ module.exports = {
       address: transferInfo.fromAddress,
       assetsChainId: transferInfo.assetsChainId,
       assetsId: transferInfo.assetsId,
-      amount: newAmount,
+      amount: newAmount.toString(),
       locked: newLocked,
       nonce: newNonce
     });
@@ -407,159 +411,6 @@ module.exports = {
         .catch((error) => {
           return {success: false, data: error};
         });
-  },
-
-  /**
-   * 获取合约代码构造函数
-   * @param contractCodeHex
-   * @returns {Promise<AxiosResponse<any>>}
-   */
-  async getContractConstructor(contractCodeHex) {
-    return await http.post('/', 'getContractConstructor', [contractCodeHex])
-      .then((response) => {
-        //console.log(response);
-        if (response.hasOwnProperty("result")) {
-          return {success: true, data: response.result};
-        } else {
-          return {success: false, data: response.error};
-        }
-      })
-      .catch((error) => {
-        return {success: false, data: error};
-      });
-  },
-
-  /**
-   * 获取合约指定函数的参数类型
-   * @param contractAddress
-   * @param methodName
-   * @param methodDesc
-   * @returns {Promise<AxiosResponse<any>>}
-   */
-  async getContractMethodArgsTypes(contractAddress, methodName, methodDesc) {
-    return await http.post('/', 'getContractMethodArgsTypes', [contractAddress, methodName, methodDesc])
-      .then((response) => {
-        if (response.hasOwnProperty("result")) {
-          return {success: true, data: response.result};
-        } else {
-          return {success: false, data: response.error};
-        }
-      })
-      .catch((error) => {
-        return {success: false, data: error};
-      });
-  },
-
-  /**
-   * 验证创建合约交易
-   * @param sender
-   * @param gasLimit
-   * @param price
-   * @param contractCode
-   * @param args
-   * @returns {Promise<T>}
-   */
-  async validateContractCreate(sender, gasLimit, price, contractCode, args) {
-    return await http.post('/', 'validateContractCreate', [sender, gasLimit, price, contractCode, args])
-      .then((response) => {
-        //console.log(response.result);
-        return response.result;
-      })
-      .catch((error) => {
-        return {success: false, data: error};
-      });
-  },
-
-  /**
-   * 预估创建合约交易的gas
-   * @param sender
-   * @param contractCode
-   * @param args
-   * @returns {Promise<T>}
-   */
-  async imputedContractCreateGas(sender, contractCode, args) {
-    return await http.post('/', 'imputedContractCreateGas', [sender, contractCode, args])
-      .then((response) => {
-        //console.log(response);
-        if (response.hasOwnProperty("result")) {
-          return response.result.gasLimit
-        } else {
-          return {success: false, data: response.error};
-        }
-      })
-      .catch((error) => {
-        return {success: false, data: error};
-      });
-  },
-
-  /**
-   * 验证调用合约交易
-   * @param sender
-   * @param value
-   * @param gasLimit
-   * @param price
-   * @param contractAddress
-   * @param methodName
-   * @param methodDesc
-   * @param args
-   * @returns {Promise<T>}
-   */
-  async validateContractCall(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args) {
-    return await http.post('/', 'validateContractCall', [sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args])
-      .then((response) => {
-        if (response.hasOwnProperty("result")) {
-          return {success: true, data: response.result};
-        } else {
-          return {success: false, data: response.error};
-        }
-      })
-      .catch((error) => {
-        return {success: false, data: error};
-      });
-  },
-
-  /**
-   * 预估调用合约交易的gas
-   * @param sender
-   * @param value
-   * @param contractAddress
-   * @param methodName
-   * @param methodDesc
-   * @param args
-   * @returns {Promise<T>}
-   */
-  async imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args) {
-    return await http.post('/', 'imputedContractCallGas', [sender, value, contractAddress, methodName, methodDesc, args])
-      .then((response) => {
-        if (response.hasOwnProperty("result")) {
-          return {success: true, data: response.result};
-        } else {
-          return {success: false, data: response.error};
-        }
-      })
-      .catch((error) => {
-        return {success: false, data: error};
-      });
-  },
-
-  /**
-   * 验证删除合约交易
-   * @param sender
-   * @param contractAddress
-   * @returns {Promise<T>}
-   */
-  async validateContractDelete(sender, contractAddress) {
-    return await http.post('/', 'validateContractDelete', [sender, contractAddress])
-      .then((response) => {
-        if (response.hasOwnProperty("result")) {
-          return {success: true, data: response.result};
-        } else {
-          return {success: false, data: response.error};
-        }
-      })
-      .catch((error) => {
-        return {success: false, data: error};
-      });
   },
 
   /**
