@@ -27,27 +27,28 @@ const NERVE_INFO = {
 };*/
 
 // 提现账户信息
-let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
-let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
+let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
 
 // 提现接收地址
 let toAddress = '0xc11D9943805e56b630A401D4bd9A29550353EFa1';
 // 提现金额
-let withdrawalAmount = '0.008';
+let withdrawalAmount = '20';
 // 提现资产小数位
 let withdrawalDecimals = 18;
-// 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104)
-let heterogeneousChainId = 103;
+// 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107)
+let heterogeneousChainId = 106;
 // 提现资产信息
 let withdrawalAssetChainId = 5;
-let withdrawalAssetId = 9;
+let withdrawalAssetId = 23;
 // 提现手续费(NVT)
-let withdrawalFeeOfNVT = '5';
+let withdrawalFeeOfNVT = '1';
 
 let remark = 'withdrawal transaction remark...';
 //调用
-// withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark);
-test();
+withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark);
+// test();
+
 async function test() {
     let price = await getSymbolPriceOfUsdt(5, 2);
     console.log(price);

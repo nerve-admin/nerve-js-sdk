@@ -29,6 +29,18 @@ const RPC_URL = {
     OKT: {
         test: "https://exchaintestrpc.okex.org",
         main: "https://exchainrpc.okex.org"
+    },
+    ONE: {
+        test: "https://api.s0.b.hmny.io/",
+        main: "https://api.s0.t.hmny.io"
+    },
+    MATIC: {
+        test: "https://rpc-mumbai.maticvigil.com",
+        main: "https://rpc-mainnet.maticvigil.com"
+    },
+    KCS: {
+        test: "https://rpc-testnet.kcc.network",
+        main: "https://rpc-mainnet.kcc.network"
     }
 };
 

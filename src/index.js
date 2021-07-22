@@ -300,7 +300,7 @@ const broadcastTx = async function(txhex) {
       return "广播交易失败: " + JSON.stringify(results);
     }
   } else {
-    return "验证交易失败:" + JSON.stringify(result.error);
+    return "验证交易失败:" + JSON.stringify(result);
   }
 }
 module.exports.broadcastTx = broadcastTx;

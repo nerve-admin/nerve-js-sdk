@@ -1,5 +1,6 @@
 const nerve = require('../index');
 nerve.testnet();
+// nerve.mainnet();
 const api_ethers = require('./api_ethers');
 const util = require('./api/util');
 // NERVE 网络资产信息
@@ -24,6 +25,18 @@ const NERVE_ASSET_INFO = {
         okt: {
             chainId: 5,
             assetId: 12
+        },
+        one: {
+            chainId: 5,
+            assetId: 33
+        },
+        matic: {
+            chainId: 5,
+            assetId: 34
+        },
+        kcs: {
+            chainId: 5,
+            assetId: 35
         }
     },
     mainnet: {
@@ -50,33 +63,48 @@ const NERVE_ASSET_INFO = {
     }
 };
 
-withdrawalToETH();
-withdrawalToBSC();
-withdrawalToHECO();
-withdrawalToOKT();
+let isMainnet = false;
+// withdrawalToETH(isMainnet);
+// withdrawalToBSC(isMainnet);
+// withdrawalToHECO(isMainnet);
+// withdrawalToOKT(isMainnet);
+withdrawalToONE(isMainnet);
+withdrawalToMATIC(isMainnet);
+withdrawalToKCS(isMainnet);
 
-async function withdrawalToETH() {
-    let isMainnet = false;
+async function withdrawalToETH(isMainnet) {
     let nvtNumber = await calcFee("ETH", isMainnet);
     console.log("提现到ETH网络:" + nvtNumber);
 }
 
-async function withdrawalToBSC() {
-    let isMainnet = false;
+async function withdrawalToBSC(isMainnet) {
     let nvtNumber = await calcFee("BNB", isMainnet);
     console.log("提现到BSC网络:" + nvtNumber);
 }
 
-async function withdrawalToHECO() {
-    let isMainnet = false;
+async function withdrawalToHECO(isMainnet) {
     let nvtNumber = await calcFee("HT", isMainnet);
     console.log("提现到HECO网络:" + nvtNumber);
 }
 
-async function withdrawalToOKT() {
-    let isMainnet = false;
+async function withdrawalToOKT(isMainnet) {
     let nvtNumber = await calcFee("OKT", isMainnet);
     console.log("提现到OKT网络:" + nvtNumber);
+}
+
+async function withdrawalToONE(isMainnet) {
+    let nvtNumber = await calcFee("ONE", isMainnet);
+    console.log("提现到ONE网络:" + nvtNumber);
+}
+
+async function withdrawalToMATIC(isMainnet) {
+    let nvtNumber = await calcFee("MATIC", isMainnet);
+    console.log("提现到MATIC网络:" + nvtNumber);
+}
+
+async function withdrawalToKCS(isMainnet) {
+    let nvtNumber = await calcFee("KCS", isMainnet);
+    console.log("提现到KCS网络:" + nvtNumber);
 }
 
 async function calcFee(chain, isMainnet) {
@@ -85,7 +113,9 @@ async function calcFee(chain, isMainnet) {
     let nvt = NERVE_ASSET_INFO[net].nvt;
     let htg = NERVE_ASSET_INFO[net][chain.toLowerCase()];
     let nvtPrice = await util.getSymbolPriceOfUsdt(nvt.chainId, nvt.assetId);
+    console.log(chain + ": nvtPrice:" + nvtPrice);
     let htgPrice = await util.getSymbolPriceOfUsdt(htg.chainId, htg.assetId);
+    console.log(chain + ": htgPrice:" + htgPrice);
     let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, htgPrice, true);
     return api_ethers.formatNVT(result);
 }
