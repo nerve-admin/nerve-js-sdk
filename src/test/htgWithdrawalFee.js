@@ -117,9 +117,7 @@ async function calcFee(chain, isMainnet) {
     let nvt = NERVE_ASSET_INFO[net].nvt;
     let htg = NERVE_ASSET_INFO[net][chain.toLowerCase()];
     let nvtPrice = await util.getSymbolPriceOfUsdt(nvt.chainId, nvt.assetId);
-    console.log(chain + ": nvtPrice:" + nvtPrice);
     let htgPrice = await util.getSymbolPriceOfUsdt(htg.chainId, htg.assetId);
-    console.log(chain + ": htgPrice:" + htgPrice);
     let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, htgPrice, true);
     return api_ethers.formatNVT(result);
 }
