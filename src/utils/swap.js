@@ -318,10 +318,11 @@ module.exports = {
      *
      * @param fromAddress           用户地址
      * @param coins                 资产类型列表，示例：[nerve.swap.token(5, 6), nerve.swap.token(5, 9), nerve.swap.token(5, 7), nerve.swap.token(5, 8)]
+     * @param symbol                LP名称（选填）
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async stableSwapCreatePair(fromAddress, coins, remark) {
+    async stableSwapCreatePair(fromAddress, coins, symbol, remark) {
         let transferInfo = {
             fromAddress: fromAddress,
             toAddress: fromAddress,
@@ -343,6 +344,7 @@ module.exports = {
             71,
             {
                 coins: coins,
+                symbol: symbol
             }
         );
         //获取hash

@@ -1,6 +1,11 @@
 const nerve = require('../index');
-nerve.testnet();
-// nerve.mainnet();
+
+let isMainnet = false;
+if (isMainnet) {
+    nerve.mainnet();
+} else {
+    nerve.testnet();
+}
 const api_ethers = require('./api_ethers');
 const util = require('./api/util');
 // NERVE 网络资产信息
@@ -63,14 +68,13 @@ const NERVE_ASSET_INFO = {
     }
 };
 
-let isMainnet = false;
 // withdrawalToETH(isMainnet);
 // withdrawalToBSC(isMainnet);
 // withdrawalToHECO(isMainnet);
 // withdrawalToOKT(isMainnet);
 withdrawalToONE(isMainnet);
-withdrawalToMATIC(isMainnet);
-withdrawalToKCS(isMainnet);
+// withdrawalToMATIC(isMainnet);
+// withdrawalToKCS(isMainnet);
 
 async function withdrawalToETH(isMainnet) {
     let nvtNumber = await calcFee("ETH", isMainnet);
