@@ -3,28 +3,30 @@ nerve.testnet();
 const sdk = require('../api/sdk');
 const {Plus, timesDecimals} = require('./htgConfig');
 const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt} = require('./api/util');
-// NERVE 测试网信息
-const NERVE_INFO = {
-    chainId: 5,
-    assetId: 1,
-    prefix: "TNVT",
-    symbol: "NVT",
-    decimals: 8,
-    blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
-    blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
-    feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+// NERVE 网络基本信息
+const NERVE_INFOS = {
+    testnet: {
+        chainId: 5,
+        assetId: 1,
+        prefix: "TNVT",
+        symbol: "NVT",
+        decimals: 8,
+        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+        blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
+        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+    },
+    mainnet: {
+        chainId: 9,
+        assetId: 1,
+        prefix: "NERVE",
+        symbol: "NVT",
+        decimals: 8,
+        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+        blockHoleAddress: "NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L",
+        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+    }
 };
-// NERVE 主网信息
-/*const NERVE_INFO = {
-    chainId: 9,
-    assetId: 1,
-    prefix: "NERVE",
-    symbol: "NVT",
-    decimals: 8,
-    blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
-    blockHoleAddress: "NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L",
-    feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
-};*/
+let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 提现账户信息
 let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
@@ -33,7 +35,7 @@ let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
 // 提现接收地址
 let toAddress = '0xc11D9943805e56b630A401D4bd9A29550353EFa1';
 // 提现金额
-let withdrawalAmount = '20';
+let withdrawalAmount = '2';
 // 提现资产小数位
 let withdrawalDecimals = 18;
 // 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107)
@@ -47,12 +49,7 @@ let withdrawalFeeOfNVT = '1';
 let remark = 'withdrawal transaction remark...';
 //调用
 withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark);
-// test();
 
-async function test() {
-    let price = await getSymbolPriceOfUsdt(5, 2);
-    console.log(price);
-}
 /**
  * 异构链提现交易
  */

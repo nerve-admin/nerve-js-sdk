@@ -1,6 +1,11 @@
 const nerve = require('../index');
-nerve.testnet();
-// nerve.mainnet();
+
+let isMainnet = true;
+if (isMainnet) {
+    nerve.mainnet();
+} else {
+    nerve.testnet();
+}
 const api_ethers = require('./api_ethers');
 const util = require('./api/util');
 // NERVE 网络资产信息
@@ -59,18 +64,29 @@ const NERVE_ASSET_INFO = {
         okt: {
             chainId: 9,
             assetId: 87
+        },
+        one: {
+            chainId: 9,
+            assetId: 159
+        },
+        matic: {
+            chainId: 9,
+            assetId: 160
+        },
+        kcs: {
+            chainId: 9,
+            assetId: 161
         }
     }
 };
 
-let isMainnet = false;
 // withdrawalToETH(isMainnet);
 // withdrawalToBSC(isMainnet);
 // withdrawalToHECO(isMainnet);
-// withdrawalToOKT(isMainnet);
-withdrawalToONE(isMainnet);
-withdrawalToMATIC(isMainnet);
-withdrawalToKCS(isMainnet);
+withdrawalToOKT(isMainnet);
+// withdrawalToONE(isMainnet);
+// withdrawalToMATIC(isMainnet);
+// withdrawalToKCS(isMainnet);
 
 async function withdrawalToETH(isMainnet) {
     let nvtNumber = await calcFee("ETH", isMainnet);
@@ -113,9 +129,9 @@ async function calcFee(chain, isMainnet) {
     let nvt = NERVE_ASSET_INFO[net].nvt;
     let htg = NERVE_ASSET_INFO[net][chain.toLowerCase()];
     let nvtPrice = await util.getSymbolPriceOfUsdt(nvt.chainId, nvt.assetId);
-    console.log(chain + ": nvtPrice:" + nvtPrice);
     let htgPrice = await util.getSymbolPriceOfUsdt(htg.chainId, htg.assetId);
-    console.log(chain + ": htgPrice:" + htgPrice);
+    console.log(nvtPrice, "nvtPrice", chain);
+    console.log(htgPrice, "htgPrice", chain);
     let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, htgPrice, true);
     return api_ethers.formatNVT(result);
 }

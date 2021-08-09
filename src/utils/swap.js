@@ -1,6 +1,7 @@
 const sdk = require('../api/sdk');
 const util = require('../test/api/util');
 const cryptos = require("crypto");
+const BigNumber = require('bignumber.js');
 const nerve = require('../index');
 
 async function inputsOrOutputsOfSwapAddLiquidity(fromAddress, to, tokenAmountA, tokenAmountB, pairAddress) {
@@ -125,6 +126,122 @@ module.exports = {
             prefix = "NERVE";
         }
         return sdk.getStringAddressBase(chainId, 4, null, cryptos.createHash('sha256').update(all).digest(), prefix);
+    },
+    tokenEquals(tokenA, tokenB) {
+        return tokenA.chainId == tokenB.chainId && tokenA.assetId == tokenB.assetId;
+    },
+    pair(token0, token1, reserve0, reserve1) {
+        return {token0: token0, token1: token1, reserve0: reserve0, reserve1: reserve1};
+    },
+    getReserves(tokenA, tokenB, pair) {
+        let array = this.tokenSort(tokenA, tokenB);
+        let token0 = array[0];
+        let result = this.tokenEquals(tokenA, token0) ? [pair.reserve0, pair.reserve1] : [pair.reserve1, pair.reserve0];
+        return result;
+    },
+    /**
+     * 根据交易对中其中一个币种，计算另外一个币种可添加的流动性
+     */
+    quote(amountA, reserveA, reserveB) {
+        let _amountA = new BigNumber(amountA);
+        if(_amountA.isLessThanOrEqualTo(0)) {
+            // INSUFFICIENT_AMOUNT
+            throw "sw_0002";
+        }
+        let _reserveA = new BigNumber(reserveA);
+        let _reserveB = new BigNumber(reserveB);
+        if(_reserveA.isLessThanOrEqualTo(0) || _reserveB.isLessThanOrEqualTo(0)) {
+            // INSUFFICIENT_LIQUIDITY
+            throw "sw_0003";
+        }
+        return _amountA.times(_reserveB).dividedToIntegerBy(_reserveA);
+    },
+    /**
+     * 根据卖出数量，计算可买进的数量
+     */
+    getAmountOut(amountIn, reserveIn, reserveOut) {
+        let _amountIn = new BigNumber(amountIn);
+        if(_amountIn.isLessThanOrEqualTo(0)) {
+            // INSUFFICIENT_INPUT_AMOUNT
+            throw "sw_0004";
+        }
+        let _reserveIn = new BigNumber(reserveIn);
+        let _reserveOut = new BigNumber(reserveOut);
+        if(_reserveIn.isLessThanOrEqualTo(0) || _reserveOut.isLessThanOrEqualTo(0)) {
+            // INSUFFICIENT_LIQUIDITY
+            throw "sw_0003";
+        }
+        let amountInWithFee = _amountIn.times(997);
+        let numerator = amountInWithFee.times(_reserveOut);
+        let denominator = _reserveIn.times(1000).plus(amountInWithFee);
+        let amountOut = numerator.dividedToIntegerBy(denominator);
+        return amountOut;
+    },
+    /**
+     * 根据买进数量，计算可卖出数量
+     */
+    getAmountIn(amountOut, reserveIn, reserveOut) {
+        let _amountOut = new BigNumber(amountOut);
+        if(_amountOut.isLessThanOrEqualTo(0)) {
+            // INSUFFICIENT_OUTPUT_AMOUNT
+            throw "sw_0005";
+        }
+        let _reserveIn = new BigNumber(reserveIn);
+        let _reserveOut = new BigNumber(reserveOut);
+        if(_reserveOut.isLessThanOrEqualTo(_amountOut) ||  _reserveIn.isLessThanOrEqualTo(0) || _reserveOut.isLessThanOrEqualTo(0)) {
+            // INSUFFICIENT_LIQUIDITY
+            throw "sw_0003";
+        }
+        let numerator = _reserveIn.times(_amountOut).times(1000);
+        let denominator = _reserveOut.minus(_amountOut).times(997);
+        let amountIn = numerator.dividedToIntegerBy(denominator).plus(1);
+        return amountIn;
+    },
+    /**
+     * 当交易路径大于等于3时，使用以下函数计算
+     *
+     * 根据卖出数量，计算可买进的数量
+     */
+    getAmountsOut(amountIn, tokenPathArray, pairsArray) {
+        let pathLength = tokenPathArray.length;
+        if (pathLength < 1 || pathLength > 100) {
+            // INVALID_PATH
+            throw "sw_0006";
+        }
+        let amounts = new Array(pathLength);
+        amounts[0] = amountIn;
+        let reserveIn;
+        let reserveOut;
+        for (let i = 0; i < pathLength - 1; i++) {
+            let reserves = this.getReserves(tokenPathArray[i], tokenPathArray[i + 1], pairsArray[i]);
+            reserveIn = reserves[0];
+            reserveOut = reserves[1];
+            amounts[i + 1] = this.getAmountOut(amounts[i], reserveIn, reserveOut);
+        }
+        return amounts;
+    },
+    /**
+     * 当交易路径大于等于3时，使用以下函数计算
+     *
+     * 根据买进数量，计算可卖出数量
+     */
+    getAmountsIn(amountOut, tokenPathArray, pairsArray) {
+        let pathLength = tokenPathArray.length;
+        if (pathLength < 1 || pathLength > 100) {
+            // INVALID_PATH
+            throw "sw_0006";
+        }
+        let amounts = new Array(pathLength);
+        amounts[pathLength - 1] = amountOut;
+        let reserveIn;
+        let reserveOut;
+        for (let i = pathLength - 1; i > 0; i--) {
+            let reserves = this.getReserves(tokenPathArray[i - 1], tokenPathArray[i], pairsArray[i - 1]);
+            reserveIn = reserves[0];
+            reserveOut = reserves[1];
+            amounts[i - 1] = this.getAmountIn(amounts[i], reserveIn, reserveOut);
+        }
+        return amounts;
     },
     /**
      * 组装交易: swap创建交易对
@@ -318,10 +435,11 @@ module.exports = {
      *
      * @param fromAddress           用户地址
      * @param coins                 资产类型列表，示例：[nerve.swap.token(5, 6), nerve.swap.token(5, 9), nerve.swap.token(5, 7), nerve.swap.token(5, 8)]
+     * @param symbol                LP名称（选填）
      * @param remark                交易备注
      * @returns 交易序列化hex字符串
      */
-    async stableSwapCreatePair(fromAddress, coins, remark) {
+    async stableSwapCreatePair(fromAddress, coins, symbol, remark) {
         let transferInfo = {
             fromAddress: fromAddress,
             toAddress: fromAddress,
@@ -343,6 +461,7 @@ module.exports = {
             71,
             {
                 coins: coins,
+                symbol: symbol
             }
         );
         //获取hash
