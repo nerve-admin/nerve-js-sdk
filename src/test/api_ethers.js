@@ -44,6 +44,12 @@ module.exports = {
      */
     getProvider(chain, HTGNET) {
         if (chain === 'ETH') {
+            //异构网络信息 测试网:ropsten, 主网:homestead
+            if (HTGNET === 'test') {
+                HTGNET = 'ropsten';
+            } else if (HTGNET === 'main') {
+                HTGNET = 'homestead';
+            }
             return ethers.getDefaultProvider(HTGNET);
         } else {
             return new ethers.providers.JsonRpcProvider(RPC_URL[chain][HTGNET]);
@@ -256,12 +262,12 @@ module.exports = {
      * @param isToken   是否token资产
      */
     async calNVTOfWithdrawTest(provider, nvtUSD, heterogeneousChainUSD, isToken) {
-        const gasPrice = await getWithdrawGas(provider);
-        const result = calNVTOfWithdraw(nvtUSD, gasPrice, heterogeneousChainUSD, isToken);
+        const gasPrice = await this.getWithdrawGas(provider);
+        const result = this.calNVTOfWithdraw(nvtUSD, gasPrice, heterogeneousChainUSD, isToken);
         return result
     },
 
-    getWithdrawGas(provider) {
+    async getWithdrawGas(provider) {
         return provider.getGasPrice().then((gasPrice) => {
             return gasPrice;
         });
@@ -283,8 +289,8 @@ module.exports = {
         } else {
             gasLimit = new ethers.utils.BigNumber('190000');
         }
-        const nvtUSDBig = ethers.utils.parseUnits(nvtUSD, 6);
-        const ethUSDBig = ethers.utils.parseUnits(heterogeneousChainUSD, 6);
+        const nvtUSDBig = ethers.utils.parseUnits(nvtUSD.toString(), 6);
+        const ethUSDBig = ethers.utils.parseUnits(heterogeneousChainUSD.toString(), 6);
         const result = ethUSDBig.mul(gasPrice).mul(gasLimit).div(ethers.utils.parseUnits(nvtUSDBig.toString(), 10));
         // console.log('result: ' + result.toString());
         const numberStr = ethers.utils.formatUnits(result, 8).toString();
@@ -343,5 +349,9 @@ module.exports = {
         let finalResult = ethers.utils.parseUnits(ceil.toString(), 8);
         // console.log('finalResult: ' + finalResult);
         return finalResult.toString();
+    },
+
+    formatNVT(amount) {
+        return ethers.utils.formatUnits(amount, 8).toString();
     }
 }

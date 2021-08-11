@@ -525,12 +525,16 @@ module.exports = {
     this.type = 71;
     let bw = new Serializers();
     let coins = entity.coins;
+    let symbol = entity.symbol;
     let length = coins.length;
     bw.getBufWriter().writeUInt8(length);
     for (let i = 0; i < length; i++) {
       let coin = coins[i];
       bw.getBufWriter().writeUInt16LE(coin.chainId);
       bw.getBufWriter().writeUInt16LE(coin.assetId);
+    }
+    if (symbol && symbol.length > 0) {
+      bw.writeString(symbol);
     }
     this.txData = bw.getBufWriter().toBuffer();
   },

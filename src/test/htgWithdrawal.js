@@ -1,29 +1,50 @@
 const nerve = require('../index');
 nerve.testnet();
 const sdk = require('../api/sdk');
-const {NERVE_INFO, Plus, timesDecimals} = require('./htgConfig');
-
-const {getNulsBalance, validateTx, broadcastTx} = require('./api/util');
+const {Plus, timesDecimals} = require('./htgConfig');
+const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt} = require('./api/util');
+// NERVE 网络基本信息
+const NERVE_INFOS = {
+    testnet: {
+        chainId: 5,
+        assetId: 1,
+        prefix: "TNVT",
+        symbol: "NVT",
+        decimals: 8,
+        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+        blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
+        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+    },
+    mainnet: {
+        chainId: 9,
+        assetId: 1,
+        prefix: "NERVE",
+        symbol: "NVT",
+        decimals: 8,
+        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+        blockHoleAddress: "NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L",
+        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+    }
+};
+let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 提现账户信息
-let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
-let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
+let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
 
 // 提现接收地址
 let toAddress = '0xc11D9943805e56b630A401D4bd9A29550353EFa1';
 // 提现金额
-let withdrawalAmount = '0.008';
+let withdrawalAmount = '2';
 // 提现资产小数位
 let withdrawalDecimals = 18;
-// 提现异构链网络ID
-let heterogeneousChainId = 103;
-
+// 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107)
+let heterogeneousChainId = 106;
 // 提现资产信息
 let withdrawalAssetChainId = 5;
-let withdrawalAssetId = 9;
-
+let withdrawalAssetId = 23;
 // 提现手续费(NVT)
-let withdrawalFeeOfNVT = '0.005';
+let withdrawalFeeOfNVT = '1';
 
 let remark = 'withdrawal transaction remark...';
 //调用

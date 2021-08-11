@@ -2,7 +2,6 @@
  * 创建swap交易对
  */
 const nerve = require('../../index');
-const txs = require('../../model/txs');
 // 设置网络环境
 nerve.testnet();
 
