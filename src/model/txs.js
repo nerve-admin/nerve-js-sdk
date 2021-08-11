@@ -648,6 +648,14 @@ module.exports = {
     bw.writeBigInt(entity.totalSyrupAmount)
     bw.writeUInt64LE(entity.startBlockHeight);
     bw.writeUInt64LE(entity.lockedTime);
+    if(!entity.modifiable){
+      entity.modifiable = false;
+    }
+    if(!entity.withdrawLockTime){
+      entity.withdrawLockTime = 0;
+    }
+    bw.writeBoolean(entity.modifiable);
+    bw.writeUInt64LE(entity.withdrawLockTime)
     this.txData = bw.getBufWriter().toBuffer();
   },
 
@@ -658,6 +666,19 @@ module.exports = {
     let hash = Buffer.from(entity.farmHash, 'hex');
     bw.getBufWriter().write(hash);
     bw.writeBigInt(entity.amount);
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  FarmUpdateTransaction: function (entity) {
+    Transaction.call(this);
+    this.type = 75;
+    let bw = new Serializers();
+    let hash = Buffer.from(entity.farmHash, 'hex');
+    bw.getBufWriter().write(hash);
+    bw.writeBigInt(entity.newSyrupPerBlock);
+    bw.getBufWriter().writeUInt8(entity.changeType);
+    bw.writeBigInt(entity.changeTotalSyrupAmount);
+    bw.writeUInt64LE(entity.withdrawLockTime);
     this.txData = bw.getBufWriter().toBuffer();
   },
 

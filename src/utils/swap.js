@@ -465,7 +465,7 @@ module.exports = {
     /**
      * 创建farm
      */
-    async farmCreate(fromAddress, tokenA, tokenB, chainId, syrupTotalAmount, syrupPerBlock, startBlockHeight, lockedTime, addressPrefix, remark) {
+    async farmCreate(fromAddress, tokenA, tokenB, chainId, syrupTotalAmount, syrupPerBlock, startBlockHeight, lockedTime, addressPrefix, remark, modifiable, withdrawLockTime) {
         let farmInfo = {
             tokenA: tokenA,
             tokenB: tokenB,
@@ -492,7 +492,9 @@ module.exports = {
                 syrupPerBlock: syrupPerBlock ,
                 totalSyrupAmount:syrupTotalAmount,
                 startBlockHeight:startBlockHeight,
-                lockedTime:lockedTime
+                lockedTime:lockedTime,
+                modifiable:modifiable,
+                withdrawLockTime: withdrawLockTime
             }
         );
         //获取hash
@@ -525,6 +527,41 @@ module.exports = {
             {
                 farmHash: farmHash,
                 amount: amount
+            }
+        );
+        //获取hash
+        let hash = await tAssemble.getHash();
+        let txhex = tAssemble.txSerialize().toString("hex");
+        return {hash: hash.toString('hex'), hex: txhex};
+    },
+    /**
+     * farm更新设置
+     */
+    async farmUpdate(fromAddress, farmHash, syrupChangeType, tokenB, changeTotalSyrupAmount, newSyrupPerBlock, withdrawLockTime, chainId, addressPrefix,remark) {
+        let farmInfo = {
+            fromAddress: fromAddress,
+            toAddress: sdk.getStringSpecAddress(chainId, 5, "0000000000000000000000000000000000000000000000000000000000000000", addressPrefix),//根据空hash+ 类型=5，计算出地址
+            fee: 0,
+            assetsChainId: tokenB.chainId,
+            assetsId: tokenB.assetId,
+            amount: changeTotalSyrupAmount,
+        };
+        let balance = await util.getNulsBalance(farmInfo.fromAddress, farmInfo.assetsChainId, farmInfo.assetsId);
+        let inOrOutputs = await util.inputsOrOutputs(farmInfo, balance.data);
+        if (!inOrOutputs.success) {
+            throw "inputs、outputs组装错误";
+        }
+        let tAssemble = await nerve.transactionAssemble(
+            inOrOutputs.data.inputs,
+            inOrOutputs.data.outputs,
+            remark,
+            75,
+            {
+                farmHash: farmHash,
+                newSyrupPerBlock: newSyrupPerBlock,
+                changeType:syrupChangeType,
+                changeTotalSyrupAmount:changeTotalSyrupAmount,
+                withdrawLockTime:withdrawLockTime
             }
         );
         //获取hash
