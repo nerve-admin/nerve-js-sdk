@@ -3,8 +3,8 @@
  */
 const nerve = require('../../index');
 // 设置网络环境
-// nerve.testnet();
-nerve.customnet(5, "http://192.168.1.39:17004/jsonrpc");
+nerve.testnet();
+// nerve.customnet(5, "http://192.168.1.39:17004/jsonrpc");
 
 // 账户信息
 let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
