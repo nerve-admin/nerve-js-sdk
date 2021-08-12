@@ -618,7 +618,7 @@ module.exports = {
     /**
      * 创建farm
      */
-    async farmCreate(fromAddress, tokenA, tokenB, chainId, syrupTotalAmount, syrupPerBlock, startBlockHeight, lockedTime, addressPrefix, remark, modifiable, withdrawLockTime) {
+    async farmCreate(fromAddress, tokenA, tokenB, chainId, syrupTotalAmount, syrupPerBlock, startBlockHeight, lockedTime, addressPrefix, modifiable, withdrawLockTime, remark) {
         let farmInfo = {
             tokenA: tokenA,
             tokenB: tokenB,
