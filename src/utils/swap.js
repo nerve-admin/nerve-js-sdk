@@ -198,7 +198,6 @@ module.exports = {
         return amountIn;
     },
     /**
-     * 当交易路径大于等于3时，使用以下函数计算
      *
      * 根据卖出数量，计算可买进的数量
      */
@@ -220,8 +219,43 @@ module.exports = {
         }
         return amounts;
     },
+    getAmountsReserves(amounts, tokenPathArray, pairsArray) {
+        let pathLength = tokenPathArray.length;
+        if (pathLength < 1 || pathLength > 100) {
+            // INVALID_PATH
+            throw "sw_0006";
+        }
+        let amountIn = amounts[0];
+        let amountOut = amounts[amounts.length - 1];
+        let reserves = this.getReserves(tokenPathArray[0], tokenPathArray[1], pairsArray[0]);
+        let reserveIn = new BigNumber(reserves[0]);
+        let _reserveIn = reserveIn.plus(amountIn);
+        let reserveOut;
+        if (pathLength < 3) {
+            reserveOut = new BigNumber(reserves[1]);
+        } else {
+            reserves = this.getReserves(tokenPathArray[pathLength - 2], tokenPathArray[pathLength - 1], pairsArray[pathLength - 2]);
+            reserveOut = new BigNumber(reserves[1]);
+        }
+        let _reserveOut = reserveOut.minus(amountOut);
+        return [reserveIn, reserveOut, _reserveIn, _reserveOut];
+    },
+    getPriceImpact(amounts, tokenPathArray, pairsArray) {
+        let fine = new BigNumber(10).pow(new BigNumber(18));
+        let array = this.getAmountsReserves(amounts, tokenPathArray, pairsArray);
+        let reserveIn = array[0];
+        let reserveOut = array[1];
+        let _reserveIn = array[2];
+        let _reserveOut = array[3];
+        let priceImpact = new BigNumber(1).minus(
+            new BigNumber
+            ((_reserveOut.times(reserveIn).times(fine))
+                    .div(_reserveIn.times(reserveOut)).toFixed(18))
+                .div(fine)
+        ).abs();
+        return priceImpact;
+    },
     /**
-     * 当交易路径大于等于3时，使用以下函数计算
      *
      * 根据买进数量，计算可卖出数量
      */

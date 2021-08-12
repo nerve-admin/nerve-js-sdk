@@ -1,6 +1,7 @@
 /**
  * swap工具类测试
  */
+const BigNumber = require('bignumber.js');
 const nerve = require('../../index');
 const txs = require('../../model/txs');
 // 设置网络环境
@@ -34,8 +35,9 @@ function getAmountIn() {
  *
  * 根据卖出数量，计算可买进的数量
  */
+// getAmountsOut();
 function getAmountsOut() {
-    let amountIn = '1000';
+    let amountIn = '10000';
     let tokenPathArray = [
         nerve.swap.token(5, 3),
         nerve.swap.token(5, 1),
@@ -49,9 +51,33 @@ function getAmountsOut() {
         nerve.swap.pair(
             nerve.swap.token(5, 1),
             nerve.swap.token(5, 7),
-            '10000000000', '10000000'),
+            '10000000000', '1000000'),
     ];
     console.log(nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray));
+}
+
+getPriceImpact();
+function getPriceImpact() {
+    let amountIn = '1000000';
+    let tokenPathArray = [
+        nerve.swap.token(5, 3),
+        nerve.swap.token(5, 1),
+        nerve.swap.token(5, 7)
+    ];
+    let pairsArray = [
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 3),
+            '171132069136', '16887743'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 7),
+            '10000000000', '1000000'),
+    ];
+    let amounts = nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray);
+    console.log(amounts, 1);
+    let priceImpact = nerve.swap.getPriceImpact(amounts, tokenPathArray, pairsArray);
+    console.log(priceImpact.toString(), 2);
 }
 
 
@@ -112,4 +138,11 @@ function getReserves() {
     );
     console.log(nerve.swap.getReserves(nerve.swap.token(5, 1), nerve.swap.token(5, 3), pair));
     console.log(nerve.swap.getReserves(nerve.swap.token(5, 3), nerve.swap.token(5, 1), pair));
+}
+
+// divTest();
+function divTest() {
+    let x = new BigNumber(2);
+    let y = new BigNumber(3);
+    console.log(x.div(y).toFixed(18));
 }
