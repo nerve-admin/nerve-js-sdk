@@ -241,7 +241,7 @@ module.exports = {
         return [reserveIn, reserveOut, _reserveIn, _reserveOut];
     },
     getPriceImpact(amounts, tokenPathArray, pairsArray) {
-        let fine = new BigNumber(10).pow(new BigNumber(18));
+        let fine = new BigNumber(10).pow(18);
         let array = this.getAmountsReserves(amounts, tokenPathArray, pairsArray);
         let reserveIn = array[0];
         let reserveOut = array[1];
