@@ -3,6 +3,11 @@
 $ npm i nerve-sdk-js
 ```
 
+# build
+```angular2
+webpack --mode production --config webpack.conf.js --progress
+```
+
 # Usage
 ```js
 const nerve = require('./index');
