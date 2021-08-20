@@ -139,6 +139,21 @@ module.exports = {
         let result = this.tokenEquals(tokenA, token0) ? [pair.reserve0, pair.reserve1] : [pair.reserve1, pair.reserve0];
         return result;
     },
+    calRemoveLiquidity(liquidity, tokenA, tokenB, pair) {
+        let _liquidity = new BigNumber(liquidity);
+        let reserves = this.getReserves(tokenA, tokenB, pair);
+        let reserveA = reserves[0];
+        let reserveB = reserves[1];
+        let totalSupply = new BigNumber(pair.totalSupply);
+        // 可赎回的资产
+        let amountA = _liquidity.times(reserveA).dividedToIntegerBy(totalSupply);
+        let amountB = _liquidity.times(reserveB).dividedToIntegerBy(totalSupply);
+        if(amountA.isLessThanOrEqualTo(0) || amountB.isLessThanOrEqualTo(0)) {
+            // INSUFFICIENT_LIQUIDITY_BURNED
+            throw "sw_0014";
+        }
+        return {amountA: amountA, amountB: amountB};
+    },
     /**
      * 根据交易对中其中一个币种，计算另外一个币种可添加的流动性
      */
