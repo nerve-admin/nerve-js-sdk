@@ -88,6 +88,10 @@ module.exports = {
         var times = new Date().valueOf();
         return Number(times.toString().substr(0, times.toString().length - 3)); //交易时间
     },
+    /**
+     *
+     * 组装一个token的json对象
+     */
     token(chainId, assetId) {
         return {chainId: chainId, assetId: assetId};
     },
@@ -127,18 +131,34 @@ module.exports = {
         }
         return sdk.getStringAddressBase(chainId, 4, null, cryptos.createHash('sha256').update(all).digest(), prefix);
     },
+    /**
+     *
+     * 比较两个token是否相同
+     */
     tokenEquals(tokenA, tokenB) {
         return tokenA.chainId == tokenB.chainId && tokenA.assetId == tokenB.assetId;
     },
+    /**
+     *
+     * 组装一个交易对的json对象
+     */
     pair(token0, token1, reserve0, reserve1) {
         return {token0: token0, token1: token1, reserve0: reserve0, reserve1: reserve1};
     },
+    /**
+     *
+     * 根据指定的token，返回相应顺序的流动性数量
+     */
     getReserves(tokenA, tokenB, pair) {
         let array = this.tokenSort(tokenA, tokenB);
         let token0 = array[0];
         let result = this.tokenEquals(tokenA, token0) ? [pair.reserve0, pair.reserve1] : [pair.reserve1, pair.reserve0];
         return result;
     },
+    /**
+     *
+     * 计算移除流动性可获得的资产数量
+     */
     calRemoveLiquidity(liquidity, tokenA, tokenB, pair) {
         let _liquidity = new BigNumber(liquidity);
         let reserves = this.getReserves(tokenA, tokenB, pair);
@@ -234,6 +254,10 @@ module.exports = {
         }
         return amounts;
     },
+    /**
+     *
+     * 根据交易数量，计算当前流动池数量和交易后的流动池数量
+     */
     getAmountsReserves(amounts, tokenPathArray, pairsArray) {
         let pathLength = tokenPathArray.length;
         if (pathLength < 1 || pathLength > 100) {
@@ -255,6 +279,10 @@ module.exports = {
         let _reserveOut = reserveOut.minus(amountOut);
         return [reserveIn, reserveOut, _reserveIn, _reserveOut];
     },
+    /**
+     *
+     * 根据交易数量计算价格影响
+     */
     getPriceImpact(amounts, tokenPathArray, pairsArray) {
         let array = this.getAmountsReserves(amounts, tokenPathArray, pairsArray);
         let reserveIn = array[0];
