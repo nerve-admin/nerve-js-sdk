@@ -256,7 +256,6 @@ module.exports = {
         return [reserveIn, reserveOut, _reserveIn, _reserveOut];
     },
     getPriceImpact(amounts, tokenPathArray, pairsArray) {
-        let fine = new BigNumber(10).pow(18);
         let array = this.getAmountsReserves(amounts, tokenPathArray, pairsArray);
         let reserveIn = array[0];
         let reserveOut = array[1];
@@ -264,9 +263,9 @@ module.exports = {
         let _reserveOut = array[3];
         let priceImpact = new BigNumber(1).minus(
             new BigNumber
-            ((_reserveOut.times(reserveIn).times(fine))
-                    .div(_reserveIn.times(reserveOut)).toFixed(18))
-                .div(fine)
+            ((_reserveOut.times(reserveIn).shiftedBy(78))
+                    .div(_reserveIn.times(reserveOut)).toFixed(78))
+                .shiftedBy(-78)
         ).abs();
         return priceImpact;
     },
