@@ -79,7 +79,94 @@ function int32ToBytes(x) {
     ]);
 }
 
-module.exports = {
+function containsCurrency(currentPathArray, token) {
+    let length = currentPathArray.length;
+    for (let i = 0; i < length; i++) {
+        let pair = currentPathArray[i];
+        if (swap.tokenEquals(pair.token0, token) || swap.tokenEquals(pair.token1, token)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, maxPairSize) {
+    let tokenIn = tokenAmountIn.token;
+    let length = pairs.length;
+    let tokens = swap.tokenSort(tokenIn, tokenOut);
+    let subIndex = -1;
+    for (let i = 0; i < length; i++) {
+        let pair = pairs[i];
+        if (swap.tokenEquals(pair.token0, tokens[0]) && swap.tokenEquals(pair.token1, tokens[1])) {
+            subIndex = i;
+            break;
+        }
+    }
+    if (subIndex != -1) {
+        let pair = pairs[subIndex];
+        let reserves = swap.getReserves(tokenIn, tokenOut, pair);
+        let reserveIn = new BigNumber(reserves[0]);
+        let reserveOut = new BigNumber(reserves[1]);
+        let amountOut = swap.getAmountOut(tokenAmountIn.amount, reserveIn, reserveOut);
+        let tokenAmountOut = swap.tokenAmount(tokenOut.chainId, tokenOut.assetId, amountOut);
+        wholeTradeArray.push({
+            path: [pair],
+            tokenAmountIn: orginTokenAmountIn,
+            tokenAmountOut: tokenAmountOut
+        });
+        pairs = pairs.slice(0, subIndex).concat(pairs.slice(subIndex + 1, length));
+    }
+    let trades = realBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, 0, maxPairSize);
+    if (trades.length == 0) return {};
+    trades.sort(function (a, b) {return b.tokenAmountOut.amount.minus(a.tokenAmountOut.amount)});
+    let trade = trades[0];
+    return trade;
+}
+
+function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArray, wholeTradeArray, orginTokenAmountIn, depth, maxPairSize) {
+    let length = pairs.length;
+    for (let i = 0; i < length; i++) {
+        let pair = pairs[i];
+        let tokenIn = tokenAmountIn.token;
+        if (!swap.tokenEquals(pair.token0, tokenIn) && !swap.tokenEquals(pair.token1, tokenIn)) continue;
+        let tokenOut = swap.tokenEquals(pair.token0, tokenIn) ? pair.token1 : pair.token0;
+        if (containsCurrency(currentPathArray, tokenOut)) continue;
+        let reserves = swap.getReserves(tokenIn, tokenOut, pair);
+        let reserveIn = new BigNumber(reserves[0]);
+        let reserveOut = new BigNumber(reserves[1]);
+        if (reserveIn.isEqualTo(0) || reserveOut.isEqualTo(0)) continue;
+        let amountOut = swap.getAmountOut(tokenAmountIn.amount, reserveIn, reserveOut);
+
+        if (swap.tokenEquals(tokenOut, out)) {
+            currentPathArray.push(pair);
+            let tokenAmountOut = swap.tokenAmount(tokenOut.chainId, tokenOut.assetId, amountOut);
+            wholeTradeArray.push({
+                path: currentPathArray,
+                tokenAmountIn: orginTokenAmountIn,
+                tokenAmountOut: tokenAmountOut
+            });
+        } else if (depth < (maxPairSize - 1) && length > 1) {
+            let cloneCurrentPathArray = currentPathArray.slice();
+            cloneCurrentPathArray.push(pair);
+            let subPairs = pairs.slice(0, i);
+            subPairs = subPairs.concat(pairs.slice(i + 1, length));
+            realBestTradeExactIn(
+                chainId,
+                subPairs,
+                swap.tokenAmount(tokenOut.chainId, tokenOut.assetId, amountOut),
+                out,
+                cloneCurrentPathArray,
+                wholeTradeArray,
+                orginTokenAmountIn,
+                depth + 1,
+                maxPairSize
+            );
+        }
+    }
+    return wholeTradeArray;
+}
+
+var swap = {
     /**
      * 当前时间，单位秒
      * @returns {number}
@@ -100,7 +187,8 @@ module.exports = {
      * @returns {{amount: *, chainId: *, assetId: *}}
      */
     tokenAmount(chainId, assetId, amount) {
-        return {chainId: chainId, assetId: assetId, amount: amount};
+        let token = this.token(chainId, assetId);
+        return {chainId: chainId, assetId: assetId, amount: amount, token: token};
     },
     /**
      * 按`chainId`和`assetId`排序两个token
@@ -154,6 +242,31 @@ module.exports = {
         let token0 = array[0];
         let result = this.tokenEquals(tokenA, token0) ? [pair.reserve0, pair.reserve1] : [pair.reserve1, pair.reserve0];
         return result;
+    },
+
+    /**
+     * 计算最优交易路径
+     */
+    bestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, maxPairSize) {
+        let trade = calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, [], [], tokenAmountIn, maxPairSize);
+        let tokenIn = trade.tokenAmountIn.token;
+        let tokenPath = [tokenIn];
+        let path = trade.path;
+        let length = path.length;
+        for (let i = 0; i < length; i++) {
+            let pair = path[i];
+            let token0 = pair.token0;
+            let token1 = pair.token1;
+            if (this.tokenEquals(tokenIn, token0)) {
+                tokenPath.push(token1);
+                tokenIn = token1;
+            } else {
+                tokenPath.push(token0);
+                tokenIn = token0;
+            }
+        }
+        trade.path = tokenPath;
+        return trade;
     },
     /**
      *
@@ -319,6 +432,7 @@ module.exports = {
         }
         return amounts;
     },
+
     /**
      * 组装交易: swap创建交易对
      *
@@ -797,3 +911,4 @@ module.exports = {
         return {hash: hash.toString('hex'), hex: txhex};
     }
 }
+module.exports = swap;

@@ -37,7 +37,7 @@ function getAmountIn() {
  */
 // getAmountsOut();
 function getAmountsOut() {
-    let amountIn = '10000';
+    let amountIn = '2200000';
     let tokenPathArray = [
         nerve.swap.token(5, 3),
         nerve.swap.token(5, 1),
@@ -51,28 +51,23 @@ function getAmountsOut() {
         nerve.swap.pair(
             nerve.swap.token(5, 1),
             nerve.swap.token(5, 7),
-            '10000000000', '1000000'),
+            '10000000000', '10000000'),
     ];
     console.log(nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray));
 }
 
-getPriceImpact();
+// getPriceImpact();
 function getPriceImpact() {
-    let amountIn = '1000000';
+    let amountIn = '5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
     let tokenPathArray = [
-        nerve.swap.token(5, 3),
         nerve.swap.token(5, 1),
-        nerve.swap.token(5, 7)
+        nerve.swap.token(2, 1)
     ];
     let pairsArray = [
         nerve.swap.pair(
+            nerve.swap.token(2, 1),
             nerve.swap.token(5, 1),
-            nerve.swap.token(5, 3),
-            '171132069136', '16887743'),
-        nerve.swap.pair(
-            nerve.swap.token(5, 1),
-            nerve.swap.token(5, 7),
-            '10000000000', '1000000'),
+            '8216932570', '815800089228'),
     ];
     let amounts = nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray);
     console.log(amounts, 1);
@@ -80,6 +75,58 @@ function getPriceImpact() {
     console.log(priceImpact.toString(), 2);
 }
 
+bestTradeTest();
+function bestTradeTest() {
+    let pairs = [
+        nerve.swap.pair(
+            nerve.swap.token(5, 3),
+            nerve.swap.token(5, 7),
+            '10000000000', '10000000'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 3),
+            '171132069136', '16887743'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 7),
+            '10000000000', '10000000'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 5),
+            '171132069136', '16887743'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 5),
+            nerve.swap.token(5, 7),
+            '10000000000', '10000000'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 3),
+            nerve.swap.token(5, 5),
+            '10000000000', '10000000'),
+    ];
+    let tokenAmountIn = nerve.swap.tokenAmount(5, 3, '2200000');
+    let tokenOut = nerve.swap.token(5, 7);
+    let maxPairSize = 4;
+    let trade = nerve.swap.bestTradeExactIn(5, pairs, tokenAmountIn, tokenOut, maxPairSize);
+    console.log(JSON.stringify(trade));
+}
+
+// arraySliceTest();
+function arraySliceTest() {
+    let pairs = [
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 3),
+            '171132069136', '16887743'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 7),
+            '10000000000', '10000000'),
+    ];
+    let subPairs = pairs.slice(0, 0);
+    let s2 = pairs.slice(1, 2);
+    subPairs = subPairs.concat(s2);
+    console.log('aaaaa');
+}
 
 /**
  * 当交易路径大于等于3时，使用以下函数计算
