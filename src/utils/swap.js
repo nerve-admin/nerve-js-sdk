@@ -90,6 +90,23 @@ function containsCurrency(currentPathArray, token) {
     return false;
 }
 
+function getAmountOutForBestTrade(amountIn, reserveIn, reserveOut) {
+    let _amountIn = new BigNumber(amountIn);
+    if(_amountIn.isLessThanOrEqualTo(0)) {
+        return new BigNumber('0');
+    }
+    let _reserveIn = new BigNumber(reserveIn);
+    let _reserveOut = new BigNumber(reserveOut);
+    if(_reserveIn.isLessThanOrEqualTo(0) || _reserveOut.isLessThanOrEqualTo(0)) {
+        return new BigNumber('0');
+    }
+    let amountInWithFee = _amountIn.times(997);
+    let numerator = amountInWithFee.times(_reserveOut);
+    let denominator = _reserveIn.times(1000).plus(amountInWithFee);
+    let amountOut = numerator.dividedToIntegerBy(denominator);
+    return amountOut;
+}
+
 function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, maxPairSize) {
     let tokenIn = tokenAmountIn.token;
     let length = pairs.length;
@@ -107,7 +124,7 @@ function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPa
         let reserves = swap.getReserves(tokenIn, tokenOut, pair);
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
-        let amountOut = swap.getAmountOut(tokenAmountIn.amount, reserveIn, reserveOut);
+        let amountOut = getAmountOutForBestTrade(tokenAmountIn.amount, reserveIn, reserveOut);
         let tokenAmountOut = swap.tokenAmount(tokenOut.chainId, tokenOut.assetId, amountOut);
         wholeTradeArray.push({
             path: [pair],
@@ -135,7 +152,7 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
         if (reserveIn.isEqualTo(0) || reserveOut.isEqualTo(0)) continue;
-        let amountOut = swap.getAmountOut(tokenAmountIn.amount, reserveIn, reserveOut);
+        let amountOut = getAmountOutForBestTrade(tokenAmountIn.amount, reserveIn, reserveOut);
 
         if (swap.tokenEquals(tokenOut, out)) {
             currentPathArray.push(pair);
