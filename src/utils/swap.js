@@ -107,6 +107,22 @@ function getAmountOutForBestTrade(amountIn, reserveIn, reserveOut) {
     return amountOut;
 }
 
+function getAmountInForBestTrade(amountOut, reserveIn, reserveOut) {
+    let _amountOut = new BigNumber(amountOut);
+    if(_amountOut.isLessThanOrEqualTo(0)) {
+        return new BigNumber('0');
+    }
+    let _reserveIn = new BigNumber(reserveIn);
+    let _reserveOut = new BigNumber(reserveOut);
+    if(_reserveOut.isLessThanOrEqualTo(_amountOut) ||  _reserveIn.isLessThanOrEqualTo(0) || _reserveOut.isLessThanOrEqualTo(0)) {
+        return new BigNumber('0');
+    }
+    let numerator = _reserveIn.times(_amountOut).times(1000);
+    let denominator = _reserveOut.minus(_amountOut).times(997);
+    let amountIn = numerator.dividedToIntegerBy(denominator).plus(1);
+    return amountIn;
+}
+
 function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, maxPairSize) {
     let tokenIn = tokenAmountIn.token;
     let length = pairs.length;
@@ -136,7 +152,9 @@ function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPa
     let trades = realBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, 0, maxPairSize);
     if (trades.length == 0) return {};
     trades.sort(function (a, b) {return b.tokenAmountOut.amount.minus(a.tokenAmountOut.amount)});
+
     let trade = trades[0];
+    if (trade.tokenAmountOut.amount.isEqualTo(0)) return {};
     return trade;
 }
 
@@ -175,6 +193,87 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
                 cloneCurrentPathArray,
                 wholeTradeArray,
                 orginTokenAmountIn,
+                depth + 1,
+                maxPairSize
+            );
+        }
+    }
+    return wholeTradeArray;
+}
+
+function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, maxPairSize) {
+    let tokenOut = tokenAmountOut.token;
+    let length = pairs.length;
+    let tokens = swap.tokenSort(_in, tokenOut);
+    let subIndex = -1;
+    for (let i = 0; i < length; i++) {
+        let pair = pairs[i];
+        if (swap.tokenEquals(pair.token0, tokens[0]) && swap.tokenEquals(pair.token1, tokens[1])) {
+            subIndex = i;
+            break;
+        }
+    }
+    if (subIndex != -1) {
+        let pair = pairs[subIndex];
+        let reserves = swap.getReserves(_in, tokenOut, pair);
+        let reserveIn = new BigNumber(reserves[0]);
+        let reserveOut = new BigNumber(reserves[1]);
+        let amountIn = getAmountInForBestTrade(tokenAmountOut.amount, reserveIn, reserveOut);
+        let tokenAmountIn = swap.tokenAmount(_in.chainId, _in.assetId, amountIn);
+        wholeTradeArray.push({
+            path: [pair],
+            tokenAmountIn: tokenAmountIn,
+            tokenAmountOut: orginTokenAmountOut
+        });
+        pairs = pairs.slice(0, subIndex).concat(pairs.slice(subIndex + 1, length));
+    }
+    let trades = realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, 0, maxPairSize);
+    if (trades.length == 0) return {};
+    trades.sort(function (a, b) {return a.tokenAmountIn.amount.minus(b.tokenAmountIn.amount)});
+
+    for (let i=0;i<trades.length;i++) {
+        let trade = trades[i];
+        if (trade.tokenAmountIn.amount.isEqualTo(0)) continue;
+        return trade;
+    }
+    return {};
+}
+
+function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, depth, maxPairSize) {
+    let length = pairs.length;
+    let currentOut = tokenAmountOut.token;
+    for (let i = 0; i < length; i++) {
+        let pair = pairs[i];
+        if (!swap.tokenEquals(pair.token0, currentOut) && !swap.tokenEquals(pair.token1, currentOut)) continue;
+        let currentIn = swap.tokenEquals(pair.token0, currentOut) ? pair.token1 : pair.token0;
+        if (containsCurrency(currentPathArray, currentIn)) continue;
+        let reserves = swap.getReserves(currentIn, currentOut, pair);
+        let reserveIn = new BigNumber(reserves[0]);
+        let reserveOut = new BigNumber(reserves[1]);
+        if (reserveIn.isEqualTo(0) || reserveOut.isEqualTo(0)) continue;
+        let amountIn = getAmountInForBestTrade(tokenAmountOut.amount, reserveIn, reserveOut);
+
+        if (swap.tokenEquals(currentIn, _in)) {
+            currentPathArray.push(pair);
+            let tokenAmountIn = swap.tokenAmount(currentIn.chainId, currentIn.assetId, amountIn);
+            wholeTradeArray.push({
+                path: currentPathArray,
+                tokenAmountIn: tokenAmountIn,
+                tokenAmountOut: orginTokenAmountOut
+            });
+        } else if (depth < (maxPairSize - 1) && length > 1) {
+            let cloneCurrentPathArray = currentPathArray.slice();
+            cloneCurrentPathArray.push(pair);
+            let subPairs = pairs.slice(0, i);
+            subPairs = subPairs.concat(pairs.slice(i + 1, length));
+            realBestTradeExactOut(
+                chainId,
+                subPairs,
+                _in,
+                swap.tokenAmount(currentIn.chainId, currentIn.assetId, amountIn),
+                cloneCurrentPathArray,
+                wholeTradeArray,
+                orginTokenAmountOut,
                 depth + 1,
                 maxPairSize
             );
@@ -266,6 +365,7 @@ var swap = {
      */
     bestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, maxPairSize) {
         let trade = calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, [], [], tokenAmountIn, maxPairSize);
+        if (!trade.path) return trade;
         let tokenIn = trade.tokenAmountIn.token;
         let tokenPath = [tokenIn];
         let path = trade.path;
@@ -283,6 +383,33 @@ var swap = {
             }
         }
         trade.path = tokenPath;
+        return trade;
+    },
+    /**
+     * 计算最优交易路径
+     */
+    bestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, maxPairSize) {
+        let trade = calcBestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, [], [], tokenAmountOut, maxPairSize);
+        if (!trade.path) return trade;
+        let tokenOut = tokenAmountOut.token;
+        let tokenPath = [tokenOut];
+        let path = trade.path;
+        let length = path.length;
+        let _tokenTmp = tokenOut;
+        for (let i = 0; i < length; i++) {
+            let pair = path[i];
+            let token0 = pair.token0;
+            let token1 = pair.token1;
+            if (swap.tokenEquals(_tokenTmp, token0)) {
+                tokenPath.push(token1);
+                _tokenTmp = token1;
+            } else {
+                tokenPath.push(token0);
+                _tokenTmp = token0;
+            }
+        }
+        let tokenPathArray = tokenPath.reverse();
+        trade.path = tokenPathArray;
         return trade;
     },
     /**
@@ -386,6 +513,28 @@ var swap = {
     },
     /**
      *
+     * 根据买进数量，计算可卖出数量
+     */
+    getAmountsIn(amountOut, tokenPathArray, pairsArray) {
+        let pathLength = tokenPathArray.length;
+        if (pathLength < 1 || pathLength > 100) {
+            // INVALID_PATH
+            throw "sw_0006";
+        }
+        let amounts = new Array(pathLength);
+        amounts[pathLength - 1] = amountOut;
+        let reserveIn;
+        let reserveOut;
+        for (let i = pathLength - 1; i > 0; i--) {
+            let reserves = this.getReserves(tokenPathArray[i - 1], tokenPathArray[i], pairsArray[i - 1]);
+            reserveIn = reserves[0];
+            reserveOut = reserves[1];
+            amounts[i - 1] = this.getAmountIn(amounts[i], reserveIn, reserveOut);
+        }
+        return amounts;
+    },
+    /**
+     *
      * 根据交易数量，计算当前流动池数量和交易后的流动池数量
      */
     getAmountsReserves(amounts, tokenPathArray, pairsArray) {
@@ -426,28 +575,6 @@ var swap = {
                 .shiftedBy(-78)
         ).abs();
         return priceImpact;
-    },
-    /**
-     *
-     * 根据买进数量，计算可卖出数量
-     */
-    getAmountsIn(amountOut, tokenPathArray, pairsArray) {
-        let pathLength = tokenPathArray.length;
-        if (pathLength < 1 || pathLength > 100) {
-            // INVALID_PATH
-            throw "sw_0006";
-        }
-        let amounts = new Array(pathLength);
-        amounts[pathLength - 1] = amountOut;
-        let reserveIn;
-        let reserveOut;
-        for (let i = pathLength - 1; i > 0; i--) {
-            let reserves = this.getReserves(tokenPathArray[i - 1], tokenPathArray[i], pairsArray[i - 1]);
-            reserveIn = reserves[0];
-            reserveOut = reserves[1];
-            amounts[i - 1] = this.getAmountIn(amounts[i], reserveIn, reserveOut);
-        }
-        return amounts;
     },
 
     /**

@@ -75,8 +75,8 @@ function getPriceImpact() {
     console.log(priceImpact.toString(), 2);
 }
 
-bestTradeTest();
-function bestTradeTest() {
+// bestTradeExactInTest();
+function bestTradeExactInTest() {
     let pairs = [
         nerve.swap.pair(
             nerve.swap.token(5, 3),
@@ -107,6 +107,41 @@ function bestTradeTest() {
     let tokenOut = nerve.swap.token(5, 7);
     let maxPairSize = 4;
     let trade = nerve.swap.bestTradeExactIn(5, pairs, tokenAmountIn, tokenOut, maxPairSize);
+    console.log(JSON.stringify(trade));
+}
+
+bestTradeExactOutTest();
+function bestTradeExactOutTest() {
+    let pairs = [
+        nerve.swap.pair(
+            nerve.swap.token(5, 3),
+            nerve.swap.token(5, 7),
+            '10000000000', '10000000'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 3),
+            '171132069136', '16887743'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 7),
+            '10000000000', '10000000'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 1),
+            nerve.swap.token(5, 5),
+            '171132069136', '16887743'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 5),
+            nerve.swap.token(5, 7),
+            '10000000000', '10000000'),
+        nerve.swap.pair(
+            nerve.swap.token(5, 3),
+            nerve.swap.token(5, 5),
+            '10000000000', '10000000'),
+    ];
+    let tokenIn = nerve.swap.token(5, 3);
+    let tokenAmountOut = nerve.swap.tokenAmount(5, 7, '6623084');
+    let maxPairSize = 4;
+    let trade = nerve.swap.bestTradeExactOut(5, pairs, tokenIn, tokenAmountOut, maxPairSize);
     console.log(JSON.stringify(trade));
 }
 
