@@ -2,6 +2,9 @@ const BigNumber = require('bignumber.js');
 
 
 module.exports = {
+  instance(nu) {
+    return new BigNumber(nu);
+  },
   /**
    * 10的N 次方
    * @param arg

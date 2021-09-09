@@ -82,10 +82,12 @@ module.exports = {
    * @returns {*}
    */
   inputsOrOutputs(transferInfo, balanceInfo, type) {
+    transferInfo.amount = numberUtil.instance(transferInfo.amount).toFixed();
+    transferInfo.fee = numberUtil.instance(transferInfo.fee).toFixed();
     let newAmount = numberUtil.Plus(transferInfo.amount, transferInfo.fee);
     let newLocked = 0;
     let newNonce = balanceInfo.nonce;
-    let newoutputAmount = transferInfo.amount;
+    let newoutputAmount = numberUtil.instance(transferInfo.amount);
     let newLockTime = 0;
     let inputs = [];
     let outputs = [];
@@ -117,7 +119,7 @@ module.exports = {
           address: transferInfo.fromAddress,
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
-          amount: newAmount.toString(),
+          amount: newAmount.toFixed(),
           locked: 0,
           nonce: balanceInfo.nonce
         });
@@ -171,7 +173,7 @@ module.exports = {
           address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
-          amount: numberUtil.Minus(transferInfo.amount, transferInfo.fee).toString(),
+          amount: numberUtil.Minus(transferInfo.amount, transferInfo.fee).toFixed(),
           lockTime: 0
         });
       }
@@ -197,7 +199,7 @@ module.exports = {
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: newoutputAmount.toString(),
+        amount: newoutputAmount.toFixed(),
         lockTime: newLockTime
       });
       return {success: true, data: {inputs: inputs, outputs: outputs}};
@@ -225,7 +227,7 @@ module.exports = {
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: newoutputAmount.toString(),
+        amount: newoutputAmount.toFixed(),
         lockTime: newLockTime
       });
       let allAmount = 0;
@@ -237,7 +239,7 @@ module.exports = {
         address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: numberUtil.Minus(allAmount, transferInfo.amount).toString(),
+        amount: numberUtil.Minus(allAmount, transferInfo.amount).toFixed(),
         lockTime: -1
       });
 
@@ -248,7 +250,7 @@ module.exports = {
       address: transferInfo.fromAddress,
       assetsChainId: transferInfo.assetsChainId,
       assetsId: transferInfo.assetsId,
-      amount: newAmount.toString(),
+      amount: newAmount.toFixed(),
       locked: newLocked,
       nonce: newNonce
     });
@@ -257,7 +259,7 @@ module.exports = {
       address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
       assetsChainId: transferInfo.assetsChainId,
       assetsId: transferInfo.assetsId,
-      amount: newoutputAmount,
+      amount: newoutputAmount.toFixed(),
       lockTime: newLockTime
     });
 
