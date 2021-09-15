@@ -561,6 +561,13 @@ var swap = {
     /**
      *
      * 根据交易数量计算价格影响
+     *
+     * 计算规则:
+     *  原始池: reserveIn, reserveOut
+     *  交易后的池: _reserveIn, _reserveOut
+     *  原始价格: reserveOut / reserveIn
+     *  交易后的价格: _reserveOut / _reserveIn
+     *  结果 = (原始价格 - 交易后的价格).abs() / 原始价格
      */
     getPriceImpact(amounts, tokenPathArray, pairsArray) {
         let array = this.getAmountsReserves(amounts, tokenPathArray, pairsArray);
