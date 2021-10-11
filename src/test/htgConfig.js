@@ -5,18 +5,6 @@ const BigNumber = require('bignumber.js');
 //异构网络信息 测试网:test, 主网:main
 const HTGNET = 'test';
 
-// NERVE网络信息
-const NERVE_INFO = {
-    chainId: 5,
-    assetId: 1,
-    prefix: "TNVT",
-    symbol: "TNVT",
-    decimals: 8,
-    blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
-    blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
-    feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
-};
-
 const RPC_URL = {
     BNB: {
         test: "https://data-seed-prebsc-1-s1.binance.org:8545/",
@@ -87,4 +75,4 @@ function Minus(nu, arg) {
     return newMinus.minus(arg);
 }
 
-module.exports = {NERVE_INFO, HTGNET, RPC_URL, Minus, Plus, timesDecimals}
+module.exports = {HTGNET, RPC_URL, Minus, Plus, timesDecimals}

@@ -1,4 +1,4 @@
-const {NERVE_INFO, HTGNET} = require('./htgConfig');
+const {HTGNET} = require('./htgConfig');
 
 const {
     getProvider,
@@ -10,7 +10,17 @@ const {
     sendERC20,
     validateAddress
 } = require('./api_ethers');
-
+// NERVE网络信息
+const NERVE_INFO = {
+    chainId: 5,
+    assetId: 1,
+    prefix: "TNVT",
+    symbol: "TNVT",
+    decimals: 8,
+    blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+    blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
+    feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+};
 
 
 // crossMainAssetTest();

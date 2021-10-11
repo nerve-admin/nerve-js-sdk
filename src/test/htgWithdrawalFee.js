@@ -1,6 +1,6 @@
 const nerve = require('../index');
 
-let isMainnet = true;
+let isMainnet = false;
 if (isMainnet) {
     nerve.mainnet();
 } else {
@@ -80,10 +80,11 @@ const NERVE_ASSET_INFO = {
     }
 };
 
+// f();
 // withdrawalToETH(isMainnet);
-// withdrawalToBSC(isMainnet);
+withdrawalToBSC(isMainnet);
 // withdrawalToHECO(isMainnet);
-withdrawalToOKT(isMainnet);
+// withdrawalToOKT(isMainnet);
 // withdrawalToONE(isMainnet);
 // withdrawalToMATIC(isMainnet);
 // withdrawalToKCS(isMainnet);
@@ -136,6 +137,13 @@ async function calcFee(chain, isMainnet) {
     return api_ethers.formatNVT(result);
 }
 
+async function f() {
+    let provider = api_ethers.getProvider("BNB", "test");
+    let nvtPrice = '0.0355';
+    let htgPrice = '504.482';
+    let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, htgPrice, true);
+    console.log(api_ethers.formatNVT(result));
+}
 
 
 

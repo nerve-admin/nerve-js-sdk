@@ -35,30 +35,35 @@ function getAmountIn() {
  *
  * 根据卖出数量，计算可买进的数量
  */
-// getAmountsOut();
+getAmountsOut();
 function getAmountsOut() {
-    let amountIn = '2200000';
+    let amountIn = '110000000000';
     let tokenPathArray = [
-        nerve.swap.token(5, 3),
+        nerve.swap.token(2, 33),
+        nerve.swap.token(5, 25),
         nerve.swap.token(5, 1),
         nerve.swap.token(5, 7)
     ];
     let pairsArray = [
         nerve.swap.pair(
+            nerve.swap.token(2, 33),
+            nerve.swap.token(5, 25),
+            '9204387996119851', '10866621900299832899'),
+        nerve.swap.pair(
             nerve.swap.token(5, 1),
-            nerve.swap.token(5, 3),
-            '171132069136', '16887743'),
+            nerve.swap.token(5, 25),
+            '88340927', '1132245721610466936'),
         nerve.swap.pair(
             nerve.swap.token(5, 1),
             nerve.swap.token(5, 7),
-            '10000000000', '10000000'),
+            '24526402685', '4477567'),
     ];
     console.log(nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray));
 }
 
 // getPriceImpact();
 function getPriceImpact() {
-    let amountIn = '5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+    let amountIn = '500000000';
     let tokenPathArray = [
         nerve.swap.token(5, 1),
         nerve.swap.token(2, 1)
@@ -110,7 +115,7 @@ function bestTradeExactInTest() {
     console.log(JSON.stringify(trade));
 }
 
-bestTradeExactOutTest();
+// bestTradeExactOutTest();
 function bestTradeExactOutTest() {
     let pairs = [
         nerve.swap.pair(

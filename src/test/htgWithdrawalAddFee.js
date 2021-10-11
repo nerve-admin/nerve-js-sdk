@@ -1,18 +1,43 @@
 const nerve = require('../index');
-nerve.testnet();
+nerve.mainnet();
 const sdk = require('../api/sdk');
-const {NERVE_INFO, Plus, timesDecimals} = require('./htgConfig');
+const {Plus, timesDecimals} = require('./htgConfig');
 
 const {getNulsBalance, validateTx, broadcastTx} = require('./api/util');
 
+// NERVE 网络基本信息
+const NERVE_INFOS = {
+    testnet: {
+        chainId: 5,
+        assetId: 1,
+        prefix: "TNVT",
+        symbol: "NVT",
+        decimals: 8,
+        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+        blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
+        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+    },
+    mainnet: {
+        chainId: 9,
+        assetId: 1,
+        prefix: "NERVE",
+        symbol: "NVT",
+        decimals: 8,
+        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+        blockHoleAddress: "NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L",
+        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
+    }
+};
+let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
+
 // 设置追加手续费的账户，必须与提现账户一致
-let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
+let fromAddress = "NERVEepb688ErqaurAVdNDXkyAT74FxGJbyQ2N";
 let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
 
 // 发出的提现交易hash
-let withdrawalTxHash = '3dbf85763e6af2032dce3f509b89c6d67c8988851883e8129622956d271b561b';
+let withdrawalTxHash = 'c7fece64ab0b31b223fcf654aeb2335b8bf10d03104fcfd930fd6ce99d0593d4';
 // 追加的NVT手续费，此处设置为追加2个NVT
-let addFeeAmount = '3';
+let addFeeAmount = '1';
 
 let remark = 'withdrawal add fee transaction remark...';
 //调用

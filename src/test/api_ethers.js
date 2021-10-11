@@ -5,6 +5,7 @@ const CROSS_OUT_ABI = [
     "crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)"
 ];
 const ERC20_ABI = [
+    "transfer(address to, uint value) external returns (bool)",
     "allowance(address owner, address spender) external view returns (uint256)",
     "approve(address spender, uint256 amount) external returns (bool)"
 ];
@@ -247,10 +248,33 @@ module.exports = {
         };
         const failed = await validate(provider, transactionParameters);
         if (failed) {
-            console.error('failed approveERC20' + failed);
-            return {success: false, msg: 'failed approveERC20' + failed}
+            console.error('failed sendERC20' + failed);
+            return {success: false, msg: 'failed sendERC20' + failed}
         }
         delete transactionParameters.from   //etherjs 4.0 from参数无效 报错
+        return sendTransaction(pri, provider, transactionParameters)
+    },
+
+    async transferERC20(pri, fromAddress, provider, contractAddress, toAddress, decimals, numbers) {
+        const numberOfTokens = ethers.utils.parseUnits(numbers, decimals);
+        const iface = new ethers.utils.Interface(ERC20_ABI);
+        const data = iface.functions.transfer.encode([toAddress, numberOfTokens]);
+        const transactionParameters = {
+            to: contractAddress,
+            from: fromAddress, //验证合约调用需要from,必传
+            value: '0x00',
+            data: data
+        };
+        const failed = await validate(provider, transactionParameters);
+        if (failed) {
+            console.error('failed transferERC20' + failed);
+            return {success: false, msg: 'failed transferERC20' + failed}
+        }
+        delete transactionParameters.from   //etherjs 4.0 from参数无效 报错
+        const gasPrice = await getWithdrawGas(provider);
+        transactionParameters.gasLimit = 150000;
+        //todo 是否加速，是则乘以加速系数
+        transactionParameters.gasPrice = gasPrice;
         return sendTransaction(pri, provider, transactionParameters)
     },
 
