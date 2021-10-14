@@ -279,15 +279,16 @@ module.exports = {
     },
 
     /**
-     * 提现默认手续费--nvt
+     * 提现默认手续费
      * @param provider
-     * @param nvtUSD    nvt的USDT价格
-     * @param heterogeneousChainUSD    异构链币种的USDT价格
+     * @param otherMainAssetCoin        手续费资产信息 eg. {chainId: 5, assetId: 1, decimals: 8}
+     * @param otherMainAssetUSD         手续费资产的USDT价格
+     * @param currentMainAssetUSD       当前提现异构链网络主资产的USDT价格
      * @param isToken   是否token资产
      */
-    async calNVTOfWithdrawTest(provider, nvtUSD, heterogeneousChainUSD, isToken) {
+    async calcOtherMainAssetOfWithdrawTest(provider, otherMainAssetCoin, otherMainAssetUSD, currentMainAssetUSD, isToken) {
         const gasPrice = await this.getWithdrawGas(provider);
-        const result = this.calNVTOfWithdraw(nvtUSD, gasPrice, heterogeneousChainUSD, isToken);
+        const result = this.calcOtherMainAssetOfWithdraw(otherMainAssetCoin, otherMainAssetUSD, gasPrice, currentMainAssetUSD, isToken);
         return result
     },
 
@@ -298,31 +299,61 @@ module.exports = {
     },
 
     /**
-     * @param nvtUSD    nvt的USDT价格
-     * @param gasPrice  当前异构网络的平均gas价格
-     * @param heterogeneousChainUSD    异构链币种的USDT价格
-     * @param isToken   是否token资产
+     * @param otherMainAssetCoin        手续费资产信息 eg. {chainId: 5, assetId: 1, decimals: 8}
+     * @param otherMainAssetUSD         手续费资产的USDT价格
+     * @param gasPrice                  当前异构网络的平均gas价格
+     * @param currentMainAssetUSD       当前提现异构链网络主资产的USDT价格
+     * @param isToken                   是否token资产
      */
-    calNVTOfWithdraw(nvtUSD, gasPrice, heterogeneousChainUSD, isToken) {
-        /*console.log('nvtUSD', nvtUSD)
-        console.log('gasPrice', gasPrice.toString())
-        console.log('ethUSD', ethUSD)*/
+    calcOtherMainAssetOfWithdraw(otherMainAssetCoin, otherMainAssetUSD, gasPrice, currentMainAssetUSD, isToken) {
         let gasLimit;
         if (isToken) {
             gasLimit = new ethers.utils.BigNumber('210000');
         } else {
             gasLimit = new ethers.utils.BigNumber('190000');
         }
-        const nvtUSDBig = ethers.utils.parseUnits(nvtUSD.toString(), 6);
-        const ethUSDBig = ethers.utils.parseUnits(heterogeneousChainUSD.toString(), 6);
-        const result = ethUSDBig.mul(gasPrice).mul(gasLimit).div(ethers.utils.parseUnits(nvtUSDBig.toString(), 10));
-        // console.log('result: ' + result.toString());
-        const numberStr = ethers.utils.formatUnits(result, 8).toString();
-        const ceil = Math.ceil(numberStr);
-        // console.log('ceil: ' + ceil);
-        const finalResult = ethers.utils.parseUnits(ceil.toString(), 8);
-        // console.log('finalResult: ' + finalResult);
-        return finalResult;
+        const otherMainAssetUSDBig = ethers.utils.parseUnits(otherMainAssetUSD.toString(), 6);
+        const currentMainAssetUSDBig = ethers.utils.parseUnits(currentMainAssetUSD.toString(), 6);
+        let result = currentMainAssetUSDBig.mul(gasPrice).mul(gasLimit).mul(ethers.utils.parseUnits('1', otherMainAssetCoin.decimals))
+            .div(ethers.utils.parseUnits('1', 18))
+            .div(otherMainAssetUSDBig);
+        // 当NVT作为手续费时，向上取整
+        if (otherMainAssetCoin.assetId === 1) {
+            let numberStr = ethers.utils.formatUnits(result, otherMainAssetCoin.decimals);
+            const ceil = Math.ceil(numberStr);
+            result = ethers.utils.parseUnits(ceil.toString(), otherMainAssetCoin.decimals).toString();
+        }
+        return result;
+    },
+
+    calcOtherMainAssetOfWithdrawForTRX(otherMainAssetCoin, otherMainAssetUSD, currentMainAssetUSD, feeLimit) {
+        const otherMainAssetUSDBig = ethers.utils.parseUnits(otherMainAssetUSD.toString(), 6);
+        const currentMainAssetUSDBig = ethers.utils.parseUnits(currentMainAssetUSD.toString(), 6);
+        let result = currentMainAssetUSDBig.mul(feeLimit).mul(ethers.utils.parseUnits('1', otherMainAssetCoin.decimals))
+            .div(ethers.utils.parseUnits('1', 6))
+            .div(otherMainAssetUSDBig);
+        // 当NVT作为手续费时，向上取整
+        if (otherMainAssetCoin.assetId === 1) {
+            let numberStr = ethers.utils.formatUnits(result, otherMainAssetCoin.decimals);
+            const ceil = Math.ceil(numberStr);
+            result = ethers.utils.parseUnits(ceil.toString(), otherMainAssetCoin.decimals).toString();
+        }
+        return result;
+    },
+
+    async calcMainAssetOfWithdrawProtocol15Test(provider, isToken) {
+        const gasPrice = await this.getWithdrawGas(provider);
+        return this.calcMainAssetOfWithdrawProtocol15(gasPrice, isToken);
+    },
+
+    calcMainAssetOfWithdrawProtocol15(gasPrice, isToken) {
+        let gasLimit;
+        if (isToken) {
+            gasLimit = new ethers.utils.BigNumber('210000');
+        } else {
+            gasLimit = new ethers.utils.BigNumber('190000');
+        }
+        return gasPrice.mul(gasLimit);
     },
 
 
@@ -377,5 +408,9 @@ module.exports = {
 
     formatNVT(amount) {
         return ethers.utils.formatUnits(amount, 8).toString();
+    },
+
+    formatOtherMainAsset(amount, otherMainAssetCoin) {
+        return ethers.utils.formatUnits(amount, otherMainAssetCoin.decimals).toString();
     }
 }

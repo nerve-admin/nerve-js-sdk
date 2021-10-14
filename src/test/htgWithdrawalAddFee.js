@@ -2,10 +2,7 @@ const nerve = require('../index');
 nerve.testnet();
 const sdk = require('../api/sdk');
 const {NERVE_INFOS, Plus, timesDecimals} = require('./htgConfig');
-
 const {getNulsBalance, validateTx, broadcastTx} = require('./api/util');
-
-// 总共需要的BNB: 0.002100000000000000, 用户提供的BNB: 0.001230000000000000, 需要追加的BNB: 0.000870000000000000
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 设置追加手续费的账户，必须与提现账户一致

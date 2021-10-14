@@ -53,7 +53,8 @@ const NERVE_INFOS = {
             MATIC:  {chainId: 5, assetId: 34, decimals: 18},
             KCS:    {chainId: 5, assetId: 35, decimals: 18},
             TRX:    {chainId: 5, assetId: 55, decimals: 6}
-        }
+        },
+        trxWithdrawFee: '20000000'
     },
     mainnet: {
         chainId: 9,
@@ -74,7 +75,8 @@ const NERVE_INFOS = {
             MATIC:  {chainId: 9, assetId: 160, decimals: 18},
             KCS:    {chainId: 9, assetId: 161, decimals: 18},
             TRX:    {chainId: 9, assetId: 0,   decimals: 6}
-        }
+        },
+        trxWithdrawFee: '20000000'
     }
 };
 
