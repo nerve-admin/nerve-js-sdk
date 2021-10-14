@@ -81,13 +81,13 @@ const NERVE_ASSET_INFO = {
 };
 
 // f();
-// withdrawalToETH(isMainnet);
+withdrawalToETH(isMainnet);
 withdrawalToBSC(isMainnet);
-// withdrawalToHECO(isMainnet);
-// withdrawalToOKT(isMainnet);
-// withdrawalToONE(isMainnet);
-// withdrawalToMATIC(isMainnet);
-// withdrawalToKCS(isMainnet);
+withdrawalToHECO(isMainnet);
+withdrawalToOKT(isMainnet);
+withdrawalToONE(isMainnet);
+withdrawalToMATIC(isMainnet);
+withdrawalToKCS(isMainnet);
 
 async function withdrawalToETH(isMainnet) {
     let nvtNumber = await calcFee("ETH", isMainnet);
@@ -131,8 +131,8 @@ async function calcFee(chain, isMainnet) {
     let htg = NERVE_ASSET_INFO[net][chain.toLowerCase()];
     let nvtPrice = await util.getSymbolPriceOfUsdt(nvt.chainId, nvt.assetId);
     let htgPrice = await util.getSymbolPriceOfUsdt(htg.chainId, htg.assetId);
-    console.log(nvtPrice, "nvtPrice", chain);
-    console.log(htgPrice, "htgPrice", chain);
+    // console.log(nvtPrice, "nvtPrice", chain);
+    // console.log(htgPrice, "htgPrice", chain);
     let result = await api_ethers.calNVTOfWithdrawTest(provider, nvtPrice, htgPrice, true);
     return api_ethers.formatNVT(result);
 }

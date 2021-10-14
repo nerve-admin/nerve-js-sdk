@@ -1,31 +1,10 @@
 const nerve = require('../index');
 nerve.testnet();
+// nerve.mainnet();
 const sdk = require('../api/sdk');
-const {Plus, timesDecimals} = require('./htgConfig');
-const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt} = require('./api/util');
-// NERVE 网络基本信息
-const NERVE_INFOS = {
-    testnet: {
-        chainId: 5,
-        assetId: 1,
-        prefix: "TNVT",
-        symbol: "NVT",
-        decimals: 8,
-        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
-        blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
-        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
-    },
-    mainnet: {
-        chainId: 9,
-        assetId: 1,
-        prefix: "NERVE",
-        symbol: "NVT",
-        decimals: 8,
-        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
-        blockHoleAddress: "NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L",
-        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
-    }
-};
+const {NERVE_INFOS, Plus, timesDecimals} = require('./htgConfig');
+const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt, getHeterogeneousMainAsset} = require('./api/util');
+
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 提现账户信息
@@ -35,33 +14,46 @@ let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
 // 提现接收地址
 let toAddress = '0xc11D9943805e56b630A401D4bd9A29550353EFa1';
 // 提现金额
-let withdrawalAmount = '2';
-// 提现资产小数位
-let withdrawalDecimals = 18;
-// 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107)
-let heterogeneousChainId = 106;
+let withdrawalAmount = '0.1';
+// 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107, TRX:108)
+let heterogeneousChainId = 102;
 // 提现资产信息
 let withdrawalAssetChainId = 5;
-let withdrawalAssetId = 23;
+let withdrawalAssetId = 3;
+// 提现资产小数位
+let withdrawalDecimals = 6;
 // 提现手续费(NVT)
-let withdrawalFeeOfNVT = '1';
+let withdrawalFee = '0.00123';
+let feeChain = 'BNB';
 
 let remark = 'withdrawal transaction remark...';
 //调用
-withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark);
+withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFee, feeChain, remark);
+// test();
 
+async function test() {
+    let result = await getHeterogeneousMainAsset(102);
+    console.log(JSON.stringify(result));
+}
 /**
  * 异构链提现交易
  */
-async function withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, assetsChainId, assetsId, withdrawalAmount, withdrawalDecimals, withdrawalFeeOfNVT, remark) {
-    let newAmount = timesDecimals(withdrawalAmount, withdrawalDecimals);
+async function withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, assetsChainId, assetsId, withdrawalAmount, withdrawalDecimals, withdrawalFee, feeChain, remark) {
+    // 默认使用NVT作为跨链手续费
+    if (!feeChain || feeChain == '') {
+        feeChain = 'NVT';
+    }
+    // 获取手续费资产信息
+    let feeCoin = NERVE_INFO.htgMainAsset[feeChain];
+    let newAmount = timesDecimals(withdrawalAmount, withdrawalDecimals).toFixed();
     let transferInfo = {
         fromAddress: fromAddress,
         toAddress: toAddress,
-        withdrawalFee: Number(withdrawalFeeOfNVT),
-        fee: 0.001,
+        withdrawalFee: withdrawalFee,
+        fee: 0,
         chainId: assetsChainId,
         assetId: assetsId,
+        feeCoin: feeCoin,
         amount: newAmount,
     };
     let inOrOutputs = await inputsOrOutputs(transferInfo);
@@ -102,13 +94,12 @@ async function withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId,
  * @returns {*}
  **/
 async function inputsOrOutputs(transferInfo) {
+    let feeCoin = transferInfo.feeCoin;
     let withdrawalBalance = await getNulsBalance(transferInfo.fromAddress, transferInfo.chainId, transferInfo.assetId);
-    let mainBalance = await getNulsBalance(transferInfo.fromAddress, NERVE_INFO.chainId, NERVE_INFO.assetId);
-
-    let newFee = Number(timesDecimals(Plus(transferInfo.withdrawalFee, transferInfo.fee), NERVE_INFO.decimals));
-    let newAmount = Number(Plus(transferInfo.amount, newFee));
+    let feeAmount = timesDecimals(transferInfo.withdrawalFee, feeCoin.decimals).toFixed();
     let inputs = [];
-    if (transferInfo.chainId === NERVE_INFO.chainId && transferInfo.assetId === NERVE_INFO.assetId) {
+    if (transferInfo.chainId === feeCoin.chainId && transferInfo.assetId === feeCoin.assetId) {
+        let newAmount = Plus(transferInfo.amount, feeAmount).toFixed();
         inputs.push({
             address: transferInfo.fromAddress,
             amount: newAmount,
@@ -118,6 +109,7 @@ async function inputsOrOutputs(transferInfo) {
             locked: 0,
         });
     } else {
+        let feeBalance = await getNulsBalance(transferInfo.fromAddress, feeCoin.chainId, feeCoin.assetId);
         inputs = [
             {
                 address: transferInfo.fromAddress,
@@ -129,10 +121,10 @@ async function inputsOrOutputs(transferInfo) {
             },
             {
                 address: transferInfo.fromAddress,
-                amount: newFee,
-                assetsChainId: NERVE_INFO.chainId,
-                assetsId: NERVE_INFO.assetId,
-                nonce: mainBalance.data.nonce,
+                amount: feeAmount,
+                assetsChainId: feeCoin.chainId,
+                assetsId: feeCoin.assetId,
+                nonce: feeBalance.data.nonce,
                 locked: 0,
             }
         ];
@@ -151,9 +143,9 @@ async function inputsOrOutputs(transferInfo) {
         },
         {
             address: feeAddress, //提现费用地址
-            amount: Number(timesDecimals(transferInfo.withdrawalFee, NERVE_INFO.decimals)),
-            assetsChainId: NERVE_INFO.chainId,
-            assetsId: NERVE_INFO.assetId,
+            amount: feeAmount,
+            assetsChainId: feeCoin.chainId,
+            assetsId: feeCoin.assetId,
             locked: 0
         },
     ];

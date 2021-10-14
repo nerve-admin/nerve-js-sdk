@@ -1,60 +1,46 @@
 const nerve = require('../index');
-nerve.mainnet();
+nerve.testnet();
 const sdk = require('../api/sdk');
-const {Plus, timesDecimals} = require('./htgConfig');
+const {NERVE_INFOS, Plus, timesDecimals} = require('./htgConfig');
 
 const {getNulsBalance, validateTx, broadcastTx} = require('./api/util');
 
-// NERVE 网络基本信息
-const NERVE_INFOS = {
-    testnet: {
-        chainId: 5,
-        assetId: 1,
-        prefix: "TNVT",
-        symbol: "NVT",
-        decimals: 8,
-        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
-        blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
-        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
-    },
-    mainnet: {
-        chainId: 9,
-        assetId: 1,
-        prefix: "NERVE",
-        symbol: "NVT",
-        decimals: 8,
-        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
-        blockHoleAddress: "NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L",
-        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111"
-    }
-};
+// 总共需要的BNB: 0.002100000000000000, 用户提供的BNB: 0.001230000000000000, 需要追加的BNB: 0.000870000000000000
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 设置追加手续费的账户，必须与提现账户一致
-let fromAddress = "NERVEepb688ErqaurAVdNDXkyAT74FxGJbyQ2N";
-let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
+let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
 
 // 发出的提现交易hash
-let withdrawalTxHash = 'c7fece64ab0b31b223fcf654aeb2335b8bf10d03104fcfd930fd6ce99d0593d4';
+let withdrawalTxHash = '1f7637f1b876ecc7300155b3bfd57c349f6cf8734cb4783252fdd825dcb309ef';
 // 追加的NVT手续费，此处设置为追加2个NVT
-let addFeeAmount = '1';
+let addFeeAmount = '0.000870000000000000';
+let feeChain = 'BNB';
 
 let remark = 'withdrawal add fee transaction remark...';
 //调用
-withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, remark);
+withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, feeChain, remark);
 
 /**
  * 异构链提现追加手续费交易
  */
-async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, remark) {
+async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, feeChain, remark) {
+    // 默认使用NVT作为跨链手续费
+    if (!feeChain || feeChain == '') {
+        feeChain = 'NVT';
+    }
+    // 获取手续费资产信息
+    let feeCoin = NERVE_INFO.htgMainAsset[feeChain];
     let feeAddress = nerve.getAddressByPub(NERVE_INFO.chainId, NERVE_INFO.assetId, NERVE_INFO.feePubkey, NERVE_INFO.prefix);
     let transferInfo = {
         fromAddress: fromAddress,
         toAddress: feeAddress,//this.info.blockHoleAddress,
-        fee: 0.001,
-        chainId: NERVE_INFO.chainId,
-        assetId: NERVE_INFO.assetId,
-        amount: Number(addFeeAmount),
+        fee: 0,
+        chainId: feeCoin.chainId,
+        assetId: feeCoin.assetId,
+        feeCoin: feeCoin,
+        amount: addFeeAmount,
     };
     let inOrOutputs = await inputsOrOutputs(transferInfo);
     //console.log(inOrOutputs);
@@ -92,9 +78,10 @@ async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAm
  * @returns {*}
  **/
 async function inputsOrOutputs(transferInfo) {
+    let feeCoin = transferInfo.feeCoin;
     let balanceInfo = await getNulsBalance(transferInfo.fromAddress, transferInfo.chainId, transferInfo.assetId);
-    let inAmount =  timesDecimals(Plus(transferInfo.amount, transferInfo.fee), NERVE_INFO.decimals).toString();
-    let outAmount = timesDecimals(transferInfo.amount, NERVE_INFO.decimals).toString();
+    let inAmount = timesDecimals(transferInfo.amount, feeCoin.decimals).toFixed();
+    let outAmount = inAmount;
     let inputs = [{
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.chainId,

@@ -32,6 +32,52 @@ const RPC_URL = {
     }
 };
 
+// NERVE 网络基本信息
+const NERVE_INFOS = {
+    testnet: {
+        chainId: 5,
+        assetId: 1,
+        prefix: "TNVT",
+        symbol: "NVT",
+        decimals: 8,
+        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+        blockHoleAddress: "TNVTdTSPGwjgRMtHqjmg8yKeMLnpBpVN5ZuuY",
+        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111",
+        htgMainAsset: {
+            NVT:    {chainId: 5, assetId: 1,  decimals: 8},
+            ETH:    {chainId: 5, assetId: 2,  decimals: 18},
+            BNB:    {chainId: 5, assetId: 8,  decimals: 18},
+            HT:     {chainId: 5, assetId: 9,  decimals: 18},
+            OKT:    {chainId: 5, assetId: 12, decimals: 18},
+            ONE:    {chainId: 5, assetId: 33, decimals: 18},
+            MATIC:  {chainId: 5, assetId: 34, decimals: 18},
+            KCS:    {chainId: 5, assetId: 35, decimals: 18},
+            TRX:    {chainId: 5, assetId: 55, decimals: 6}
+        }
+    },
+    mainnet: {
+        chainId: 9,
+        assetId: 1,
+        prefix: "NERVE",
+        symbol: "NVT",
+        decimals: 8,
+        blackHolePublicKey: "000000000000000000000000000000000000000000000000000000000000000000",
+        blockHoleAddress: "NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L",
+        feePubkey: "111111111111111111111111111111111111111111111111111111111111111111",
+        htgMainAsset: {
+            NVT:    {chainId: 9, assetId: 1,   decimals: 8},
+            ETH:    {chainId: 9, assetId: 2,   decimals: 18},
+            BNB:    {chainId: 9, assetId: 25,  decimals: 18},
+            HT:     {chainId: 9, assetId: 55,  decimals: 18},
+            OKT:    {chainId: 9, assetId: 87,  decimals: 18},
+            ONE:    {chainId: 9, assetId: 159, decimals: 18},
+            MATIC:  {chainId: 9, assetId: 160, decimals: 18},
+            KCS:    {chainId: 9, assetId: 161, decimals: 18},
+            TRX:    {chainId: 9, assetId: 0,   decimals: 6}
+        }
+    }
+};
+
 function Power(arg) {
     let newPower = new BigNumber(10);
     return newPower.pow(arg);
@@ -61,12 +107,7 @@ function timesDecimals(nu, decimals) {
     if (decimals === 0) {
         return nu
     }
-    let newNu = 0;
-    if(newDecimals > 9 ){
-        newNu = new BigNumber(Times(nu, Power(newDecimals))).toFormat().replace(/[,]/g, '');
-    }else {
-        newNu = new BigNumber(Times(nu, Power(newDecimals))).toString();
-    }
+    let newNu = new BigNumber(Times(nu, Power(newDecimals)));
     return newNu;
 }
 
@@ -75,4 +116,4 @@ function Minus(nu, arg) {
     return newMinus.minus(arg);
 }
 
-module.exports = {HTGNET, RPC_URL, Minus, Plus, timesDecimals}
+module.exports = {NERVE_INFOS, HTGNET, RPC_URL, Minus, Plus, timesDecimals}

@@ -532,4 +532,21 @@ module.exports = {
           return {success: false, data: error};
         });
   },
+
+  /**
+   * 返回异构链主资产在NERVE网络的资产信息
+   */
+  async getHeterogeneousMainAsset(htgChainId) {
+    return await http.postComplete('/', 'getHeterogeneousMainAsset', [htgChainId])
+        .then((response) => {
+          if (response.hasOwnProperty("result")) {
+            return response.result;
+          } else {
+            return response.error;
+          }
+        })
+        .catch((error) => {
+          return {success: false, data: error};
+        });
+  },
 };
