@@ -14,7 +14,7 @@ let remark = 'farm create remark...';
 test();
 async function test() {
     let tx = await nerve.swap.farmCreate(fromAddress,
-        nerve.swap.token(5, 1), nerve.swap.token(5, 4), 5, 10000000000, 10000, 1, 1, "TNVT", remark);
+        nerve.swap.token(5, 75), nerve.swap.token(2, 58), 5, 20000000000000000000000000, 15432098765432080000, 20023000, 1635307410, "TNVT", true, 234, remark);
     console.log('hash: ' + tx.hash);
     console.log('hex: ' + tx.hex);
     // 签名交易

@@ -926,6 +926,8 @@ var swap = {
      * 创建farm
      */
     async farmCreate(fromAddress, tokenA, tokenB, chainId, syrupTotalAmount, syrupPerBlock, startBlockHeight, lockedTime, addressPrefix, modifiable, withdrawLockTime, remark) {
+        syrupTotalAmount = new BigNumber(syrupTotalAmount).toFixed();
+        syrupPerBlock = new BigNumber(syrupPerBlock).toFixed();
         let farmInfo = {
             tokenA: tokenA,
             tokenB: tokenB,
