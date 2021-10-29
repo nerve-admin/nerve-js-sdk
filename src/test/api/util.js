@@ -407,11 +407,13 @@ module.exports = {
           if (response.hasOwnProperty("result")) {
             return {success: true, data: {balance: response.result.balance, nonce: response.result.nonce}}
           } else {
-            return {success: false, data: response}
+            throw "Get balance error"
+            // return {success: false, data: response}
           }
         })
         .catch((error) => {
-          return {success: false, data: error};
+          throw "Network error"
+          // return {success: false, data: error};
         });
   },
 
