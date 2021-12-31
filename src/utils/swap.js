@@ -920,7 +920,7 @@ var swap = {
      * 组装交易: stable-lp-swap-trade
      *
      * @param fromAddress           用户地址
-     * @param stablePairAddress     交易对地址
+     * @param stablePairAddress     稳定币交易对地址
      * @param amountIn              卖出的资产数量
      * @param tokenPath             币币交换资产路径，路径中最后一个资产，是用户要买进的资产，
      *                                      如卖A买B: [A, stableLp, B] or [A, stableLp, C, B]，
