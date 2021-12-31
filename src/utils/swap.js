@@ -602,7 +602,7 @@ var swap = {
             assetsId: 1,
             amount: 0,
         };
-        let balance = await util.getNulsBalance(transferInfo.fromAddress, transferInfo.chainId, transferInfo.assetId);
+        let balance = await util.getNulsBalance(transferInfo.fromAddress, transferInfo.assetsChainId, transferInfo.assetsId);
         let inOrOutputs = await util.inputsOrOutputs(transferInfo, balance.data);
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
