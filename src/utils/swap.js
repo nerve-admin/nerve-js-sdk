@@ -630,9 +630,7 @@ var swap = {
      * @param tokenAmountA          添加的资产A的数量，示例：nerve.swap.tokenAmount(5, 1, "140000000000")
      * @param tokenAmountB          添加的资产B的数量，示例：nerve.swap.tokenAmount(5, 6, "100000000")
      * @param amountAMin            资产A最小添加值
-     *                                  ==>可通过swap-api的`calMinAmountOnSwapAddLiquidity`接口获得
      * @param amountBMin            资产B最小添加值
-     *                                  ==>可通过swap-api的`calMinAmountOnSwapAddLiquidity`接口获得
      * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
      * @param to                    流动性份额接收地址
      * @param remark                交易备注
@@ -671,9 +669,7 @@ var swap = {
      * @param fromAddress           用户地址
      * @param tokenAmountLP         移除的资产LP的数量，示例：nerve.swap.tokenAmount(5, 18, "2698778989")
      * @param tokenAmountAMin       资产A最小移除值，示例：nerve.swap.tokenAmount(5, 1, "140000000000")
-     *                                  ==>可通过swap-api的`calMinAmountOnSwapRemoveLiquidity`接口获得
      * @param tokenAmountBMin       资产B最小移除值，示例：nerve.swap.tokenAmount(5, 6, "100000000")
-     *                                  ==>可通过swap-api的`calMinAmountOnSwapRemoveLiquidity`接口获得
      * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
      * @param to                    移除流动性份额接收地址
      * @param remark                交易备注
@@ -723,9 +719,7 @@ var swap = {
      * @param tokenPath             币币交换资产路径，路径中最后一个资产，是用户要买进的资产，
      *                                      如卖A买B: [A, B] or [A, C, B]，
      *                                      示例: [nerve.swap.token(5, 1), nerve.swap.token(5, 6)]
-     *                                  ==>可通过swap-api的`getBestTradeExactIn`接口获得
      * @param amountOutMin          最小买进的资产数量
-     *                                  ==> 可通过swap-api的`getBestTradeExactIn`接口获得
      * @param feeTo                 交易手续费取出一部分给指定的接收地址
      * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
      * @param to                    资产接收地址
@@ -915,6 +909,51 @@ var swap = {
                 to: to,
                 tokenOutIndex: Buffer.from([tokenOutIndex]),
                 feeTo: feeTo,
+            }
+        );
+        //获取hash
+        let hash = await tAssemble.getHash();
+        let txhex = tAssemble.txSerialize().toString("hex");
+        return {hash: hash.toString('hex'), hex: txhex};
+    },
+    /**
+     * 组装交易: stable-lp-swap-trade
+     *
+     * @param fromAddress           用户地址
+     * @param stablePairAddress     交易对地址
+     * @param amountIn              卖出的资产数量
+     * @param tokenPath             币币交换资产路径，路径中最后一个资产，是用户要买进的资产，
+     *                                      如卖A买B: [A, stableLp, B] or [A, stableLp, C, B]，
+     *                                      示例: [nerve.swap.token(5, 1), nerve.swap.token(5, 6)...]
+     * @param amountOutMin          最小买进的资产数量
+     * @param feeTo                 交易手续费取出一部分给指定的接收地址
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    流动性份额接收地址
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
+    async stableLpSwapTrade(fromAddress, stablePairAddress, amountIn, tokenPath, amountOutMin, feeTo, deadline, to, remark) {
+        if (feeTo == null) {
+            feeTo = '';
+        }
+        let tokenIn = tokenPath[0];
+        let tokenAmountIn = this.tokenAmount(tokenIn.chainId, tokenIn.assetId, amountIn);
+        let inOrOutputs = await inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, stablePairAddress, [tokenAmountIn]);
+        if (!inOrOutputs.success) {
+            throw "inputs、outputs组装错误";
+        }
+
+        let tAssemble = await nerve.transactionAssemble(
+            inOrOutputs.data.inputs,
+            inOrOutputs.data.outputs,
+            remark,
+            77,
+            {
+                amountOutMin: amountOutMin,
+                to: to,
+                feeTo: feeTo,
+                deadline: deadline,
+                tokenPath: tokenPath
             }
         );
         //获取hash
