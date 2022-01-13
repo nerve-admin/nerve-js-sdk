@@ -35,7 +35,7 @@ function getAmountIn() {
  *
  * 根据卖出数量，计算可买进的数量
  */
-getAmountsOut();
+// getAmountsOut();
 function getAmountsOut() {
     let amountIn = '110000000000';
     let tokenPathArray = [
@@ -232,4 +232,61 @@ function divTest() {
     let x = new BigNumber(2);
     let y = new BigNumber(3);
     console.log(x.div(y).toFixed(18));
+}
+
+stableLpSwapTradeTest();
+/**
+ 0. 假设swap交易: `tokenA`兑换`tokenB`
+ 1. 检查`tokenA`是否为稳定币池中的token
+ 2. 若是(result.success=true)，则把`tokenA`替换为`result.lpToken`
+ 3. 使用现有方式查找最优路径
+ 4. 页面上显示 tokenA-> result.lpToken -> ... -> tokenB
+ 5. 交易组装调用此函数: nerve.swap.stableLpSwapTrade
+     5.1 比swapTrade多出一个stablePairAddrss, 使用result.address填入
+     5.2 tokenPath 更换为 [tokenA, result.lpToken, ..., tokenB]
+ */
+async function stableLpSwapTradeTest() {
+    // 账户信息
+    let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+    let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
+    let amountIn = "2000000000000000000"; // 卖出的资产数量
+    let amountOutMin = "0";// 最小买进的资产数量
+    let feeTo = null;// 交易手续费取出一部分给指定的接收地址
+    let deadline = nerve.swap.currentTime() + 300;// 过期时间
+    let toAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";// 资产接收地址
+    let remark = 'stable lp swap trade remark...';
+
+    let stableInfoArray = [
+        {
+            "address": "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB",
+            "lpToken": "5-102",
+            "groupCoin": {
+                "5-90": 1,
+                "5-72": 1,
+                "5-73": 1,
+                "5-74": 1,
+                "5-7": 1
+            }
+        }
+    ];
+    let tokenIn = nerve.swap.token(5, 90);
+    let tokenOut = nerve.swap.token(5, 1);
+    let check = nerve.swap.checkStableToken(tokenIn, stableInfoArray);
+    if (check.success) {
+        let tokenFirst = check.lpToken;
+        let stablePairAddress = check.address;// 稳定币交易对地址
+        let tokenPath = [tokenIn, tokenFirst, tokenOut];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
+        let tx = await nerve.swap.stableLpSwapTrade(fromAddress, stablePairAddress, amountIn, tokenPath, amountOutMin,
+            feeTo, deadline, toAddress, remark);
+        console.log('稳定币兑换Swap');
+        console.log('hash: ' + tx.hash);
+        console.log('hex: ' + tx.hex);
+    } else {
+        let tokenPath = [tokenIn, tokenOut];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
+        let tx = await nerve.swap.swapTrade(fromAddress, amountIn, tokenPath, amountOutMin,
+            feeTo, deadline, toAddress, remark);
+        console.log('普通Swap');
+        console.log('hash: ' + tx.hash);
+        console.log('hex: ' + tx.hex);
+    }
 }

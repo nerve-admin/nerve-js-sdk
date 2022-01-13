@@ -3,21 +3,22 @@
  */
 const nerve = require('../../index');
 // 设置网络环境
-nerve.testnet();
-// nerve.customnet(5, "http://192.168.1.39:17004/jsonrpc");
+// nerve.testnet();
+nerve.customnet(5, "http://192.168.5.5:17004/jsonrpc");
 
 // 账户信息
 let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
 let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
-let amountIn = "20100000000";// 卖出的资产数量
-let tokenPath = [nerve.swap.token(5, 1), nerve.swap.token(5, 1), nerve.swap.token(5, 1)];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
+let amountIn = "2000000000000000000";// 卖出的资产数量
+// let tokenPath = [nerve.swap.token(5, 1), nerve.swap.token(5, 1), nerve.swap.token(5, 1)];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
+let tokenPath = [nerve.swap.token(5, 4), nerve.swap.token(5, 5), nerve.swap.token(5, 9)];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
 let amountOutMin = "0";// 最小买进的资产数量
 let feeTo = null;// 交易手续费取出一部分给指定的接收地址
 let deadline = nerve.swap.currentTime() + 300;// 过期时间
 let toAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";// 资产接收地址
 let remark = 'swap trade remark...';
 //调用
-test1();
+test();
 async function test() {
     let tx = await nerve.swap.swapTrade(fromAddress, amountIn, tokenPath, amountOutMin,
         feeTo, deadline, toAddress, remark);
