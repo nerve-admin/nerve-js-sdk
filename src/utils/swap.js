@@ -123,7 +123,7 @@ function getAmountInForBestTrade(amountOut, reserveIn, reserveOut) {
     return amountIn;
 }
 
-function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, maxPairSize) {
+function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, maxPairSize, stableGroupArray) {
     let tokenIn = tokenAmountIn.token;
     let length = pairs.length;
     let tokens = swap.tokenSort(tokenIn, tokenOut);
@@ -149,7 +149,11 @@ function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPa
         });
         pairs = pairs.slice(0, subIndex).concat(pairs.slice(subIndex + 1, length));
     }
-    let trades = realBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, 0, maxPairSize);
+    // pair去重，检查交易对中是否有多个相同组下的普通token和稳定币token 筛选机制，留下一个，留下稳定币token在Pair池中数量最多的
+    if (stableGroupArray) {
+        pairs = deduplicationGroupPair(pairs, stableGroupArray);
+    }
+    let trades = realBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, 0, maxPairSize, stableGroupArray);
     if (trades.length == 0) return {};
     trades.sort(function (a, b) {return b.tokenAmountOut.amount.minus(a.tokenAmountOut.amount)});
 
@@ -158,7 +162,68 @@ function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPa
     return trade;
 }
 
-function makePair(tokenA, tokenB, amountA, amountB) {
+function deduplicationGroupPair(pairs, stableGroupArray) {
+    let resultPairs = [];
+    let groupPairMap = {};
+    for (let i = 0; i < pairs.length; i++) {
+        let pair = pairs[i];
+        let stableInfo = swap.checkStableToken(pair.token0, stableGroupArray);
+        if (stableInfo.success) {
+            let array = groupPairMap[swap.tokenStr(stableInfo.lpToken) + "-" + swap.tokenStr(pair.token1)];
+            if (!array) {
+                array = [];
+            }
+            pair.stableToken = pair.token0;
+            pair.stableTokenReserve = pair.reserve0;
+            pair.stableTokenDecimals = stableInfo['groupCoin'][swap.tokenStr(pair.token0)].decimals;
+            array.push(pair);
+        } else {
+            stableInfo = swap.checkStableToken(pair.token1, stableGroupArray);
+            if (stableInfo.success) {
+                let array = groupPairMap[swap.tokenStr(stableInfo.lpToken) + "-" + swap.tokenStr(pair.token0)];
+                if (!array) {
+                    array = [];
+                    groupPairMap[swap.tokenStr(stableInfo.lpToken) + "-" + swap.tokenStr(pair.token0)] = array;
+                }
+                pair.stableToken = pair.token1;
+                pair.stableTokenReserve = pair.reserve1;
+                pair.stableTokenDecimals = stableInfo['groupCoin'][swap.tokenStr(pair.token1)].decimals;
+                array.push(pair);
+            } else {
+                resultPairs.push(pair);
+            }
+        }
+    }
+    let keys = Object.keys(groupPairMap);
+    if (keys.length > 0) {
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            // console.log('============key', key);
+            let array = groupPairMap[key];
+            if (array.length == 0) continue;
+            if (array.length == 1) {
+                resultPairs.push(array[0]);
+            } else {
+                // 留下一个，留下稳定币token在Pair池中数量最多的
+                let index = 0;
+                let maxReserve = new BigNumber('0');
+                for (let j = 0; j < array.length; j++) {
+                    let pair = array[j];
+                    let currentReserve = new BigNumber(pair.stableTokenReserve).times(new BigNumber('10').pow(18 - pair.stableTokenDecimals));
+                    // console.log('token', swap.tokenStr(pair.stableToken), 'currentReserve', currentReserve.toFixed());
+                    if (currentReserve.isGreaterThan(maxReserve)) {
+                        maxReserve = currentReserve;
+                        index = j;
+                    }
+                }
+                resultPairs.push(array[index]);
+            }
+        }
+    }
+    return resultPairs;
+}
+
+function makeStableLinkPair(tokenA, tokenB, amountA, amountB) {
     let array = swap.tokenSort(tokenA, tokenB);
     let token0 = array[0];
     let result = swap.tokenEquals(tokenA, token0) ? swap.pair(tokenA, tokenB, amountA, amountB) : swap.pair(tokenB, tokenA, amountB, amountA);
@@ -166,9 +231,11 @@ function makePair(tokenA, tokenB, amountA, amountB) {
 }
 
 function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArray, wholeTradeArray, orginTokenAmountIn, depth, maxPairSize, stableGroupArray) {
+    // console.log('-------------', 'pairs', JSON.stringify(pairs), 'depth', depth);
     let length = pairs.length;
     for (let i = 0; i < length; i++) {
         let pair = pairs[i];
+        // console.log('pair', JSON.stringify(pair), 'depth', depth);
         let linkPair;
         let tokenIn = tokenAmountIn.token;
         if (!swap.tokenEquals(pair.token0, tokenIn) && !swap.tokenEquals(pair.token1, tokenIn)) {
@@ -176,13 +243,13 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
             if (stableGroupArray) {
                 let stableResult = isGroupStable(pair.token0, tokenAmountIn.token, stableGroupArray);
                 if (stableResult.success) {
-                    linkPair = makePair(pair.token0, tokenAmountIn.token, '0', '0');
+                    linkPair = makeStableLinkPair(pair.token0, tokenAmountIn.token, '0', '0');
                     linkPair.groupCoin = stableResult.groupCoin;
                     tokenIn = pair.token0;
                 } else {
                     stableResult = isGroupStable(pair.token1, tokenAmountIn.token, stableGroupArray);
                     if (stableResult.success) {
-                        linkPair = makePair(pair.token1, tokenAmountIn.token, '0', '0');
+                        linkPair = makeStableLinkPair(pair.token1, tokenAmountIn.token, '0', '0');
                         linkPair.groupCoin = stableResult.groupCoin;
                         tokenIn = pair.token1;
                     } else {
@@ -201,13 +268,13 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
         // add for link +
         if (linkPair) {
             // 检查稳定币池是否有足够的金额
-            let linkIn = linkPair['groupCoin'][this.tokenStr(linkPair.tokenIn)];
-            let linkOut = linkPair['groupCoin'][this.tokenStr(linkPair.tokenOut)];
-            let _amountOut = new BigNumber(amountIn).times(new BigNumber('10').pow(linkOut.decimals)).div(new BigNumber('10').pow(linkIn.decimals));
-            if (new BigNumber(linkOut.balance).isLessThan(_amountOut)) {
+            let linkIn = linkPair['groupCoin'][swap.tokenStr(tokenAmountIn.token)];
+            let linkOut = linkPair['groupCoin'][swap.tokenStr(tokenIn)];
+            let linkAmountOut = new BigNumber(amountIn).times(new BigNumber('10').pow(linkOut.decimals)).div(new BigNumber('10').pow(linkIn.decimals));
+            if (new BigNumber(linkOut.balance).isLessThan(linkAmountOut)) {
                 amountIn = '0';
             } else {
-                amountIn = _amountOut.toFixed();
+                amountIn = linkAmountOut.toFixed();
             }
         }
         // add for link -
@@ -249,14 +316,15 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
                 wholeTradeArray,
                 orginTokenAmountIn,
                 depth + 1,
-                maxPairSize
+                maxPairSize,
+                stableGroupArray
             );
         }
     }
     return wholeTradeArray;
 }
 
-function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, maxPairSize) {
+function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, maxPairSize, stableGroupArray) {
     let tokenOut = tokenAmountOut.token;
     let length = pairs.length;
     let tokens = swap.tokenSort(_in, tokenOut);
@@ -282,10 +350,13 @@ function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
         });
         pairs = pairs.slice(0, subIndex).concat(pairs.slice(subIndex + 1, length));
     }
-    let trades = realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, 0, maxPairSize);
+    // pair去重，检查交易对中是否有多个相同组下的普通token和稳定币token 筛选机制，留下一个，留下稳定币token在Pair池中数量最多的
+    if (stableGroupArray) {
+        pairs = deduplicationGroupPair(pairs, stableGroupArray);
+    }
+    let trades = realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, 0, maxPairSize, stableGroupArray);
     if (trades.length == 0) return {};
     trades.sort(function (a, b) {return a.tokenAmountIn.amount.minus(b.tokenAmountIn.amount)});
-
     for (let i=0;i<trades.length;i++) {
         let trade = trades[i];
         if (trade.tokenAmountIn.amount.isEqualTo(0)) continue;
@@ -294,21 +365,65 @@ function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
     return {};
 }
 
-function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, depth, maxPairSize) {
+function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, depth, maxPairSize, stableGroupArray) {
     let length = pairs.length;
-    let currentOut = tokenAmountOut.token;
     for (let i = 0; i < length; i++) {
         let pair = pairs[i];
-        if (!swap.tokenEquals(pair.token0, currentOut) && !swap.tokenEquals(pair.token1, currentOut)) continue;
+        let linkPair;
+        let currentOut = tokenAmountOut.token;
+        if (!swap.tokenEquals(pair.token0, currentOut) && !swap.tokenEquals(pair.token1, currentOut)) {
+            // add for link +
+            if (stableGroupArray) {
+                let stableResult = isGroupStable(pair.token0, tokenAmountOut.token, stableGroupArray);
+                if (stableResult.success) {
+                    linkPair = makeStableLinkPair(pair.token0, tokenAmountOut.token, '0', '0');
+                    linkPair.groupCoin = stableResult.groupCoin;
+                    currentOut = pair.token0;
+                } else {
+                    stableResult = isGroupStable(pair.token1, tokenAmountOut.token, stableGroupArray);
+                    if (stableResult.success) {
+                        linkPair = makeStableLinkPair(pair.token1, tokenAmountOut.token, '0', '0');
+                        linkPair.groupCoin = stableResult.groupCoin;
+                        currentOut = pair.token1;
+                    } else {
+                        continue;
+                    }
+                }
+                // add for link -
+            } else {
+                continue;
+            }
+        }
         let currentIn = swap.tokenEquals(pair.token0, currentOut) ? pair.token1 : pair.token0;
         if (containsCurrency(currentPathArray, currentIn)) continue;
+        // 计算tokenInAmount
+        let amountOut = tokenAmountOut.amount;
+        // add for link +
+        if (linkPair) {
+            // 检查稳定币池是否有足够的金额
+            let linkIn = linkPair['groupCoin'][swap.tokenStr(currentOut)];
+            let linkOut = linkPair['groupCoin'][swap.tokenStr(tokenAmountOut.token)];
+            let linkAmountIn = new BigNumber(amountOut).times(new BigNumber('10').pow(linkIn.decimals)).div(new BigNumber('10').pow(linkOut.decimals));
+            if (new BigNumber(linkOut.balance).isLessThan(amountOut)) {
+                amountOut = '0';
+            } else {
+                amountOut = linkAmountIn.toFixed();
+            }
+        }
+        // add for link -
+
         let reserves = swap.getReserves(currentIn, currentOut, pair);
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
         if (reserveIn.isEqualTo(0) || reserveOut.isEqualTo(0)) continue;
-        let amountIn = getAmountInForBestTrade(tokenAmountOut.amount, reserveIn, reserveOut);
+        let amountIn = getAmountInForBestTrade(amountOut, reserveIn, reserveOut);
 
         if (swap.tokenEquals(currentIn, _in)) {
+            // add for link +
+            if (linkPair) {
+                currentPathArray.push(linkPair);
+            }
+            // add for link -
             currentPathArray.push(pair);
             let tokenAmountIn = swap.tokenAmount(currentIn.chainId, currentIn.assetId, amountIn);
             wholeTradeArray.push({
@@ -318,6 +433,11 @@ function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
             });
         } else if (depth < (maxPairSize - 1) && length > 1) {
             let cloneCurrentPathArray = currentPathArray.slice();
+            // add for link +
+            if (linkPair) {
+                cloneCurrentPathArray.push(linkPair);
+            }
+            // add for link -
             cloneCurrentPathArray.push(pair);
             let subPairs = pairs.slice(0, i);
             subPairs = subPairs.concat(pairs.slice(i + 1, length));
@@ -330,7 +450,8 @@ function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
                 wholeTradeArray,
                 orginTokenAmountOut,
                 depth + 1,
-                maxPairSize
+                maxPairSize,
+                stableGroupArray
             );
         }
     }
@@ -454,6 +575,7 @@ var swap = {
                 result.success = true;
                 result.address = info.address;
                 result.lpToken = this.parseTokenStr(info.lpToken);
+                result.groupCoin = info.groupCoin;
                 return result;
             }
         }
@@ -463,8 +585,8 @@ var swap = {
     /**
      * 计算最优交易路径
      */
-    bestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, maxPairSize) {
-        let trade = calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, [], [], tokenAmountIn, maxPairSize);
+    bestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, maxPairSize, stableGroupArray) {
+        let trade = calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, [], [], tokenAmountIn, maxPairSize, stableGroupArray);
         if (!trade.path) return trade;
         let tokenIn = trade.tokenAmountIn.token;
         let tokenPath = [tokenIn];
@@ -488,8 +610,8 @@ var swap = {
     /**
      * 计算最优交易路径
      */
-    bestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, maxPairSize) {
-        let trade = calcBestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, [], [], tokenAmountOut, maxPairSize);
+    bestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, maxPairSize, stableGroupArray) {
+        let trade = calcBestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, [], [], tokenAmountOut, maxPairSize, stableGroupArray);
         if (!trade.path) return trade;
         let tokenOut = tokenAmountOut.token;
         let tokenPath = [tokenOut];
@@ -887,7 +1009,6 @@ var swap = {
         }
         let firstTokenIn = tokenPath[0];
         let secondTokenIn = tokenPath[1];
-        // {"jsonrpc":"2.0","id":"1234","result":[{"address":"TNVTdTSQjXTtxDzx5T6pKnrYX5due39JDd1Se","groupCoin":{"5-1":1,"5-5":1}},{"address":"TNVTdTSQbykRNGbseNWWPv4USLMFfirtx3aSx","groupCoin":{"5-3":1,"5-4":1,"5-5":1,"5-6":1}}]}
         // 检查前两个币是否稳定币池
         let pairAddress;
         let group = isGroupStable(firstTokenIn, secondTokenIn, stableGroupArray);
