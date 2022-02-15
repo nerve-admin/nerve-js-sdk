@@ -61,23 +61,23 @@ function getAmountsOut() {
     console.log(nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray));
 }
 
-// getPriceImpact();
+getPriceImpact();
 function getPriceImpact() {
-    let amountIn = '500000000';
+    let amountIn = '100000000';
     let tokenPathArray = [
-        nerve.swap.token(5, 1),
-        nerve.swap.token(2, 1)
+        nerve.swap.token(1, 81),
+        nerve.swap.token(1, 1)
     ];
     let pairsArray = [
         nerve.swap.pair(
-            nerve.swap.token(2, 1),
-            nerve.swap.token(5, 1),
-            '8216932570', '815800089228'),
+            nerve.swap.token(1, 1),
+            nerve.swap.token(1, 81),
+            '876723911218', '348367101072254'),
     ];
     let amounts = nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray);
-    console.log(amounts, 1);
     let priceImpact = nerve.swap.getPriceImpact(amounts, tokenPathArray, pairsArray);
-    console.log(priceImpact.toString(), 2);
+    console.log(priceImpact.toFixed(), 'toFixed');
+    console.log(priceImpact.toFormat(), 'toFormat');
 }
 
 // bestTradeExactInTest();
@@ -122,7 +122,7 @@ function bestTradeExactInTest() {
     console.log(JSON.stringify(trade));
 }
 
-bestTradeExactOutTest();
+// bestTradeExactOutTest();
 function bestTradeExactOutTest() {
     let stableInfoArray = [{
         "address": "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB",
