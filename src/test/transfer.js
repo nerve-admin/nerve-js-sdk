@@ -1,4 +1,5 @@
-const nuls = require('../index');
+const nerve = require('../index');
+nerve.testnet();
 const {getNulsBalance, countFee, inputsOrOutputs, validateTx, broadcastTx} = require('./api/util');
 
 /**
@@ -6,18 +7,14 @@ const {getNulsBalance, countFee, inputsOrOutputs, validateTx, broadcastTx} = req
  * @date: 2020-05-20 13:47
  * @author: Wave
  */
-/*let pri = '477059f40708313626cccd26f276646e4466032cabceccbf571a7c46f954eb75';
-let pub = '0318f683066b45e7a5225779061512e270044cc40a45c924afcf78bb7587758ca0';
+let pri = '477059f40708313626cccd26f276646e4466032cabceccbf571a7c46f954eb75';
+let pub = nerve.getPubByPri(pri);
 let fromAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
-let toAddress = 'TNVTdTSPUZYyUW8ThLzJXWdgWaDFSy5trakjk';*/
-let pri = 'dramaendorsepotterystingattitudejaguarslightsnakelemonamazin';
-let pub = '03ac01bbb717f9f28db9b7d3ae62555060bf2024825d92259887ab12dbdd6c689e';
-let fromAddress = "TNVTdTSPUZYyUW8ThLzJXWdgWaDFSy5trakjk";
-let toAddress = 'TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz';
-let amount = 100000000;
+let toAddress = 'TNVTdTSPUZYyUW8ThLzJXWdgWaDFSy5trakjk';
+let amount = 800000000;
 let remark = 'transfer transaction remark...';
 //调用
-transferTransaction(pri, pub, fromAddress, toAddress, 5, 1, amount, remark);
+transferTransaction(pri, pub, fromAddress, toAddress, 2, 1, amount, remark);
 
 /**
  * 转账交易
@@ -60,17 +57,17 @@ async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChain
     return;
   }
 
-  let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2);//交易组装
+  let tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2);//交易组装
   let txhex = "";//交易签名
   let newFee = countFee(tAssemble, 1);  //获取手续费
   //手续费大于0.001的时候重新组装交易及签名
   if (transferInfo.fee !== newFee) {
     transferInfo.fee = newFee;
-    inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo, 2);
-    tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2);
-    txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
+    inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo.data, 2);
+    tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2);
+    txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
   } else {
-    txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
+    txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
   }
   console.log(txhex);
 
