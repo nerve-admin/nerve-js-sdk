@@ -123,7 +123,7 @@ function getAmountInForBestTrade(amountOut, reserveIn, reserveOut) {
     return amountIn;
 }
 
-function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, maxPairSize) {
+function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, maxPairSize, stableGroupArray) {
     let tokenIn = tokenAmountIn.token;
     let length = pairs.length;
     let tokens = swap.tokenSort(tokenIn, tokenOut);
@@ -149,7 +149,11 @@ function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPa
         });
         pairs = pairs.slice(0, subIndex).concat(pairs.slice(subIndex + 1, length));
     }
-    let trades = realBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, 0, maxPairSize);
+    // pair去重，检查交易对中是否有多个相同组下的普通token和稳定币token 筛选机制，留下一个，留下稳定币token在Pair池中数量最多的
+    if (stableGroupArray) {
+        pairs = deduplicationGroupPair(pairs, stableGroupArray);
+    }
+    let trades = realBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPathArray, wholeTradeArray, orginTokenAmountIn, 0, maxPairSize, stableGroupArray);
     if (trades.length == 0) return {};
     trades.sort(function (a, b) {return b.tokenAmountOut.amount.minus(a.tokenAmountOut.amount)});
 
@@ -158,21 +162,134 @@ function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPa
     return trade;
 }
 
-function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArray, wholeTradeArray, orginTokenAmountIn, depth, maxPairSize) {
+function deduplicationGroupPair(pairs, stableGroupArray) {
+    let resultPairs = [];
+    let groupPairMap = {};
+    for (let i = 0; i < pairs.length; i++) {
+        let pair = pairs[i];
+        let stableInfo = swap.checkStableToken(pair.token0, stableGroupArray);
+        if (stableInfo.success) {
+            let array = groupPairMap[swap.tokenStr(stableInfo.lpToken) + "-" + swap.tokenStr(pair.token1)];
+            if (!array) {
+                array = [];
+            }
+            pair.stableToken = pair.token0;
+            pair.stableTokenReserve = pair.reserve0;
+            pair.stableTokenDecimals = stableInfo['groupCoin'][swap.tokenStr(pair.token0)].decimals;
+            array.push(pair);
+        } else {
+            stableInfo = swap.checkStableToken(pair.token1, stableGroupArray);
+            if (stableInfo.success) {
+                let array = groupPairMap[swap.tokenStr(stableInfo.lpToken) + "-" + swap.tokenStr(pair.token0)];
+                if (!array) {
+                    array = [];
+                    groupPairMap[swap.tokenStr(stableInfo.lpToken) + "-" + swap.tokenStr(pair.token0)] = array;
+                }
+                pair.stableToken = pair.token1;
+                pair.stableTokenReserve = pair.reserve1;
+                pair.stableTokenDecimals = stableInfo['groupCoin'][swap.tokenStr(pair.token1)].decimals;
+                array.push(pair);
+            } else {
+                resultPairs.push(pair);
+            }
+        }
+    }
+    let keys = Object.keys(groupPairMap);
+    if (keys.length > 0) {
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            // console.log('============key', key);
+            let array = groupPairMap[key];
+            if (array.length == 0) continue;
+            if (array.length == 1) {
+                resultPairs.push(array[0]);
+            } else {
+                // 留下一个，留下稳定币token在Pair池中数量最多的
+                let index = 0;
+                let maxReserve = new BigNumber('0');
+                for (let j = 0; j < array.length; j++) {
+                    let pair = array[j];
+                    let currentReserve = new BigNumber(pair.stableTokenReserve).times(new BigNumber('10').pow(18 - pair.stableTokenDecimals));
+                    // console.log('token', swap.tokenStr(pair.stableToken), 'currentReserve', currentReserve.toFixed());
+                    if (currentReserve.isGreaterThan(maxReserve)) {
+                        maxReserve = currentReserve;
+                        index = j;
+                    }
+                }
+                resultPairs.push(array[index]);
+            }
+        }
+    }
+    return resultPairs;
+}
+
+function makeStableLinkPair(tokenA, tokenB, amountA, amountB) {
+    let array = swap.tokenSort(tokenA, tokenB);
+    let token0 = array[0];
+    let result = swap.tokenEquals(tokenA, token0) ? swap.pair(tokenA, tokenB, amountA, amountB) : swap.pair(tokenB, tokenA, amountB, amountA);
+    return result;
+}
+
+function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArray, wholeTradeArray, orginTokenAmountIn, depth, maxPairSize, stableGroupArray) {
+    // console.log('-------------', 'pairs', JSON.stringify(pairs), 'depth', depth);
     let length = pairs.length;
     for (let i = 0; i < length; i++) {
         let pair = pairs[i];
+        // console.log('pair', JSON.stringify(pair), 'depth', depth);
+        let linkPair;
         let tokenIn = tokenAmountIn.token;
-        if (!swap.tokenEquals(pair.token0, tokenIn) && !swap.tokenEquals(pair.token1, tokenIn)) continue;
+        if (!swap.tokenEquals(pair.token0, tokenIn) && !swap.tokenEquals(pair.token1, tokenIn)) {
+            // add for link +
+            if (stableGroupArray) {
+                let stableResult = isGroupStable(pair.token0, tokenAmountIn.token, stableGroupArray);
+                if (stableResult.success) {
+                    linkPair = makeStableLinkPair(pair.token0, tokenAmountIn.token, '0', '0');
+                    linkPair.groupCoin = stableResult.groupCoin;
+                    tokenIn = pair.token0;
+                } else {
+                    stableResult = isGroupStable(pair.token1, tokenAmountIn.token, stableGroupArray);
+                    if (stableResult.success) {
+                        linkPair = makeStableLinkPair(pair.token1, tokenAmountIn.token, '0', '0');
+                        linkPair.groupCoin = stableResult.groupCoin;
+                        tokenIn = pair.token1;
+                    } else {
+                        continue;
+                    }
+                }
+                // add for link -
+            } else {
+                continue;
+            }
+        }
         let tokenOut = swap.tokenEquals(pair.token0, tokenIn) ? pair.token1 : pair.token0;
         if (containsCurrency(currentPathArray, tokenOut)) continue;
+        // 计算tokenOutAmount
+        let amountIn = tokenAmountIn.amount;
+        // add for link +
+        if (linkPair) {
+            // 检查稳定币池是否有足够的金额
+            let linkIn = linkPair['groupCoin'][swap.tokenStr(tokenAmountIn.token)];
+            let linkOut = linkPair['groupCoin'][swap.tokenStr(tokenIn)];
+            let linkAmountOut = new BigNumber(amountIn).times(new BigNumber('10').pow(linkOut.decimals)).div(new BigNumber('10').pow(linkIn.decimals));
+            if (new BigNumber(linkOut.balance).isLessThan(linkAmountOut)) {
+                amountIn = '0';
+            } else {
+                amountIn = linkAmountOut.toFixed();
+            }
+        }
+        // add for link -
         let reserves = swap.getReserves(tokenIn, tokenOut, pair);
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
         if (reserveIn.isEqualTo(0) || reserveOut.isEqualTo(0)) continue;
-        let amountOut = getAmountOutForBestTrade(tokenAmountIn.amount, reserveIn, reserveOut);
+        let amountOut = getAmountOutForBestTrade(amountIn, reserveIn, reserveOut);
 
         if (swap.tokenEquals(tokenOut, out)) {
+            // add for link +
+            if (linkPair) {
+                currentPathArray.push(linkPair);
+            }
+            // add for link -
             currentPathArray.push(pair);
             let tokenAmountOut = swap.tokenAmount(tokenOut.chainId, tokenOut.assetId, amountOut);
             wholeTradeArray.push({
@@ -182,6 +299,11 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
             });
         } else if (depth < (maxPairSize - 1) && length > 1) {
             let cloneCurrentPathArray = currentPathArray.slice();
+            // add for link +
+            if (linkPair) {
+                cloneCurrentPathArray.push(linkPair);
+            }
+            // add for link -
             cloneCurrentPathArray.push(pair);
             let subPairs = pairs.slice(0, i);
             subPairs = subPairs.concat(pairs.slice(i + 1, length));
@@ -194,14 +316,15 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
                 wholeTradeArray,
                 orginTokenAmountIn,
                 depth + 1,
-                maxPairSize
+                maxPairSize,
+                stableGroupArray
             );
         }
     }
     return wholeTradeArray;
 }
 
-function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, maxPairSize) {
+function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, maxPairSize, stableGroupArray) {
     let tokenOut = tokenAmountOut.token;
     let length = pairs.length;
     let tokens = swap.tokenSort(_in, tokenOut);
@@ -227,10 +350,13 @@ function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
         });
         pairs = pairs.slice(0, subIndex).concat(pairs.slice(subIndex + 1, length));
     }
-    let trades = realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, 0, maxPairSize);
+    // pair去重，检查交易对中是否有多个相同组下的普通token和稳定币token 筛选机制，留下一个，留下稳定币token在Pair池中数量最多的
+    if (stableGroupArray) {
+        pairs = deduplicationGroupPair(pairs, stableGroupArray);
+    }
+    let trades = realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, 0, maxPairSize, stableGroupArray);
     if (trades.length == 0) return {};
     trades.sort(function (a, b) {return a.tokenAmountIn.amount.minus(b.tokenAmountIn.amount)});
-
     for (let i=0;i<trades.length;i++) {
         let trade = trades[i];
         if (trade.tokenAmountIn.amount.isEqualTo(0)) continue;
@@ -239,21 +365,65 @@ function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
     return {};
 }
 
-function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, depth, maxPairSize) {
+function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathArray, wholeTradeArray, orginTokenAmountOut, depth, maxPairSize, stableGroupArray) {
     let length = pairs.length;
-    let currentOut = tokenAmountOut.token;
     for (let i = 0; i < length; i++) {
         let pair = pairs[i];
-        if (!swap.tokenEquals(pair.token0, currentOut) && !swap.tokenEquals(pair.token1, currentOut)) continue;
+        let linkPair;
+        let currentOut = tokenAmountOut.token;
+        if (!swap.tokenEquals(pair.token0, currentOut) && !swap.tokenEquals(pair.token1, currentOut)) {
+            // add for link +
+            if (stableGroupArray) {
+                let stableResult = isGroupStable(pair.token0, tokenAmountOut.token, stableGroupArray);
+                if (stableResult.success) {
+                    linkPair = makeStableLinkPair(pair.token0, tokenAmountOut.token, '0', '0');
+                    linkPair.groupCoin = stableResult.groupCoin;
+                    currentOut = pair.token0;
+                } else {
+                    stableResult = isGroupStable(pair.token1, tokenAmountOut.token, stableGroupArray);
+                    if (stableResult.success) {
+                        linkPair = makeStableLinkPair(pair.token1, tokenAmountOut.token, '0', '0');
+                        linkPair.groupCoin = stableResult.groupCoin;
+                        currentOut = pair.token1;
+                    } else {
+                        continue;
+                    }
+                }
+                // add for link -
+            } else {
+                continue;
+            }
+        }
         let currentIn = swap.tokenEquals(pair.token0, currentOut) ? pair.token1 : pair.token0;
         if (containsCurrency(currentPathArray, currentIn)) continue;
+        // 计算tokenInAmount
+        let amountOut = tokenAmountOut.amount;
+        // add for link +
+        if (linkPair) {
+            // 检查稳定币池是否有足够的金额
+            let linkIn = linkPair['groupCoin'][swap.tokenStr(currentOut)];
+            let linkOut = linkPair['groupCoin'][swap.tokenStr(tokenAmountOut.token)];
+            let linkAmountIn = new BigNumber(amountOut).times(new BigNumber('10').pow(linkIn.decimals)).div(new BigNumber('10').pow(linkOut.decimals));
+            if (new BigNumber(linkOut.balance).isLessThan(amountOut)) {
+                amountOut = '0';
+            } else {
+                amountOut = linkAmountIn.toFixed();
+            }
+        }
+        // add for link -
+
         let reserves = swap.getReserves(currentIn, currentOut, pair);
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
         if (reserveIn.isEqualTo(0) || reserveOut.isEqualTo(0)) continue;
-        let amountIn = getAmountInForBestTrade(tokenAmountOut.amount, reserveIn, reserveOut);
+        let amountIn = getAmountInForBestTrade(amountOut, reserveIn, reserveOut);
 
         if (swap.tokenEquals(currentIn, _in)) {
+            // add for link +
+            if (linkPair) {
+                currentPathArray.push(linkPair);
+            }
+            // add for link -
             currentPathArray.push(pair);
             let tokenAmountIn = swap.tokenAmount(currentIn.chainId, currentIn.assetId, amountIn);
             wholeTradeArray.push({
@@ -263,6 +433,11 @@ function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
             });
         } else if (depth < (maxPairSize - 1) && length > 1) {
             let cloneCurrentPathArray = currentPathArray.slice();
+            // add for link +
+            if (linkPair) {
+                cloneCurrentPathArray.push(linkPair);
+            }
+            // add for link -
             cloneCurrentPathArray.push(pair);
             let subPairs = pairs.slice(0, i);
             subPairs = subPairs.concat(pairs.slice(i + 1, length));
@@ -275,11 +450,28 @@ function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
                 wholeTradeArray,
                 orginTokenAmountOut,
                 depth + 1,
-                maxPairSize
+                maxPairSize,
+                stableGroupArray
             );
         }
     }
     return wholeTradeArray;
+}
+
+function isGroupStable(tokenA, tokenB, stableGroupArray) {
+    let result = {success: false};
+    let length = stableGroupArray.length;
+    for (let i = 0; i < length; i++) {
+        let info = stableGroupArray[i];
+        if (info['groupCoin'][swap.tokenStr(tokenA)] && info['groupCoin'][swap.tokenStr(tokenB)]) {
+            result.success = true;
+            result.address = info.address;
+            result.lpToken = swap.parseTokenStr(info.lpToken);
+            result.groupCoin = info.groupCoin;
+            return result;
+        }
+    }
+    return result;
 }
 
 var swap = {
@@ -315,6 +507,15 @@ var swap = {
             return [token0, token1];
         }
         return [token1, token0];
+    },
+
+    tokenStr(token) {
+        return token.chainId + '-' + token.assetId;
+    },
+
+    parseTokenStr(tokenStr) {
+        let split = tokenStr.split("-");
+        return {chainId: Number(split[0].trim()), assetId: Number(split[1].trim())};
     },
     /**
      * 根据token计算swap交易对地址
@@ -361,10 +562,31 @@ var swap = {
     },
 
     /**
+     * 检查`token`是否为稳定币池中的token
+     * @param token
+     * @param stableGroupArray
+     */
+    checkStableToken(token, stableGroupArray) {
+        let result = {success: false};
+        let length = stableGroupArray.length;
+        for (let i = 0; i < length; i++) {
+            let info = stableGroupArray[i];
+            if (info['groupCoin'][this.tokenStr(token)]) {
+                result.success = true;
+                result.address = info.address;
+                result.lpToken = this.parseTokenStr(info.lpToken);
+                result.groupCoin = info.groupCoin;
+                return result;
+            }
+        }
+        return result;
+    },
+
+    /**
      * 计算最优交易路径
      */
-    bestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, maxPairSize) {
-        let trade = calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, [], [], tokenAmountIn, maxPairSize);
+    bestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, maxPairSize, stableGroupArray) {
+        let trade = calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, [], [], tokenAmountIn, maxPairSize, stableGroupArray);
         if (!trade.path) return trade;
         let tokenIn = trade.tokenAmountIn.token;
         let tokenPath = [tokenIn];
@@ -388,8 +610,8 @@ var swap = {
     /**
      * 计算最优交易路径
      */
-    bestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, maxPairSize) {
-        let trade = calcBestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, [], [], tokenAmountOut, maxPairSize);
+    bestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, maxPairSize, stableGroupArray) {
+        let trade = calcBestTradeExactOut(chainId, pairs, tokenIn, tokenAmountOut, [], [], tokenAmountOut, maxPairSize, stableGroupArray);
         if (!trade.path) return trade;
         let tokenOut = tokenAmountOut.token;
         let tokenPath = [tokenOut];
@@ -608,7 +830,7 @@ var swap = {
             throw "inputs、outputs组装错误";
         }
 
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -643,7 +865,7 @@ var swap = {
             throw "inputs、outputs组装错误";
         }
 
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -692,7 +914,7 @@ var swap = {
             throw "inputs、outputs组装错误";
         }
 
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -747,7 +969,72 @@ var swap = {
             throw "inputs、outputs组装错误";
         }
 
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
+            inOrOutputs.data.inputs,
+            inOrOutputs.data.outputs,
+            remark,
+            63,
+            {
+                amountOutMin: amountOutMin,
+                to: to,
+                feeTo: feeTo,
+                deadline: deadline,
+                tokenPath: tokenPath
+            }
+        );
+        //获取hash
+        let hash = await tAssemble.getHash();
+        let txhex = tAssemble.txSerialize().toString("hex");
+        return {hash: hash.toString('hex'), hex: txhex};
+    },
+    /**
+     * 组装交易: swap币币交易(聚合稳定币池)
+     *
+     * @param fromAddress           用户地址
+     * @param amountIn              卖出的资产数量
+     * @param tokenPath             币币交换资产路径，路径中最后一个资产，是用户要买进的资产，
+     *                                      如卖A买B: [A, B] or [A, C, B]，
+     *                                      示例: [nerve.swap.token(5, 1), nerve.swap.token(5, 6)]
+     * @param amountOutMin          最小买进的资产数量
+     * @param feeTo                 交易手续费取出一部分给指定的接收地址
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    资产接收地址
+     * @param stableGroupArray       支持的稳定币池信息
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
+    async swapTradeWithCombinedStable(fromAddress, amountIn, tokenPath, amountOutMin, feeTo, deadline, to, stableGroupArray, remark) {
+        if (feeTo == null) {
+            feeTo = '';
+        }
+        let firstTokenIn = tokenPath[0];
+        let secondTokenIn = tokenPath[1];
+        // 检查前两个币是否稳定币池
+        let pairAddress;
+        let group = isGroupStable(firstTokenIn, secondTokenIn, stableGroupArray);
+        if (group.success) {
+            pairAddress = group.address;
+        }
+        if (!pairAddress) {
+            // 普通交易对
+            pairAddress = this.getStringPairAddress(nerve.chainId(), firstTokenIn, secondTokenIn);
+        }
+        let transferInfo = {
+            fromAddress: fromAddress,
+            toAddress: pairAddress,
+            fee: 0,
+            assetsChainId: firstTokenIn.chainId,
+            assetsId: firstTokenIn.assetId,
+            amount: amountIn,
+        };
+        let balance = await util.getNulsBalance(transferInfo.fromAddress, transferInfo.assetsChainId, transferInfo.assetsId);
+        let inOrOutputs = await util.inputsOrOutputs(transferInfo, balance.data);
+
+        if (!inOrOutputs.success) {
+            throw "inputs、outputs组装错误";
+        }
+
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -789,7 +1076,7 @@ var swap = {
             throw "inputs、outputs组装错误";
         }
 
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -821,7 +1108,7 @@ var swap = {
             throw "inputs、outputs组装错误";
         }
 
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -864,7 +1151,7 @@ var swap = {
             throw "inputs、outputs组装错误";
         }
 
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -900,7 +1187,7 @@ var swap = {
         if (feeTo == null) {
             feeTo = '';
         }
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -943,7 +1230,7 @@ var swap = {
             throw "inputs、outputs组装错误";
         }
 
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -982,7 +1269,7 @@ var swap = {
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
         }
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -1020,7 +1307,7 @@ var swap = {
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
         }
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -1052,7 +1339,7 @@ var swap = {
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
         }
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,
@@ -1087,7 +1374,7 @@ var swap = {
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
         }
-        let tAssemble = await nerve.transactionAssemble(
+        let tAssemble = nerve.transactionAssemble(
             inOrOutputs.data.inputs,
             inOrOutputs.data.outputs,
             remark,

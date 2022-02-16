@@ -412,6 +412,7 @@ module.exports = {
           }
         })
         .catch((error) => {
+          // console.log(error)
           throw "Network error"
           // return {success: false, data: error};
         });
@@ -453,6 +454,25 @@ module.exports = {
           }
 
           return {success: true, data: data};
+        } else {
+          return {success: false, data: response.error};
+        }
+      })
+      .catch((error) => {
+        return {success: false, data: error};
+      });
+  },
+
+  /**
+   * 获取所有可用于swap交易的稳定币交易池
+   * @returns {Promise<AxiosResponse<any>>}
+   */
+  async getStablePairListForSwapTrade() {
+    return await http.post('/', 'getStablePairListForSwapTrade', [])
+      .then((response) => {
+        console.log(response);
+        if (response.hasOwnProperty("result")) {
+          return {success: true, data: response.result};
         } else {
           return {success: false, data: response.error};
         }
