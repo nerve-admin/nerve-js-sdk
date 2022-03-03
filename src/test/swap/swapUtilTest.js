@@ -312,6 +312,8 @@ async function stableLpSwapTradeTest() {
     if (check.success) {
         let tokenFirst = check.lpToken;
         let stablePairAddress = check.address;// 稳定币交易对地址
+        // 查找最优路径: 使用 tokenFirst, tokenOut 资产去查找最优路径，可能得到 [tokenFirst, tokenOut] or [tokenFirst, ..., tokenOut]
+        // 计算出的路径在路径首位加入实际的tokenIn，得到 [tokenIn, tokenFirst, tokenOut] or [tokenIn, tokenFirst, ..., tokenOut]
         let tokenPath = [tokenIn, tokenFirst, tokenOut];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
         let tx = await nerve.swap.stableLpSwapTrade(fromAddress, stablePairAddress, amountIn, tokenPath, amountOutMin,
             feeTo, deadline, toAddress, remark);
