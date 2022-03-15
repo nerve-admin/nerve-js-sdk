@@ -474,6 +474,26 @@ function isGroupStable(tokenA, tokenB, stableGroupArray) {
     return result;
 }
 
+function getCumulativeAmountsOfStableSwap(amounts, coins) {
+    let result = new BigNumber('0');
+    if (!amounts) {
+        return result;
+    }
+    let length = amounts.length;
+    let amount;
+    let exponent;
+    for (let i = 0; i < length; i++) {
+        amount = new BigNumber(amounts[i]);
+        exponent = 18 - Number(coins[i].decimals);
+        if (exponent == 0) {
+            result = result.plus(amount);
+        } else {
+            result = result.plus(amount.shiftedBy(exponent));
+        }
+    }
+    return result;
+}
+
 var swap = {
     /**
      * 当前时间，单位秒
@@ -1247,6 +1267,71 @@ var swap = {
         let hash = await tAssemble.getHash();
         let txhex = tAssemble.txSerialize().toString("hex");
         return {hash: hash.toString('hex'), hex: txhex};
+    },
+    /**
+     * 计算用户添加稳定币流动性获取的LP资产
+     */
+    calcStableSwapAddLiquidityMinReceive(stablePairInfo, tokenAmountIn) {
+        // 计算总量时，把精度都填充到18位
+        let balances = stablePairInfo.balances;
+        let coins = stablePairInfo.coins;
+        let totalSupply = new BigNumber(stablePairInfo.totalLP);
+        // 计算用户本次添加总量
+        let amountIn = new BigNumber(tokenAmountIn.amount);
+        let tokenInDecimals = Number(tokenAmountIn.decimals);
+        let currentInTotal = amountIn.shiftedBy(18 - tokenInDecimals);
+        let liquidity;
+        if(totalSupply.isLessThanOrEqualTo(0)) {
+            liquidity = currentInTotal;
+        } else {
+            // 计算池子总量
+            let poolTotal = getCumulativeAmountsOfStableSwap(balances, coins);
+            // 计算用户本次添加总量
+            liquidity = currentInTotal.times(totalSupply).dividedToIntegerBy(poolTotal);
+        }
+        return liquidity.toFixed(0);
+    },
+    /**
+     * 计算用户移除稳定币流动性LP资产获取的资产
+     */
+    calcStableSwapRemoveLiquidityMinReceive(stablePairInfo, tokenAmountLP, receiveIndex) {
+        // 计算总量时，把精度都填充到18位
+        let balances = stablePairInfo.balances;
+        let coins = stablePairInfo.coins;
+        let totalSupply = new BigNumber(stablePairInfo.totalLP);
+        let liquidity = new BigNumber(tokenAmountLP.amount);
+        // 计算池子总量
+        let poolTotal = getCumulativeAmountsOfStableSwap(balances, coins);
+        // 用户可赎回资产数量(PRECISION_MUL)
+        let totalReceive = poolTotal.times(liquidity).dividedToIntegerBy(totalSupply);
+        let coin = coins[receiveIndex];
+        let exponent = 18 - Number(coin.decimals);
+        let receiveBalance = new BigNumber(balances[receiveIndex]).shiftedBy(exponent);
+        if (receiveBalance.isLessThan(totalReceive)) {
+            // INVALID_AMOUNTS
+            throw "sw_0030";
+        }
+        let result = totalReceive.shiftedBy(0 - exponent).dividedToIntegerBy(1).toFixed(0);
+        return result;
+    },
+    /**
+     * 计算用户稳定币兑换获取的资产
+     */
+    calcStableSwapMinReceive(stablePairInfo, tokenAmountIn, tokenOutIndex) {
+        let balances = stablePairInfo.balances;
+        let coins = stablePairInfo.coins;
+        // 把精度填充到18位
+        let amountIn = new BigNumber(tokenAmountIn.amount).shiftedBy(18 - Number(tokenAmountIn.decimals));
+        let coin = coins[tokenOutIndex];
+        let exponent = 18 - Number(coin.decimals);
+        // 把精度填充到18位
+        let outBalance = new BigNumber(balances[tokenOutIndex]).shiftedBy(exponent);
+        if (outBalance.isLessThan(amountIn)) {
+            // INSUFFICIENT_OUTPUT_AMOUNT
+            throw "sw_0005";
+        }
+        let result = amountIn.shiftedBy(0 - exponent).dividedToIntegerBy(1).toFixed(0);
+        return result;
     },
     /**
      * 创建farm

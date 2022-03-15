@@ -61,7 +61,7 @@ function getAmountsOut() {
     console.log(nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray));
 }
 
-getPriceImpact();
+// getPriceImpact();
 function getPriceImpact() {
     let amountIn = '100000000';
     let tokenPathArray = [
@@ -329,3 +329,114 @@ async function stableLpSwapTradeTest() {
         console.log('hex: ' + tx.hex);
     }
 }
+
+let stablePairInfo = {
+    "address": "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB",
+    "tokenLP": {
+        "assetChainId": 5,
+        "assetId": 102,
+        "name": "USDTN",
+        "symbol": "USDTN",
+        "decimals": 18
+    },
+    "coins": [
+        {
+            "assetChainId": 5,
+            "assetId": 7,
+            "name": "USDT",
+            "symbol": "USDT",
+            "decimals": 6
+        },
+        {
+            "assetChainId": 5,
+            "assetId": 72,
+            "name": "USDT",
+            "symbol": "USDT",
+            "decimals": 18
+        },
+        {
+            "assetChainId": 5,
+            "assetId": 73,
+            "name": "USDT",
+            "symbol": "USDT",
+            "decimals": 18
+        },
+        {
+            "assetChainId": 5,
+            "assetId": 74,
+            "name": "USDT",
+            "symbol": "USDT",
+            "decimals": 18
+        },
+        {
+            "assetChainId": 5,
+            "assetId": 90,
+            "name": "USDT",
+            "symbol": "USDT",
+            "decimals": 6
+        },
+        {
+            "assetChainId": 2,
+            "assetId": 144,
+            "name": "USDT",
+            "symbol": "USDT",
+            "decimals": 18
+        }
+    ],
+    "totalLP": "102011540000000000000000",
+    "balances": [
+        "19998520000",
+        "21609445609803663208296",
+        "28613970590196336791704",
+        "11779564400000000000000",
+        "12519400",
+        "19997520000000000000000"
+    ]
+};
+
+// stableSwapAddLiquidityMinReceiveTest();
+// 计算用户添加稳定币流动性获取的LP资产
+function calcStableSwapAddLiquidityMinReceiveTest() {
+    // 添加的资产数量
+    let tokenAmountIn = {
+        chainId: 5,
+        assetId: 72,
+        amount: '222123456789123456789',
+        decimals: 18
+    };
+    let minReceive = nerve.swap.calcStableSwapAddLiquidityMinReceive(stablePairInfo, tokenAmountIn);
+    console.log(minReceive, 'minReceive');
+}
+
+// calcStableSwapRemoveLiquidityMinReceiveTest();
+// 计算用户移除稳定币流动性LP资产获取的资产
+function calcStableSwapRemoveLiquidityMinReceiveTest() {
+    // 移除的LP资产
+    let tokenAmountLP = {
+        chainId: 5,
+        assetId: 102,
+        amount: '222123456789123456789',
+        decimals: 18
+    };
+    // 指定接收的资产
+    let receiveIndex = 0;
+    let minReceive = nerve.swap.calcStableSwapRemoveLiquidityMinReceive(stablePairInfo, tokenAmountLP, receiveIndex);
+    console.log(minReceive, 'minReceive');
+}
+
+// calcStableSwapMinReceiveTest();
+// 计算用户稳定币兑换获取的资产
+function calcStableSwapMinReceiveTest() {
+    // 卖出的资产
+    let tokenAmountIn = {
+        chainId: 5,
+        assetId: 72,
+        amount: '222123456789123456789',
+        decimals: 18
+    };
+    // 指定兑换的资产
+    let tokenOutIndex = 3;
+    let minReceive = nerve.swap.calcStableSwapMinReceive(stablePairInfo, tokenAmountIn, tokenOutIndex);
+    console.log(minReceive, 'minReceive');
+}
+
