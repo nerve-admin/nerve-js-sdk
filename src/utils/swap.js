@@ -285,15 +285,16 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
         let amountOut = getAmountOutForBestTrade(amountIn, reserveIn, reserveOut);
 
         if (swap.tokenEquals(tokenOut, out)) {
+            let cloneCurrentPathArray = currentPathArray.slice();
             // add for link +
             if (linkPair) {
-                currentPathArray.push(linkPair);
+                cloneCurrentPathArray.push(linkPair);
             }
             // add for link -
-            currentPathArray.push(pair);
+            cloneCurrentPathArray.push(pair);
             let tokenAmountOut = swap.tokenAmount(tokenOut.chainId, tokenOut.assetId, amountOut);
             wholeTradeArray.push({
-                path: currentPathArray,
+                path: cloneCurrentPathArray,
                 tokenAmountIn: orginTokenAmountIn,
                 tokenAmountOut: tokenAmountOut
             });
@@ -419,15 +420,16 @@ function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
         let amountIn = getAmountInForBestTrade(amountOut, reserveIn, reserveOut);
 
         if (swap.tokenEquals(currentIn, _in)) {
+            let cloneCurrentPathArray = currentPathArray.slice();
             // add for link +
             if (linkPair) {
-                currentPathArray.push(linkPair);
+                cloneCurrentPathArray.push(linkPair);
             }
             // add for link -
-            currentPathArray.push(pair);
+            cloneCurrentPathArray.push(pair);
             let tokenAmountIn = swap.tokenAmount(currentIn.chainId, currentIn.assetId, amountIn);
             wholeTradeArray.push({
-                path: currentPathArray,
+                path: cloneCurrentPathArray,
                 tokenAmountIn: tokenAmountIn,
                 tokenAmountOut: orginTokenAmountOut
             });

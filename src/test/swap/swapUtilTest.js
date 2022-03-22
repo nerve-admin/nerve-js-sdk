@@ -82,7 +82,8 @@ function getPriceImpact() {
 
 // bestTradeExactInTest();
 function bestTradeExactInTest() {
-    let stableInfoArray = [{
+    let stableInfoArray;
+    /*let stableInfoArray = [{
         "address": "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB",
         "lpToken": "5-102",
         "groupCoin": {
@@ -99,26 +100,30 @@ function bestTradeExactInTest() {
                 "balance": "19999099898"
             }
         }
-    }];
+    }];*/
     let pairs = [
         nerve.swap.pair(
-            nerve.swap.token(5, 1),
-            nerve.swap.token(5, 72),
-            '10000000000', '10000000000000000000'),
+            nerve.swap.token(9, 1),
+            nerve.swap.token(9, 220),
+            '52224752005827', '14763892477263583354195'),
         nerve.swap.pair(
-            nerve.swap.token(5, 5),
-            nerve.swap.token(5, 73),
-            '20000000000', '10000000000000000000'),
+            nerve.swap.token(1, 1),
+            nerve.swap.token(1, 146),
+            '19113106412499', '2208031238227330865404540367'),
         nerve.swap.pair(
-            nerve.swap.token(5, 5),
-            nerve.swap.token(5, 74),
-            '20000000000000', '10000000000'),
+            nerve.swap.token(1, 146),
+            nerve.swap.token(9, 1),
+            '1240000000000000002636', '150000002'),
+        nerve.swap.pair(
+            nerve.swap.token(1, 1),
+            nerve.swap.token(9, 1),
+            '79252873416961', '1153409111343822'),
     ];
     // 10:1 / 20:1 / 20:1
-    let tokenAmountIn = nerve.swap.tokenAmount(5, 1, '1000000000');
-    let tokenOut = nerve.swap.token(5, 5);
-    let maxPairSize = 4;
-    let trade = nerve.swap.bestTradeExactIn(5, pairs, tokenAmountIn, tokenOut, maxPairSize, stableInfoArray);
+    let tokenAmountIn = nerve.swap.tokenAmount(9, 220, '1000000000000000000');
+    let tokenOut = nerve.swap.token(1, 146);
+    let maxPairSize = 3;
+    let trade = nerve.swap.bestTradeExactIn(9, pairs, tokenAmountIn, tokenOut, maxPairSize, stableInfoArray);
     console.log(JSON.stringify(trade));
 }
 
