@@ -15,12 +15,13 @@ const util = require('./api/util');
 // f();
 // withdrawalToETH(isMainnet);
 // withdrawalToBSC(isMainnet);
-// withdrawalToHECO(isMainnet);
+withdrawalToHECO(isMainnet);
 // withdrawalToOKT(isMainnet);
 // withdrawalToONE(isMainnet);
 // withdrawalToMATIC(isMainnet);
 // withdrawalToKCS(isMainnet);
-withdrawalToTRX(isMainnet);
+// withdrawalToTRX(isMainnet);
+// withdrawalToCRO(isMainnet);
 
 async function withdrawalToETH(isMainnet) {
     let feeNumber = await calcFee("ETH", isMainnet, true, "NVT");
@@ -33,7 +34,7 @@ async function withdrawalToBSC(isMainnet) {
 }
 
 async function withdrawalToHECO(isMainnet) {
-    let feeNumber = await calcFee("HT", isMainnet, true, "NVT");
+    let feeNumber = await calcFee("HT", isMainnet, true, "ONE");
     console.log("提现到HECO网络:" + feeNumber);
 }
 
@@ -62,6 +63,11 @@ async function withdrawalToTRX(isMainnet) {
     console.log("提现到TRX网络:" + feeNumber);
 }
 
+async function withdrawalToCRO(isMainnet) {
+    let feeNumber = await calcFee("CRO", isMainnet, true, "NVT");
+    console.log("提现到CRO网络:" + feeNumber);
+}
+
 async function calcFee(withdrawChain, isMainnet, isToken, feeChain) {
     // 默认使用NVT作为跨链手续费
     if (!feeChain || feeChain === '') {
@@ -78,10 +84,10 @@ async function calcFee(withdrawChain, isMainnet, isToken, feeChain) {
     }
     // 获取资产信息
     let feeCoin = NERVE_INFO.htgMainAsset[feeChain];
-    let feeCoinPrice = await util.getSymbolPriceOfUsdt(feeCoin.chainId, feeCoin.assetId);
+    let feeCoinPrice = await util.getSymbolPriceOfUsdt(feeCoin.chainId, feeCoin.assetId, 'FEE');
     let withdrawCoinPrice = await util.getSymbolPriceOfUsdt(withdrawCoin.chainId, withdrawCoin.assetId);
-    // console.log(feeCoinPrice, "feeCoinPrice", feeChain);
-    // console.log(withdrawCoinPrice, "withdrawCoinPrice", withdrawChain);
+    console.log(feeCoinPrice, "feeCoinPrice", feeChain);
+    console.log(withdrawCoinPrice, "withdrawCoinPrice", withdrawChain);
     let result = await api_ethers.calcOtherMainAssetOfWithdrawTest(provider, feeCoin, feeCoinPrice, withdrawCoinPrice, isToken);
     return api_ethers.formatOtherMainAsset(result, feeCoin);
 }

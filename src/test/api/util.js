@@ -541,8 +541,8 @@ module.exports = {
    * 查询资产的USD价格
    * @returns {Promise<AxiosResponse<any>>}
    */
-  async getSymbolPriceOfUsdt(chainId, assetId) {
-    return await http.postComplete('/', 'getBestSymbolPrice', [chainId, assetId])
+  async getSymbolPriceOfUsdt(chainId, assetId, assetType = '') {
+    return await http.postComplete('/', 'getBestSymbolPrice', [chainId, assetId, assetType])
         .then((response) => {
           if (response.hasOwnProperty("result")) {
             return response.result;

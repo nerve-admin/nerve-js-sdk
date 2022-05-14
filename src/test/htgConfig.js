@@ -29,6 +29,10 @@ const RPC_URL = {
     KCS: {
         test: "https://rpc-testnet.kcc.network",
         main: "https://rpc-mainnet.kcc.network"
+    },
+    CRO: {
+        test: "https://cronos-testnet-3.crypto.org:8545",
+        main: "https://evm.cronos.org"
     }
 };
 
@@ -52,7 +56,8 @@ const NERVE_INFOS = {
             ONE:    {chainId: 5, assetId: 33, decimals: 18},
             MATIC:  {chainId: 5, assetId: 34, decimals: 18},
             KCS:    {chainId: 5, assetId: 35, decimals: 18},
-            TRX:    {chainId: 5, assetId: 55, decimals: 6}
+            TRX:    {chainId: 5, assetId: 55, decimals: 6},
+            CRO:    {chainId: 5, assetId: 93, decimals: 18}
         },
         trxWithdrawFee: '40000000'
     },
@@ -74,7 +79,8 @@ const NERVE_INFOS = {
             ONE:    {chainId: 9, assetId: 159, decimals: 18},
             MATIC:  {chainId: 9, assetId: 160, decimals: 18},
             KCS:    {chainId: 9, assetId: 161, decimals: 18},
-            TRX:    {chainId: 9, assetId: 218,   decimals: 6}
+            TRX:    {chainId: 9, assetId: 218, decimals: 6},
+            CRO:    {chainId: 9, assetId: 266, decimals: 18}
         },
         trxWithdrawFee: '40000000'
     }
