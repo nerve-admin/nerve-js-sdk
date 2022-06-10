@@ -4,15 +4,16 @@
 const nerve = require('../../index');
 // 设置网络环境
 nerve.testnet();
+// nerve.customnet(5, "http://127.0.0.1:17004/jsonrpc");
 
 // 账户信息
-let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
-let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
-let stablePairAddress = "TNVTdTSQkXMz7PGy5j48LfuQbAbVzHcYTMAzM";// 交易对地址
-let tokenAmountLP = nerve.swap.tokenAmount(5, 18, "12345678912345678912345678912345678912345678912345678912345678912345678912345");// 移除的资产LP的数量
-let receiveOrderIndexs = [0, 2, 3, 1];// 按币种索引顺序接收资产
+let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
+let stablePairAddress = "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB";// 交易对地址
+let tokenAmountLP = nerve.swap.tokenAmount(5, 102, "10000000000000000000");// 移除的资产LP的数量
+let receiveOrderIndexs = [3];// 按币种索引顺序接收资产
 let deadline = nerve.swap.currentTime() + 300;// 过期时间
-let toAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";// 移除流动性份额接收地址
+let toAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";// 移除流动性份额接收地址
 let remark = 'stable swap remove liquidity remark...';
 //调用
 test();
@@ -26,6 +27,7 @@ async function test() {
     console.log('signedTx hash: ' + signedTx.data.hash);
     console.log('signedTx hex: ' + signedTx.data.hex);
     // 广播交易
-    // nerve.broadcastTx(signedTx.data.hex);
+    let result = await nerve.broadcastTx(signedTx.data.hex);
+    console.log(result, 'result');
 }
 

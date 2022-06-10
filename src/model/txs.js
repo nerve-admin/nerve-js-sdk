@@ -110,6 +110,7 @@ let Transaction = function () {
   this.printInfo = function () {
     let signatures = new TxSignatures(new BufferReader(this.signatures, 0));
     let coinData = new CoinData(new BufferReader(this.coinData, 0));
+    return {coinData: coinData, signatures: signatures};
   };
   this.getTxDataStr = function () {
     if (!this.txData || 0 === this.txData.length) {

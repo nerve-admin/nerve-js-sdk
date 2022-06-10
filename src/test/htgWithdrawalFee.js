@@ -1,7 +1,7 @@
 const nerve = require('../index');
 const {NERVE_INFOS} = require('./htgConfig');
 
-let isMainnet = false;
+let isMainnet = true;
 if (isMainnet) {
     nerve.mainnet();
 } else {
@@ -12,10 +12,26 @@ let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() ==
 const api_ethers = require('./api_ethers');
 const util = require('./api/util');
 
+// 9-445 metis
+// 9-446 iotx
+// 9-447 op
+// 9-448 klay
+// 9-449 bch
+async function getPrice(chainId, assetId) {
+    let withdrawCoinPrice = await util.getSymbolPriceOfUsdt(chainId, assetId);
+    console.log(withdrawCoinPrice, "withdrawCoinPrice", chainId + "-" + assetId);
+}
+
+getPrice(9, 445);
+getPrice(9, 446);
+getPrice(9, 447);
+getPrice(9, 448);
+getPrice(9, 449);
+
 // f();
 // withdrawalToETH(isMainnet);
 // withdrawalToBSC(isMainnet);
-withdrawalToHECO(isMainnet);
+// withdrawalToHECO(isMainnet);
 // withdrawalToOKT(isMainnet);
 // withdrawalToONE(isMainnet);
 // withdrawalToMATIC(isMainnet);
@@ -24,7 +40,7 @@ withdrawalToHECO(isMainnet);
 // withdrawalToCRO(isMainnet);
 
 async function withdrawalToETH(isMainnet) {
-    let feeNumber = await calcFee("ETH", isMainnet, true, "NVT");
+    let feeNumber = await calcFee("ETH", isMainnet, true, "BNB");
     console.log("提现到ETH网络:" + feeNumber);
 }
 

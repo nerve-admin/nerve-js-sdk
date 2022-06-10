@@ -44,9 +44,13 @@ async function inputsOrOutputsOfSwapAddLiquidity(fromAddress, to, tokenAmountA, 
     return {success: true, data: {inputs: inputs, outputs: outputs}};
 }
 
-async function inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, to, tokenAmounts) {
+async function inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, to, tokenAmounts, feeTo, feeTokenAmount) {
     let inputs = [];
     let outputs = [];
+    let hasFee = false;
+    if (feeTo && feeTokenAmount) {
+        hasFee = true;
+    }
     let length = tokenAmounts.length;
     for (let i = 0; i < length; i++) {
         let tokenAmount = tokenAmounts[i];
@@ -59,9 +63,20 @@ async function inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, to, token
             nonce: balance.data.nonce,
             locked: 0,
         });
+        let fromAmount = new BigNumber(tokenAmount.amount);
+        if (hasFee && tokenAmount.chainId == feeTokenAmount.chainId && tokenAmount.assetId == feeTokenAmount.assetId) {
+            fromAmount = fromAmount.minus(new BigNumber(feeTokenAmount.amount));
+            outputs.push({
+                address: feeTo,
+                amount: feeTokenAmount.amount,
+                assetsChainId: tokenAmount.chainId,
+                assetsId: tokenAmount.assetId,
+                locked: 0
+            });
+        }
         outputs.push({
             address: to,
-            amount: tokenAmount.amount,
+            amount: fromAmount.toFixed(),
             assetsChainId: tokenAmount.chainId,
             assetsId: tokenAmount.assetId,
             locked: 0
@@ -1195,14 +1210,15 @@ var swap = {
      * @param stablePairAddress     交易对地址
      * @param amountIns             卖出的资产数量列表，示例：[nerve.swap.tokenAmount(5, 6, "600000000"), nerve.swap.tokenAmount(5, 9, "90000000")]
      * @param tokenOutIndex         买进的资产索引，示例：3
-     * @param feeTo                 交易手续费取出一部分给指定的接收地址
+     * @param feeTo                 交易手续费接收地址
      * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
      * @param to                    资产接收地址
      * @param remark                交易备注
+     * @param feeTokenAmount        交易手续费，示例：nerve.swap.tokenAmount(5, 6, "6000000")
      * @returns 交易序列化hex字符串
      */
-    async stableSwapTrade(fromAddress, stablePairAddress, amountIns, tokenOutIndex, feeTo, deadline, to, remark) {
-        let inOrOutputs = await inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, stablePairAddress, amountIns);
+    async stableSwapTrade(fromAddress, stablePairAddress, amountIns, tokenOutIndex, feeTo, deadline, to, remark, feeTokenAmount) {
+        let inOrOutputs = await inputsOrOutputsOfStableAddLiquidityOrTrade(fromAddress, stablePairAddress, amountIns, feeTo, feeTokenAmount);
         if (!inOrOutputs.success) {
             throw "inputs、outputs组装错误";
         }
