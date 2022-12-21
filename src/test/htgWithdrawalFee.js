@@ -22,11 +22,11 @@ async function getPrice(chainId, assetId) {
     console.log(withdrawCoinPrice, "withdrawCoinPrice", chainId + "-" + assetId);
 }
 
-getPrice(9, 445);
-getPrice(9, 446);
-getPrice(9, 447);
-getPrice(9, 448);
-getPrice(9, 449);
+// getPrice(9, 445);
+// getPrice(9, 446);
+// getPrice(9, 447);
+// getPrice(9, 448);
+// getPrice(9, 449);
 
 // f();
 // withdrawalToETH(isMainnet);
@@ -36,8 +36,9 @@ getPrice(9, 449);
 // withdrawalToONE(isMainnet);
 // withdrawalToMATIC(isMainnet);
 // withdrawalToKCS(isMainnet);
-// withdrawalToTRX(isMainnet);
+withdrawalToTRX(isMainnet);
 // withdrawalToCRO(isMainnet);
+// withdrawalToFTM(isMainnet);
 
 async function withdrawalToETH(isMainnet) {
     let feeNumber = await calcFee("ETH", isMainnet, true, "BNB");
@@ -45,7 +46,7 @@ async function withdrawalToETH(isMainnet) {
 }
 
 async function withdrawalToBSC(isMainnet) {
-    let feeNumber = await calcFee("BNB", isMainnet, true, "TRX");
+    let feeNumber = await calcFee("BNB", isMainnet, true, "NVT");
     console.log("提现到BSC网络:" + feeNumber);
 }
 
@@ -75,13 +76,18 @@ async function withdrawalToKCS(isMainnet) {
 }
 
 async function withdrawalToTRX(isMainnet) {
-    let feeNumber = await calcFee("TRX", isMainnet, true, "BNB");
+    let feeNumber = await calcFee("TRX", isMainnet, true, "NVT");
     console.log("提现到TRX网络:" + feeNumber);
 }
 
 async function withdrawalToCRO(isMainnet) {
     let feeNumber = await calcFee("CRO", isMainnet, true, "NVT");
     console.log("提现到CRO网络:" + feeNumber);
+}
+
+async function withdrawalToFTM(isMainnet) {
+    let feeNumber = await calcFee("FTM", isMainnet, true, "FTM");
+    console.log("提现到FTM网络:" + feeNumber);
 }
 
 async function calcFee(withdrawChain, isMainnet, isToken, feeChain) {

@@ -164,6 +164,8 @@ module.exports = {
       tt = new txs.FarmUpdateTransaction(info);
     } else if (type === 77) { //Stable-Lp-Swap-Trade交易
       tt = new txs.StableLpSwapTradeTransaction(info);
+    } else if (type === 83) { //Swap-Trade-Stable-Remove-Lp Swap交易聚合稳定币撤销流动性交易
+      tt = new txs.SwapTradeStableRemoveLpTransaction(info);
     } else if (type === 228) {  //创建交易对
       tt = new txs.CoinTradingTransaction(info);
     } else if (type === 229) {  //委托挂单

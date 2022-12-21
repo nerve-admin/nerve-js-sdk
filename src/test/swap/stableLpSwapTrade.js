@@ -8,7 +8,7 @@ nerve.testnet();
 
 // 账户信息
 let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
-let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
+let pri = '';
 let stablePairAddress = "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB";// 稳定币交易对地址
 let amountIn = "2000000000000000000"; // 卖出的资产数量
 let tokenPath = [nerve.swap.token(5, 72), nerve.swap.token(5, 102), nerve.swap.token(5, 1)];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
@@ -25,12 +25,12 @@ async function test() {
     console.log('hash: ' + tx.hash);
     console.log('hex: ' + tx.hex);
     // 签名交易
-    let signedTx = nerve.appendSignature(tx.hex, pri);
-    console.log('signedTx hash: ' + signedTx.data.hash);
-    console.log('signedTx hex: ' + signedTx.data.hex);
-    // 广播交易
-    let result = await nerve.broadcastTx(signedTx.data.hex);
-    console.log('result: ' + result);
+    // let signedTx = nerve.appendSignature(tx.hex, pri);
+    // console.log('signedTx hash: ' + signedTx.data.hash);
+    // console.log('signedTx hex: ' + signedTx.data.hex);
+    // // 广播交易
+    // let result = await nerve.broadcastTx(signedTx.data.hex);
+    // console.log('result: ' + result);
 }
 
 

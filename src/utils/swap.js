@@ -1286,6 +1286,63 @@ var swap = {
         let txhex = tAssemble.txSerialize().toString("hex");
         return {hash: hash.toString('hex'), hex: txhex};
     },
+
+    /**
+     * 组装交易: swap交易聚合稳定币撤销流动性交易
+     *
+     * @param fromAddress           用户地址
+     * @param amountIn              卖出的资产数量
+     * @param tokenPath             币币交换资产路径，路径中最后一个资产，是用户要买进的资产，
+     *                                      如卖A买B: [A, B] or [A, C, B]，
+     *                                      示例: [nerve.swap.token(5, 1), nerve.swap.token(5, 6)]
+     * @param amountOutMin          最小买进的资产数量
+     * @param feeTo                 交易手续费取出一部分给指定的接收地址
+     * @param deadline              过期时间，示例：nerve.swap.currentTime() + 300 (5分钟/300秒以后)
+     * @param to                    资产接收地址
+     * @param targetToken           撤销稳定币流动性换出的资产
+     * @param remark                交易备注
+     * @returns 交易序列化hex字符串
+     */
+    async swapTradeStableRemoveLp(fromAddress, amountIn, tokenPath, amountOutMin, feeTo, deadline, to, targetToken, remark) {
+        if (feeTo == null) {
+            feeTo = '';
+        }
+        let firstTokenIn = tokenPath[0];
+        let pairAddress = this.getStringPairAddress(nerve.chainId(), firstTokenIn, tokenPath[1]);
+        let transferInfo = {
+            fromAddress: fromAddress,
+            toAddress: pairAddress,
+            fee: 0,
+            assetsChainId: firstTokenIn.chainId,
+            assetsId: firstTokenIn.assetId,
+            amount: amountIn,
+        };
+        let balance = await util.getNulsBalance(transferInfo.fromAddress, transferInfo.assetsChainId, transferInfo.assetsId);
+        let inOrOutputs = await util.inputsOrOutputs(transferInfo, balance.data);
+
+        if (!inOrOutputs.success) {
+            throw "inputs、outputs组装错误";
+        }
+
+        let tAssemble = nerve.transactionAssemble(
+            inOrOutputs.data.inputs,
+            inOrOutputs.data.outputs,
+            remark,
+            83,
+            {
+                amountOutMin: amountOutMin,
+                to: to,
+                feeTo: feeTo,
+                deadline: deadline,
+                tokenPath: tokenPath,
+                targetToken: targetToken
+            }
+        );
+        //获取hash
+        let hash = await tAssemble.getHash();
+        let txhex = tAssemble.txSerialize().toString("hex");
+        return {hash: hash.toString('hex'), hex: txhex};
+    },
     /**
      * 计算用户添加稳定币流动性获取的LP资产
      */

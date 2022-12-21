@@ -404,9 +404,11 @@ module.exports = {
     return await http.post('/', 'getAccountBalance', [chainId, assetId, address])
         .then((response) => {
           //console.log(response);
+
           if (response.hasOwnProperty("result")) {
             return {success: true, data: {balance: response.result.balance, nonce: response.result.nonce}}
           } else {
+
             throw "Get balance error"
             // return {success: false, data: response}
           }

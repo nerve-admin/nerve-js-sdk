@@ -8,7 +8,7 @@ const HTGNET = 'test';
 const RPC_URL = {
     BNB: {
         test: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-        main: "https://bsc-dataseed.binance.org/"
+        main: "https://bsc-dataseed1.defibit.io/"
     },
     HT: {
         test: "https://http-testnet.hecochain.com",
@@ -33,6 +33,10 @@ const RPC_URL = {
     CRO: {
         test: "https://cronos-testnet-3.crypto.org:8545",
         main: "https://evm.cronos.org"
+    },
+    FTM: {
+        test: "https://rpc.testnet.fantom.network",
+        main: "https://rpc.ftm.tools"
     }
 };
 
@@ -57,9 +61,10 @@ const NERVE_INFOS = {
             MATIC:  {chainId: 5, assetId: 34, decimals: 18},
             KCS:    {chainId: 5, assetId: 35, decimals: 18},
             TRX:    {chainId: 5, assetId: 55, decimals: 6},
-            CRO:    {chainId: 5, assetId: 93, decimals: 18}
+            CRO:    {chainId: 5, assetId: 93, decimals: 18},
+            FTM:    {chainId: 5, assetId: 0, decimals: 18}
         },
-        trxWithdrawFee: '40000000'
+        trxWithdrawFee: '60000000'
     },
     mainnet: {
         chainId: 9,
@@ -80,9 +85,10 @@ const NERVE_INFOS = {
             MATIC:  {chainId: 9, assetId: 160, decimals: 18},
             KCS:    {chainId: 9, assetId: 161, decimals: 18},
             TRX:    {chainId: 9, assetId: 218, decimals: 6},
-            CRO:    {chainId: 9, assetId: 266, decimals: 18}
+            CRO:    {chainId: 9, assetId: 266, decimals: 18},
+            FTM:    {chainId: 9, assetId: 269, decimals: 18}
         },
-        trxWithdrawFee: '40000000'
+        trxWithdrawFee: '60000000'
     }
 };
 

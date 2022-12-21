@@ -514,6 +514,7 @@ module.exports = {
     }
     this.txData = bw.getBufWriter().toBuffer();
   },
+
   /**
    * @desc 创建stable-swap交易对
    */
@@ -612,6 +613,34 @@ module.exports = {
       bw.getBufWriter().writeUInt16LE(token.chainId);
       bw.getBufWriter().writeUInt16LE(token.assetId);
     }
+    this.txData = bw.getBufWriter().toBuffer();
+  },
+
+  /**
+   * @desc Swap交易聚合稳定币撤销流动性交易
+   */
+  SwapTradeStableRemoveLpTransaction: function (entity) {
+    Transaction.call(this);
+    //对象属性结构
+    if (!entity) {
+      throw "Data Wrong!";
+    }
+    this.type = 83;
+    let bw = new Serializers();
+    bw.writeBigInt(entity.amountOutMin);
+    bw.getBufWriter().write(sdk.getBytesAddress(entity.to));
+    bw.writeBytesWithLength(sdk.getBytesAddress(entity.feeTo));
+    bw.getBufWriter().writeUInt32LE(entity.deadline);
+    let tokenPath = entity.tokenPath;
+    let length = tokenPath.length;
+    bw.getBufWriter().writeUInt8(length);
+    for (let i = 0; i < length; i++) {
+      let token = tokenPath[i];
+      bw.getBufWriter().writeUInt16LE(token.chainId);
+      bw.getBufWriter().writeUInt16LE(token.assetId);
+    }
+    bw.getBufWriter().writeUInt16LE(entity.targetToken.chainId);
+    bw.getBufWriter().writeUInt16LE(entity.targetToken.assetId);
     this.txData = bw.getBufWriter().toBuffer();
   },
 
