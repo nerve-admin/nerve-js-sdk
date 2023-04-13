@@ -147,12 +147,12 @@ function bestTradeExactInTest() {
             nerve.swap.token(1, 81),
             nerve.swap.token(9, 220),
             '100000000', '1000000000000000000'),
-        nerve.swap.pair(
-            nerve.swap.token(9, 1),
-            nerve.swap.token(9, 220),
-            '54542052289588', '13836674483460251861935'),
+        // nerve.swap.pair(
+        //     nerve.swap.token(9, 1),
+        //     nerve.swap.token(9, 220),
+        //     '54542052289588', '13836674483460251861935'),
     ];
-    // 10:1 / 20:1 / 20:1
+    // 10:1 / 20:1 / 20:1 99999999999.003
     let tokenAmountIn = nerve.swap.tokenAmount(9, 1, '100000000000');
     let tokenOut = nerve.swap.token(9, 220);
     let maxPairSize = 3;
@@ -162,24 +162,25 @@ function bestTradeExactInTest() {
 
 // bestTradeExactOutTest();
 function bestTradeExactOutTest() {
-    let stableInfoArray = [{
-        "address": "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB",
-        "lpToken": "5-102",
-        "groupCoin": {
-            "5-72": {
-                "decimals": 18,
-                "balance": "20002904580803663208296"
-            },
-            "5-73": {
-                "decimals": 18,
-                "balance": "19999095419196336791704"
-            },
-            "5-74": {
-                "decimals": 6,
-                "balance": "19999099898"
-            }
-        }
-    }];
+    let stableInfoArray;
+    // let stableInfoArray = [{
+    //     "address": "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB",
+    //     "lpToken": "5-102",
+    //     "groupCoin": {
+    //         "5-72": {
+    //             "decimals": 18,
+    //             "balance": "20002904580803663208296"
+    //         },
+    //         "5-73": {
+    //             "decimals": 18,
+    //             "balance": "19999095419196336791704"
+    //         },
+    //         "5-74": {
+    //             "decimals": 6,
+    //             "balance": "19999099898"
+    //         }
+    //     }
+    // }];
     let pairs = [
         nerve.swap.pair(
             nerve.swap.token(5, 1),
@@ -219,7 +220,7 @@ function bestTradeExactOutTest() {
             '10000000000', '10000000'),
     ];
     let tokenIn = nerve.swap.token(5, 1);
-    let tokenAmountOut = nerve.swap.tokenAmount(5, 5, '6623084');
+    let tokenAmountOut = nerve.swap.tokenAmount(5, 5, '9920320');
     let maxPairSize = 4;
     let trade = nerve.swap.bestTradeExactOut(5, pairs, tokenIn, tokenAmountOut, maxPairSize, stableInfoArray);
     console.log(JSON.stringify(trade));
@@ -302,11 +303,21 @@ function getReserves() {
     console.log(nerve.swap.getReserves(nerve.swap.token(5, 3), nerve.swap.token(5, 1), pair));
 }
 
-// divTest();
+divTest();
 function divTest() {
-    let x = new BigNumber(2);
-    let y = new BigNumber(3);
-    console.log(x.div(y).toFixed(18));
+    let a = 0;
+    console.log(typeof a === 'undefined');
+    console.log(typeof a);
+    console.log(typeof (typeof a));
+    let b;
+    console.log(typeof b === 'undefined');
+    console.log(typeof b);
+    console.log(typeof (typeof b));
+    let one = new BigNumber(1);
+    let x = new BigNumber(3);
+    let y = new BigNumber(1000);
+    let z = x.div(y);
+    console.log(one.minus(z));
 }
 
 // stableLpSwapTradeTest();

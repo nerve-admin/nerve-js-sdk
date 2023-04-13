@@ -243,7 +243,7 @@ function deduplicationGroupPair(pairs, stableGroupArray) {
 function makeStableLinkPair(tokenA, tokenB, amountA, amountB) {
     let array = swap.tokenSort(tokenA, tokenB);
     let token0 = array[0];
-    let result = swap.tokenEquals(tokenA, token0) ? swap.pair(tokenA, tokenB, amountA, amountB) : swap.pair(tokenB, tokenA, amountB, amountA);
+    let result = swap.tokenEquals(tokenA, token0) ? swap.pair(tokenA, tokenB, amountA, amountB, 0) : swap.pair(tokenB, tokenA, amountB, amountA, 0);
     return result;
 }
 
@@ -587,7 +587,7 @@ var swap = {
      * 组装一个交易对的json对象
      */
     pair(token0, token1, reserve0, reserve1, feeRate) {
-        if (!feeRate) {
+        if (typeof feeRate === 'undefined') {
             feeRate = 3;
         }
         return {token0: token0, token1: token1, reserve0: reserve0, reserve1: reserve1, feeRate: feeRate};
@@ -631,9 +631,13 @@ var swap = {
         let trade = calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, [], [], tokenAmountIn, maxPairSize, stableGroupArray);
         if (!trade.path) return trade;
         let tokenIn = trade.tokenAmountIn.token;
+        let amountIn = new BigNumber(trade.tokenAmountIn.amount);
         let tokenPath = [tokenIn];
         let path = trade.path;
         let length = path.length;
+        const _1 = new BigNumber(1);
+        const _1000 = new BigNumber(1000);
+        let _rate = _1;
         for (let i = 0; i < length; i++) {
             let pair = path[i];
             let token0 = pair.token0;
@@ -645,8 +649,12 @@ var swap = {
                 tokenPath.push(token0);
                 tokenIn = token0;
             }
+            _rate = _rate.multipliedBy(_1.minus(new BigNumber(pair.feeRate).div(_1000)));
         }
+        _rate = _1.minus(_rate);
+        const pathFee = amountIn.multipliedBy(_rate);
         trade.path = tokenPath;
+        trade.pathFee = pathFee.toFixed(0);
         return trade;
     },
     /**
@@ -660,6 +668,9 @@ var swap = {
         let path = trade.path;
         let length = path.length;
         let _tokenTmp = tokenOut;
+        const _1 = new BigNumber(1);
+        const _1000 = new BigNumber(1000);
+        let _rate = _1;
         for (let i = 0; i < length; i++) {
             let pair = path[i];
             let token0 = pair.token0;
@@ -671,9 +682,13 @@ var swap = {
                 tokenPath.push(token0);
                 _tokenTmp = token0;
             }
+            _rate = _rate.multipliedBy(_1.minus(new BigNumber(pair.feeRate).div(_1000)));
         }
+        _rate = _1.minus(_rate);
+        const pathFee = trade.tokenAmountIn.amount.multipliedBy(_rate);
         let tokenPathArray = tokenPath.reverse();
         trade.path = tokenPathArray;
+        trade.pathFee = pathFee.toFixed(0);
         return trade;
     },
     /**
