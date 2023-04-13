@@ -61,7 +61,7 @@ function getAmountsOut() {
     console.log(nerve.swap.getAmountsOut(amountIn, tokenPathArray, pairsArray));
 }
 
-getPriceImpact();
+// getPriceImpact();
 function getPriceImpact() {
     console.log("exec [getPriceImpact]...");
     let amountIn = '1000000';
@@ -391,8 +391,8 @@ async function swapTradeStableRemoveLpTest() {
     let remark = 'swap trade stable remove lp remark...';
     let stableInfoArray = [
         {
-            "address": "TNVTdTSQkncm2UqXw1gLzmtnjTRN5YqB8Tg1n",
-            "lpToken": "5-75",
+            "address": "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB",
+            "lpToken": "5-102",
             "groupCoin": {
                 "5-90": 1,
                 "5-72": 1,

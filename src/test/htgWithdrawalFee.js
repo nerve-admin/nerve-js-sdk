@@ -30,15 +30,16 @@ async function getPrice(chainId, assetId) {
 
 // f();
 // withdrawalToETH(isMainnet);
-// withdrawalToBSC(isMainnet);
+withdrawalToBSC(isMainnet);
 // withdrawalToHECO(isMainnet);
 // withdrawalToOKT(isMainnet);
 // withdrawalToONE(isMainnet);
 // withdrawalToMATIC(isMainnet);
 // withdrawalToKCS(isMainnet);
-withdrawalToTRX(isMainnet);
+// withdrawalToTRX(isMainnet);
 // withdrawalToCRO(isMainnet);
 // withdrawalToFTM(isMainnet);
+// withdrawalToPolygon(isMainnet);
 
 async function withdrawalToETH(isMainnet) {
     let feeNumber = await calcFee("ETH", isMainnet, true, "BNB");
@@ -86,8 +87,13 @@ async function withdrawalToCRO(isMainnet) {
 }
 
 async function withdrawalToFTM(isMainnet) {
-    let feeNumber = await calcFee("FTM", isMainnet, true, "FTM");
+    let feeNumber = await calcFee("FTM", isMainnet, false, "FTM");
     console.log("提现到FTM网络:" + feeNumber);
+}
+
+async function withdrawalToPolygon(isMainnet) {
+    let feeNumber = await calcFee("MATIC", isMainnet, true, "HT");
+    console.log("提现到Polygon网络:" + feeNumber);
 }
 
 async function calcFee(withdrawChain, isMainnet, isToken, feeChain) {

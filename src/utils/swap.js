@@ -105,7 +105,7 @@ function containsCurrency(currentPathArray, token) {
     return false;
 }
 
-function getAmountOutForBestTrade(amountIn, reserveIn, reserveOut) {
+function getAmountOutForBestTrade(amountIn, reserveIn, reserveOut, feeRate) {
     let _amountIn = new BigNumber(amountIn);
     if(_amountIn.isLessThanOrEqualTo(0)) {
         return new BigNumber('0');
@@ -115,14 +115,15 @@ function getAmountOutForBestTrade(amountIn, reserveIn, reserveOut) {
     if(_reserveIn.isLessThanOrEqualTo(0) || _reserveOut.isLessThanOrEqualTo(0)) {
         return new BigNumber('0');
     }
-    let amountInWithFee = _amountIn.times(997);
+    // let amountInWithFee = _amountIn.times(997);
+    let amountInWithFee = _amountIn.times(1000 - feeRate);
     let numerator = amountInWithFee.times(_reserveOut);
     let denominator = _reserveIn.times(1000).plus(amountInWithFee);
     let amountOut = numerator.dividedToIntegerBy(denominator);
     return amountOut;
 }
 
-function getAmountInForBestTrade(amountOut, reserveIn, reserveOut) {
+function getAmountInForBestTrade(amountOut, reserveIn, reserveOut, feeRate) {
     let _amountOut = new BigNumber(amountOut);
     if(_amountOut.isLessThanOrEqualTo(0)) {
         return new BigNumber('0');
@@ -133,7 +134,8 @@ function getAmountInForBestTrade(amountOut, reserveIn, reserveOut) {
         return new BigNumber('0');
     }
     let numerator = _reserveIn.times(_amountOut).times(1000);
-    let denominator = _reserveOut.minus(_amountOut).times(997);
+    // let denominator = _reserveOut.minus(_amountOut).times(997);
+    let denominator = _reserveOut.minus(_amountOut).times(1000 - feeRate);
     let amountIn = numerator.dividedToIntegerBy(denominator).plus(1);
     return amountIn;
 }
@@ -155,7 +157,7 @@ function calcBestTradeExactIn(chainId, pairs, tokenAmountIn, tokenOut, currentPa
         let reserves = swap.getReserves(tokenIn, tokenOut, pair);
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
-        let amountOut = getAmountOutForBestTrade(tokenAmountIn.amount, reserveIn, reserveOut);
+        let amountOut = getAmountOutForBestTrade(tokenAmountIn.amount, reserveIn, reserveOut, reserves[2]);
         let tokenAmountOut = swap.tokenAmount(tokenOut.chainId, tokenOut.assetId, amountOut);
         wholeTradeArray.push({
             path: [pair],
@@ -297,7 +299,7 @@ function realBestTradeExactIn(chainId, pairs, tokenAmountIn, out, currentPathArr
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
         if (reserveIn.isEqualTo(0) || reserveOut.isEqualTo(0)) continue;
-        let amountOut = getAmountOutForBestTrade(amountIn, reserveIn, reserveOut);
+        let amountOut = getAmountOutForBestTrade(amountIn, reserveIn, reserveOut, reserves[2]);
 
         if (swap.tokenEquals(tokenOut, out)) {
             let cloneCurrentPathArray = currentPathArray.slice();
@@ -357,7 +359,7 @@ function calcBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
         let reserves = swap.getReserves(_in, tokenOut, pair);
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
-        let amountIn = getAmountInForBestTrade(tokenAmountOut.amount, reserveIn, reserveOut);
+        let amountIn = getAmountInForBestTrade(tokenAmountOut.amount, reserveIn, reserveOut, reserves[2]);
         let tokenAmountIn = swap.tokenAmount(_in.chainId, _in.assetId, amountIn);
         wholeTradeArray.push({
             path: [pair],
@@ -432,7 +434,7 @@ function realBestTradeExactOut(chainId, pairs, _in, tokenAmountOut, currentPathA
         let reserveIn = new BigNumber(reserves[0]);
         let reserveOut = new BigNumber(reserves[1]);
         if (reserveIn.isEqualTo(0) || reserveOut.isEqualTo(0)) continue;
-        let amountIn = getAmountInForBestTrade(amountOut, reserveIn, reserveOut);
+        let amountIn = getAmountInForBestTrade(amountOut, reserveIn, reserveOut, reserves[2]);
 
         if (swap.tokenEquals(currentIn, _in)) {
             let cloneCurrentPathArray = currentPathArray.slice();
@@ -584,8 +586,11 @@ var swap = {
      *
      * 组装一个交易对的json对象
      */
-    pair(token0, token1, reserve0, reserve1) {
-        return {token0: token0, token1: token1, reserve0: reserve0, reserve1: reserve1};
+    pair(token0, token1, reserve0, reserve1, feeRate) {
+        if (!feeRate) {
+            feeRate = 3;
+        }
+        return {token0: token0, token1: token1, reserve0: reserve0, reserve1: reserve1, feeRate: feeRate};
     },
     /**
      *
@@ -594,7 +599,7 @@ var swap = {
     getReserves(tokenA, tokenB, pair) {
         let array = this.tokenSort(tokenA, tokenB);
         let token0 = array[0];
-        let result = this.tokenEquals(tokenA, token0) ? [pair.reserve0, pair.reserve1] : [pair.reserve1, pair.reserve0];
+        let result = this.tokenEquals(tokenA, token0) ? [pair.reserve0, pair.reserve1, pair.feeRate] : [pair.reserve1, pair.reserve0, pair.feeRate];
         return result;
     },
 
@@ -710,7 +715,7 @@ var swap = {
     /**
      * 根据卖出数量，计算可买进的数量
      */
-    getAmountOut(amountIn, reserveIn, reserveOut) {
+    getAmountOut(amountIn, reserveIn, reserveOut, feeRate) {
         let _amountIn = new BigNumber(amountIn);
         if(_amountIn.isLessThanOrEqualTo(0)) {
             // INSUFFICIENT_INPUT_AMOUNT
@@ -722,7 +727,8 @@ var swap = {
             // INSUFFICIENT_LIQUIDITY
             throw "sw_0003";
         }
-        let amountInWithFee = _amountIn.times(997);
+        // let amountInWithFee = _amountIn.times(997);
+        let amountInWithFee = _amountIn.times(1000 - feeRate);
         let numerator = amountInWithFee.times(_reserveOut);
         let denominator = _reserveIn.times(1000).plus(amountInWithFee);
         let amountOut = numerator.dividedToIntegerBy(denominator);
@@ -731,7 +737,7 @@ var swap = {
     /**
      * 根据买进数量，计算可卖出数量
      */
-    getAmountIn(amountOut, reserveIn, reserveOut) {
+    getAmountIn(amountOut, reserveIn, reserveOut, feeRate) {
         let _amountOut = new BigNumber(amountOut);
         if(_amountOut.isLessThanOrEqualTo(0)) {
             // INSUFFICIENT_OUTPUT_AMOUNT
@@ -744,7 +750,8 @@ var swap = {
             throw "sw_0003";
         }
         let numerator = _reserveIn.times(_amountOut).times(1000);
-        let denominator = _reserveOut.minus(_amountOut).times(997);
+        // let denominator = _reserveOut.minus(_amountOut).times(997);
+        let denominator = _reserveOut.minus(_amountOut).times(1000 - feeRate);
         let amountIn = numerator.dividedToIntegerBy(denominator).plus(1);
         return amountIn;
     },
@@ -766,7 +773,7 @@ var swap = {
             let reserves = this.getReserves(tokenPathArray[i], tokenPathArray[i + 1], pairsArray[i]);
             reserveIn = reserves[0];
             reserveOut = reserves[1];
-            amounts[i + 1] = this.getAmountOut(amounts[i], reserveIn, reserveOut);
+            amounts[i + 1] = this.getAmountOut(amounts[i], reserveIn, reserveOut, reserves[2]);
         }
         return amounts;
     },
@@ -788,7 +795,7 @@ var swap = {
             let reserves = this.getReserves(tokenPathArray[i - 1], tokenPathArray[i], pairsArray[i - 1]);
             reserveIn = reserves[0];
             reserveOut = reserves[1];
-            amounts[i - 1] = this.getAmountIn(amounts[i], reserveIn, reserveOut);
+            amounts[i - 1] = this.getAmountIn(amounts[i], reserveIn, reserveOut, reserves[2]);
         }
         return amounts;
     },

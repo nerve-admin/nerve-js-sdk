@@ -288,6 +288,7 @@ module.exports = {
      */
     async calcOtherMainAssetOfWithdrawTest(provider, otherMainAssetCoin, otherMainAssetUSD, currentMainAssetUSD, isToken) {
         const gasPrice = await this.getWithdrawGas(provider);
+        console.log(gasPrice.toString(), 'gasPrice');
         const result = this.calcOtherMainAssetOfWithdraw(otherMainAssetCoin, otherMainAssetUSD, gasPrice, currentMainAssetUSD, isToken);
         return result
     },
