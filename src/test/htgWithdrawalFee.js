@@ -30,7 +30,8 @@ async function getPrice(chainId, assetId) {
 
 // f();
 // withdrawalToETH(isMainnet);
-withdrawalToBSC(isMainnet);
+withdrawalToKAVA(isMainnet);
+// withdrawalToBSC(isMainnet);
 // withdrawalToHECO(isMainnet);
 // withdrawalToOKT(isMainnet);
 // withdrawalToONE(isMainnet);
@@ -40,6 +41,11 @@ withdrawalToBSC(isMainnet);
 // withdrawalToCRO(isMainnet);
 // withdrawalToFTM(isMainnet);
 // withdrawalToPolygon(isMainnet);
+
+async function withdrawalToKAVA(isMainnet) {
+    let feeNumber = await calcFee("KAVA", isMainnet, true, "NVT");
+    console.log("提现到KAVA网络:" + feeNumber);
+}
 
 async function withdrawalToETH(isMainnet) {
     let feeNumber = await calcFee("ETH", isMainnet, true, "BNB");

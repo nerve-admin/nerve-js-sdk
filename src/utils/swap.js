@@ -106,6 +106,9 @@ function containsCurrency(currentPathArray, token) {
 }
 
 function getAmountOutForBestTrade(amountIn, reserveIn, reserveOut, feeRate) {
+    if (typeof feeRate === 'undefined') {
+        feeRate = 3;
+    }
     let _amountIn = new BigNumber(amountIn);
     if(_amountIn.isLessThanOrEqualTo(0)) {
         return new BigNumber('0');
@@ -124,6 +127,9 @@ function getAmountOutForBestTrade(amountIn, reserveIn, reserveOut, feeRate) {
 }
 
 function getAmountInForBestTrade(amountOut, reserveIn, reserveOut, feeRate) {
+    if (typeof feeRate === 'undefined') {
+        feeRate = 3;
+    }
     let _amountOut = new BigNumber(amountOut);
     if(_amountOut.isLessThanOrEqualTo(0)) {
         return new BigNumber('0');
@@ -731,6 +737,9 @@ var swap = {
      * 根据卖出数量，计算可买进的数量
      */
     getAmountOut(amountIn, reserveIn, reserveOut, feeRate) {
+        if (typeof feeRate === 'undefined') {
+            feeRate = 3;
+        }
         let _amountIn = new BigNumber(amountIn);
         if(_amountIn.isLessThanOrEqualTo(0)) {
             // INSUFFICIENT_INPUT_AMOUNT
@@ -753,6 +762,9 @@ var swap = {
      * 根据买进数量，计算可卖出数量
      */
     getAmountIn(amountOut, reserveIn, reserveOut, feeRate) {
+        if (typeof feeRate === 'undefined') {
+            feeRate = 3;
+        }
         let _amountOut = new BigNumber(amountOut);
         if(_amountOut.isLessThanOrEqualTo(0)) {
             // INSUFFICIENT_OUTPUT_AMOUNT

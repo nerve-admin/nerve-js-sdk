@@ -11,10 +11,11 @@ nerve.testnet();
 /**
  * 根据卖出数量，计算可买进的数量
  */
+// getAmountOut();
 function getAmountOut() {
-    let amountIn = '7869593446';
-    let reserveIn = '171132069136';
-    let reserveOut = '16887743';
+    let amountIn = '3338955326';
+    let reserveIn = '1998664399335';
+    let reserveOut = '300774618024814914753';
     let amountOut = nerve.swap.getAmountOut(amountIn, reserveIn, reserveOut);
     console.log('amountOut: ' + amountOut);
 }
@@ -22,10 +23,11 @@ function getAmountOut() {
 /**
  * 根据买进数量，计算可卖出数量
  */
+// getAmountIn();
 function getAmountIn() {
-    let amountOut = '7403190';
-    let reserveIn = '171132069136';
-    let reserveOut = '16887743';
+    let amountOut = '3338955326';
+    let reserveIn = '300774618024814914753';
+    let reserveOut = '1998664399335';
     let amountIn = nerve.swap.getAmountIn(amountOut, reserveIn, reserveOut);
     console.log('amountIn: ' + amountIn);
 }
@@ -152,11 +154,15 @@ function bestTradeExactInTest() {
         //     nerve.swap.token(9, 220),
         //     '54542052289588', '13836674483460251861935'),
     ];
+    pairs = [nerve.swap.pair(
+        nerve.swap.token(5, 1),
+        nerve.swap.token(5, 42),
+        '1998664399335', '300774618024814914753', '500'),];
     // 10:1 / 20:1 / 20:1 99999999999.003
-    let tokenAmountIn = nerve.swap.tokenAmount(9, 1, '100000000000');
-    let tokenOut = nerve.swap.token(9, 220);
+    let tokenAmountIn = nerve.swap.tokenAmount(5, 1, '3333000000');
+    let tokenOut = nerve.swap.token(5, 42);
     let maxPairSize = 3;
-    let trade = nerve.swap.bestTradeExactIn(9, pairs, tokenAmountIn, tokenOut, maxPairSize, stableInfoArray);
+    let trade = nerve.swap.bestTradeExactIn(5, pairs, tokenAmountIn, tokenOut, maxPairSize, stableInfoArray);
     console.log(JSON.stringify(trade));
 }
 
@@ -219,9 +225,13 @@ function bestTradeExactOutTest() {
             nerve.swap.token(5, 5),
             '10000000000', '10000000'),
     ];
-    let tokenIn = nerve.swap.token(5, 1);
-    let tokenAmountOut = nerve.swap.tokenAmount(5, 5, '9920320');
-    let maxPairSize = 4;
+    pairs = [nerve.swap.pair(
+        nerve.swap.token(5, 1),
+        nerve.swap.token(5, 42),
+        '1998664399335', '300774618024814914753', '500'),];
+    let tokenIn = nerve.swap.token(5, 42);
+    let tokenAmountOut = nerve.swap.tokenAmount(5, 1, '3333000000');
+    let maxPairSize = 3;
     let trade = nerve.swap.bestTradeExactOut(5, pairs, tokenIn, tokenAmountOut, maxPairSize, stableInfoArray);
     console.log(JSON.stringify(trade));
 }
@@ -303,7 +313,7 @@ function getReserves() {
     console.log(nerve.swap.getReserves(nerve.swap.token(5, 3), nerve.swap.token(5, 1), pair));
 }
 
-divTest();
+// divTest();
 function divTest() {
     let a = 0;
     console.log(typeof a === 'undefined');

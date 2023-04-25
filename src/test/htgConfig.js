@@ -37,6 +37,10 @@ const RPC_URL = {
     FTM: {
         test: "https://rpc.testnet.fantom.network",
         main: "https://rpc.ftm.tools"
+    },
+    KAVA: {
+        test: "https://evm.testnet.kava.io",
+        main: "https://evm.kava.io"
     }
 };
 
@@ -86,7 +90,8 @@ const NERVE_INFOS = {
             KCS:    {chainId: 9, assetId: 161, decimals: 18},
             TRX:    {chainId: 9, assetId: 218, decimals: 6},
             CRO:    {chainId: 9, assetId: 266, decimals: 18},
-            FTM:    {chainId: 9, assetId: 269, decimals: 18}
+            FTM:    {chainId: 9, assetId: 269, decimals: 18},
+           KAVA:    {chainId: 9, assetId: 597, decimals: 18}
         },
         trxWithdrawFee: '60000000'
     }
