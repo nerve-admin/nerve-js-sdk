@@ -19,7 +19,8 @@ const config = {
         alias: {
             "crypto": require.resolve("crypto-browserify"),
             "stream": require.resolve("stream-browserify"),
-        },
+        }
+
     },
     plugins: [
         new webpack.ProvidePlugin({Buffer: ['buffer', 'Buffer']}),

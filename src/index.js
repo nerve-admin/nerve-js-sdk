@@ -292,6 +292,14 @@ module.exports = {
     return tx;
   },
 
+  programEncodePacked(args) {
+    return new sdk.newProgramEncodePacked(args);
+  },
+
+  parseProgramEncodePacked(data) {
+    return new sdk.parseProgramEncodePacked(data);
+  }
+
 };
 const swap = require("./utils/swap");
 module.exports.swap = swap;

@@ -7,7 +7,7 @@ const HTGNET = 'test';
 
 const RPC_URL = {
     BNB: {
-        test: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+        test: "https://endpoints.omniatech.io/v1/bsc/testnet/public",
         main: "https://bsc-dataseed1.defibit.io/"
     },
     HT: {
@@ -41,6 +41,10 @@ const RPC_URL = {
     KAVA: {
         test: "https://evm.testnet.kava.io",
         main: "https://evm.kava.io"
+    },
+    OETH: {
+        test: "https://endpoints.omniatech.io/v1/op/goerli/public\t",
+        main: "https://endpoints.omniatech.io/v1/op/mainnet/public"
     }
 };
 
@@ -91,7 +95,8 @@ const NERVE_INFOS = {
             TRX:    {chainId: 9, assetId: 218, decimals: 6},
             CRO:    {chainId: 9, assetId: 266, decimals: 18},
             FTM:    {chainId: 9, assetId: 269, decimals: 18},
-           KAVA:    {chainId: 9, assetId: 597, decimals: 18}
+           KAVA:    {chainId: 9, assetId: 597, decimals: 18},
+           OETH:    {chainId: 9, assetId: 447, decimals: 18}
         },
         trxWithdrawFee: '60000000'
     }
