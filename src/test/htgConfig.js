@@ -96,7 +96,8 @@ const NERVE_INFOS = {
             CRO:    {chainId: 9, assetId: 266, decimals: 18},
             FTM:    {chainId: 9, assetId: 269, decimals: 18},
            KAVA:    {chainId: 9, assetId: 597, decimals: 18},
-           OETH:    {chainId: 9, assetId: 447, decimals: 18}
+           OETH:    {chainId: 9, assetId: 447, decimals: 18},
+           NULS:    {chainId: 1, assetId: 1, decimals: 8}
         },
         trxWithdrawFee: '60000000'
     }
