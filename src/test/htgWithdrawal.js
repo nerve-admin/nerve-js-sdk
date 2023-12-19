@@ -8,23 +8,23 @@ const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt, getHeterog
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 提现账户信息
-let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
-let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
+let fromAddress = "TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad";
+let pri = '';
 
 // 提现接收地址
-let toAddress = '0xc11D9943805e56b630A401D4bd9A29550353EFa1';
+let toAddress = '0xC9aFB4fA1D7E2B7D324B7cb1178417FF705f5996';
 // 提现金额
-let withdrawalAmount = '0.1';
+let withdrawalAmount = '220.0001';
 // 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107, TRX:108)
-let heterogeneousChainId = 102;
+let heterogeneousChainId = 133;
 // 提现资产信息
 let withdrawalAssetChainId = 5;
-let withdrawalAssetId = 3;
+let withdrawalAssetId = 1;
 // 提现资产小数位
-let withdrawalDecimals = 6;
+let withdrawalDecimals = 8;
 // 提现手续费(NVT)
-let withdrawalFee = '0.00123';
-let feeChain = 'BNB';
+let withdrawalFee = '5';
+let feeChain = 'NVT';
 
 let remark = 'withdrawal transaction remark...';
 //调用

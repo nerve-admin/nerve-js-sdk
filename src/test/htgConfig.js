@@ -43,8 +43,28 @@ const RPC_URL = {
         main: "https://evm.kava.io"
     },
     OETH: {
-        test: "https://endpoints.omniatech.io/v1/op/goerli/public\t",
+        test: "https://endpoints.omniatech.io/v1/op/goerli/public",
         main: "https://endpoints.omniatech.io/v1/op/mainnet/public"
+    },
+    LINEA: {
+        test: "https://rpc.goerli.linea.build",
+        main: "https://rpc.linea.build"
+    },
+    AVAX: {
+        test: "https://api.avax-test.network/ext/bc/C/rpc",
+        main: "https://api.avax.network/ext/bc/C/rpc"
+    },
+    SCROLL: {
+        test: "https://alpha-rpc.scroll.io/l2",
+        main: "https://rpc.scroll.io"
+    },
+    BASE: {
+        test: "https://mainnet.base.org",
+        main: "https://mainnet.base.org"
+    },
+    OP: {
+        test: "https://optimism-mainnet.public.blastapi.io",
+        main: "https://optimism-mainnet.public.blastapi.io"
     }
 };
 
@@ -87,16 +107,21 @@ const NERVE_INFOS = {
             NVT:    {chainId: 9, assetId: 1,   decimals: 8},
             ETH:    {chainId: 9, assetId: 2,   decimals: 18},
             BNB:    {chainId: 9, assetId: 25,  decimals: 18},
-            HT:     {chainId: 9, assetId: 55,  decimals: 18},
+             HT:    {chainId: 9, assetId: 55,  decimals: 18},
             OKT:    {chainId: 9, assetId: 87,  decimals: 18},
             ONE:    {chainId: 9, assetId: 159, decimals: 18},
-            MATIC:  {chainId: 9, assetId: 160, decimals: 18},
+          MATIC:    {chainId: 9, assetId: 160, decimals: 18},
             KCS:    {chainId: 9, assetId: 161, decimals: 18},
             TRX:    {chainId: 9, assetId: 218, decimals: 6},
             CRO:    {chainId: 9, assetId: 266, decimals: 18},
             FTM:    {chainId: 9, assetId: 269, decimals: 18},
            KAVA:    {chainId: 9, assetId: 597, decimals: 18},
            OETH:    {chainId: 9, assetId: 447, decimals: 18},
+          LINEA:    {chainId: 9, assetId: 694, decimals: 18},
+         SCROLL:    {chainId: 9, assetId: 2, decimals: 18},
+         BASE:    {chainId: 9, assetId: 2, decimals: 18},
+         OP:    {chainId: 9, assetId: 2, decimals: 18},
+           AVAX:    {chainId: 9, assetId: 267, decimals: 18},
            NULS:    {chainId: 1, assetId: 1, decimals: 8}
         },
         trxWithdrawFee: '60000000'

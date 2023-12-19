@@ -8,7 +8,7 @@ nerve.testnet();
 
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
-let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
+let pri = '';
 let tokenAmountA = nerve.swap.tokenAmount(5, 1, "140000000000");// 添加的资产A的数量
 let tokenAmountB = nerve.swap.tokenAmount(5, 6, "100000000");// 添加的资产B的数量
 let deadline = nerve.swap.currentTime() + 300;// 过期时间

@@ -7,7 +7,7 @@ const {getNulsBalance, inputsOrOutputs, validateTx, broadcastTx} = require('./ap
  * @author: Wave
  */
 
-let pri = '10d8804991ceaafa5d19dfa30d79c5091767a48da8e66b73494f0b6af8554618';
+let pri = '';
 let pub = '024bafc4a364659db1674d888bd3e0e7ab11cc4ca02dca95d548637c6b66d63f42';
 let fromAddress = "TNVTdN9iJcMNiTttfV4Wdi6wUp3k8NteoebYo";
 let amount = 2000100000000;

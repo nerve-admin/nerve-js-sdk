@@ -8,15 +8,15 @@ nerve.testnet();
 
 // 账户信息
 let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
-let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
+let pri = '';
 
 let stablePairAddress = "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB";// 交易对地址
-let amountIns = [nerve.swap.tokenAmount(5, 72, "2000000000000000000")];// 卖出的资产数量列表
-let tokenOutIndex = 2;// 买进的资产索引
-let feeTo = 'TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva';// 交易手续费接收地址
+let amountIns = [nerve.swap.tokenAmount(5, 72, "101760039400758807896628")];// 卖出的资产数量列表
+let tokenOutIndex = 3;// 买进的资产索引
+let feeTo = null;// 交易手续费接收地址
 let deadline = nerve.swap.currentTime() + 300;// 过期时间
 let toAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";// 资产接收地址
-let feeTokenAmount = nerve.swap.tokenAmount(5, 72, "100000000000000000");
+let feeTokenAmount = null;
 let remark = 'stable swap trade remark...';
 //调用
 test();

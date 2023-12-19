@@ -7,7 +7,7 @@ nerve.testnet();
 
 // 账户信息
 let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
-let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
+let pri = '';
 
 let remark = 'farm update remark...';
 //调用

@@ -7,7 +7,7 @@ const {getNulsBalance, countFee, inputsOrOutputs, validateTx, broadcastTx} = req
  * @date: 2020-05-20 13:47
  * @author: Wave
  */
-let pri = '477059f40708313626cccd26f276646e4466032cabceccbf571a7c46f954eb75';
+let pri = '';
 let pub = nerve.getPubByPri(pri);
 let fromAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
 let toAddress = 'TNVTdTSPUZYyUW8ThLzJXWdgWaDFSy5trakjk';

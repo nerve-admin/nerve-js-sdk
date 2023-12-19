@@ -7,7 +7,7 @@ nerve.testnet();
 
 // 账户信息
 let fromAddress = "TNVTdTSPMcyC8e7jz8f6ngX5yTmK6S8CXEGva";
-let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
+let pri = '';
 let stablePairAddress = "TNVTdTSQkXMz7PGy5j48LfuQbAbVzHcYTMAzM";// 交易对地址
 let tokenAmounts = [nerve.swap.tokenAmount(5, 6, "60000000000"), nerve.swap.tokenAmount(5, 7, "700000000"),
     nerve.swap.tokenAmount(5, 8, "800000000"), nerve.swap.tokenAmount(5, 9, "900000000")];// 添加的资产数量列表

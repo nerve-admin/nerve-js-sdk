@@ -8,7 +8,7 @@ const axios = require('axios');
  * @author: Wave
  */
 
-let pri = '33027cb348f51d0909021343c3374b23cf011cadab0f24c1718bf6a382ce7a30';
+let pri = '';
 let pub = '0243a092a010f668680238546f2b68b598bb8c606820f0d5051435adaff59e95b9';
 let fromAddress = "TNVTdN9i4JSE9C1PrZZzuQpvrzdhXakSw3UxY";
 let remark = 'stop agent....';

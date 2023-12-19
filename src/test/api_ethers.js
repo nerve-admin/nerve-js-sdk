@@ -288,6 +288,7 @@ module.exports = {
      */
     async calcOtherMainAssetOfWithdrawTest(provider, otherMainAssetCoin, otherMainAssetUSD, currentMainAssetUSD, isToken) {
         const gasPrice = await this.getWithdrawGas(provider);
+        // const gasPrice = new ethers.utils.BigNumber('2321765047');
         console.log(ethers.utils.formatUnits(gasPrice, 9), 'gasPrice');
         const result = this.calcOtherMainAssetOfWithdraw(otherMainAssetCoin, otherMainAssetUSD, gasPrice, currentMainAssetUSD, isToken);
         return result
@@ -313,8 +314,9 @@ module.exports = {
         } else {
             gasLimit = new ethers.utils.BigNumber('190000');
         }
-        const otherMainAssetUSDBig = ethers.utils.parseUnits(otherMainAssetUSD.toString(), 6);
-        const currentMainAssetUSDBig = ethers.utils.parseUnits(currentMainAssetUSD.toString(), 6);
+        console.log(gasLimit.toString(), 'gasLimit');
+        const otherMainAssetUSDBig = ethers.utils.parseUnits(otherMainAssetUSD.toString(), 18);
+        const currentMainAssetUSDBig = ethers.utils.parseUnits(currentMainAssetUSD.toString(), 18);
         let result = currentMainAssetUSDBig.mul(gasPrice).mul(gasLimit).mul(ethers.utils.parseUnits('1', otherMainAssetCoin.decimals))
             .div(ethers.utils.parseUnits('1', 18))
             .div(otherMainAssetUSDBig);
@@ -328,8 +330,8 @@ module.exports = {
     },
 
     calcOtherMainAssetOfWithdrawForTRX(otherMainAssetCoin, otherMainAssetUSD, currentMainAssetUSD, feeLimit) {
-        const otherMainAssetUSDBig = ethers.utils.parseUnits(otherMainAssetUSD.toString(), 6);
-        const currentMainAssetUSDBig = ethers.utils.parseUnits(currentMainAssetUSD.toString(), 6);
+        const otherMainAssetUSDBig = ethers.utils.parseUnits(otherMainAssetUSD.toString(), 18);
+        const currentMainAssetUSDBig = ethers.utils.parseUnits(currentMainAssetUSD.toString(), 18);
         let result = currentMainAssetUSDBig.mul(feeLimit).mul(ethers.utils.parseUnits('1', otherMainAssetCoin.decimals))
             .div(ethers.utils.parseUnits('1', 6))
             .div(otherMainAssetUSDBig);

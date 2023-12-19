@@ -293,11 +293,11 @@ module.exports = {
   },
 
   programEncodePacked(args) {
-    return new sdk.newProgramEncodePacked(args);
+    return sdk.newProgramEncodePacked(args);
   },
 
   parseProgramEncodePacked(data) {
-    return new sdk.parseProgramEncodePacked(data);
+    return sdk.parseProgramEncodePacked(data);
   }
 
 };

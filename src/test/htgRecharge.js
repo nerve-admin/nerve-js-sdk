@@ -23,8 +23,8 @@ const NERVE_INFO = {
 };
 
 
-// crossMainAssetTest();
-crossTokenTest();
+crossMainAssetTest();
+// crossTokenTest();
 // approveCrossTokenTest();
 
 // 跨链转入异构链主资产, 示例为HT
@@ -33,13 +33,13 @@ async function crossMainAssetTest() {
     // Heco - HT
     // Binance - BNB
     // Ethereum - ETH
-    let provider = getProvider("HT", HTGNET);
+    let provider = getProvider("BNB", HTGNET);
     // 转出地址
-    let fromAddress = "0x9484b26cba3c52161d2d320395da94e336e8a3cd";
-    let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
-    let amount = "0.125";
-    let toAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
-    let multySignContractAddress = "0xb339211438Dcbf3D00d7999ad009637472FC72b3";
+    let fromAddress = "0xc11D9943805e56b630A401D4bd9A29550353EFa1";
+    let pri = '';
+    let amount = "0.0125";
+    let toAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+    let multySignContractAddress = "0xf85f03C3fAAC61ACF7B187513aeF10041029A1b2";
     let result = await sendETH(pri, fromAddress, provider, multySignContractAddress, toAddress, amount);
     console.log(JSON.stringify(result));
 }
@@ -50,15 +50,15 @@ async function crossTokenTest() {
     // Heco - HT
     // Binance - BNB
     // Ethereum - ETH
-    let provider = getProvider("HT", HTGNET);
+    let provider = getProvider("BNB", HTGNET);
     // 转出地址
-    let fromAddress = "0x9484b26cba3c52161d2d320395da94e336e8a3cd";
-    let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
+    let fromAddress = "0xc11D9943805e56b630A401D4bd9A29550353EFa1";
+    let pri = '';
     let amount = "0.128";
-    let toAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
-    let tokenContract = "0x02e1afeef2a25eabd0362c4ba2dc6d20ca638151";
-    let tokenDecimals = 6;
-    let multySignContractAddress = "0xb339211438Dcbf3D00d7999ad009637472FC72b3";
+    let toAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+    let tokenContract = "0x02e1aFEeF2a25eAbD0362C4Ba2DC6d20cA638151";
+    let tokenDecimals = 18;
+    let multySignContractAddress = "0xf85f03C3fAAC61ACF7B187513aeF10041029A1b2";
     // 检查是否已经授权
     let isNeedApproved = await isNeedApprovedERC20(provider, tokenContract, multySignContractAddress, fromAddress);
     if (isNeedApproved) {
@@ -74,13 +74,13 @@ async function approveCrossTokenTest() {
     // Heco - HT
     // Binance - BNB
     // Ethereum - ETH
-    let provider = getProvider("HT", HTGNET);
+    let provider = getProvider("BNB", HTGNET);
     // 转出地址
-    let fromAddress = "0x9484b26cba3c52161d2d320395da94e336e8a3cd";
-    let pri = '17c50c6f7f18e7afd37d39f92c1d48054b6b3aa2373a70ecf2d6663eace2a7d6';
-    let toAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
-    let tokenContract = "0x02e1afeef2a25eabd0362c4ba2dc6d20ca638151";
-    let multySignContractAddress = "0xb339211438Dcbf3D00d7999ad009637472FC72b3";
+    let fromAddress = "0xc11D9943805e56b630A401D4bd9A29550353EFa1";
+    let pri = '';
+    let toAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+    let tokenContract = "0x02e1aFEeF2a25eAbD0362C4Ba2DC6d20cA638151";
+    let multySignContractAddress = "0xf85f03C3fAAC61ACF7B187513aeF10041029A1b2";
     let result = await approveERC20(pri, fromAddress, provider, tokenContract, multySignContractAddress);
     console.log(JSON.stringify(result));
 }

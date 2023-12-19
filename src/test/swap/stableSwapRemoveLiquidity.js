@@ -8,7 +8,7 @@ nerve.testnet();
 
 // 账户信息
 let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
-let pri = '4594348E3482B751AA235B8E580EFEF69DB465B3A291C5662CEDA6459ED12E39';
+let pri = '';
 let stablePairAddress = "TNVTdTSQoL9quSyGJCA9sY8pcMEVy4RN4EjbB";// 交易对地址
 let tokenAmountLP = nerve.swap.tokenAmount(5, 102, "10000000000000000000");// 移除的资产LP的数量
 let receiveOrderIndexs = [3];// 按币种索引顺序接收资产
