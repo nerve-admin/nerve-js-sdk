@@ -13,6 +13,7 @@ const Serializers = require("./serializers");
 const secp256k1 = require("secp256k1");
 const programEncodePacked = require("../model/ProgramEncodePacked");
 const BufferReader = require("../utils/bufferreader");
+const ethers = require("ethers");
 
 /**
  * 将数字转为6个字节的字节数组
@@ -40,6 +41,26 @@ String.prototype.startWith = function (str) {
         return false;
     }
 };
+
+const _l1GasUsedOnScroll = new ethers.utils.BigNumber(21000);
+const _l1GasUsedOnOptimismOrBase = new ethers.utils.BigNumber(18000);
+const _l1GasUsedOnManta = new ethers.utils.BigNumber(18000);
+const scalarOnScroll = new ethers.utils.BigNumber(1150000000);
+const dynamicOverheadOnOptimismOrBase = 684000000;
+const precision = new ethers.utils.BigNumber(1000000000);
+const dynamicOverheadOnManta = new ethers.utils.BigNumber(1);
+
+function getL1FeeOnScroll(_l1GasUsed, ethNetworkGasPrice) {
+    return _l1GasUsed.mul(ethNetworkGasPrice).mul(scalarOnScroll).div(precision);
+}
+
+function getL1FeeOnOptimismOrBase(_l1GasUsed, ethNetworkGasPrice) {
+    return _l1GasUsed.mul(dynamicOverheadOnOptimismOrBase).mul(ethNetworkGasPrice).div(precision);
+}
+
+function getL1FeeOnManta(_l1GasUsed, ethNetworkGasPrice) {
+    return _l1GasUsed.mul(dynamicOverheadOnManta).mul(ethNetworkGasPrice);
+}
 
 module.exports = {
     CONTRACT_CONSTRUCTOR: "<init>",
@@ -514,6 +535,15 @@ module.exports = {
         let bufferReader = new BufferReader(Buffer.from(data, "hex"), 0);
         encodePacked.parse(bufferReader);
         return encodePacked.args;
-    }
+    },
 
+    getL1Fee: function (htgChainId, ethNetworkGasPrice) {
+        switch (htgChainId) {
+            case 115:
+            case 129: return getL1FeeOnOptimismOrBase(_l1GasUsedOnOptimismOrBase, ethNetworkGasPrice);
+            case 130: return getL1FeeOnScroll(_l1GasUsedOnScroll, ethNetworkGasPrice);
+            case 133: return getL1FeeOnManta(_l1GasUsedOnManta, ethNetworkGasPrice);
+            default: return new ethers.utils.BigNumber(0);
+        }
+    }
 };

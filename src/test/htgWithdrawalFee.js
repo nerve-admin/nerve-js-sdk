@@ -13,37 +13,6 @@ const api_ethers = require('./api_ethers');
 const util = require('./api/util');
 const ethers = require("ethers");
 
-const _l1GasUsedOnScroll = new ethers.utils.BigNumber(21000);
-const _l1GasUsedOnOptimismOrBase = new ethers.utils.BigNumber(18000);
-const _l1GasUsedOnManta = new ethers.utils.BigNumber(18000);
-const scalarOnScroll = new ethers.utils.BigNumber(1150000000);
-const dynamicOverheadOnOptimismOrBase = 684000000;
-const precision = new ethers.utils.BigNumber(1000000000);
-// TODO pierre Find the `L1 Fee Scalar` for manta, currently set to 1
-const dynamicOverheadOnManta = new ethers.utils.BigNumber(1);
-
-function getL1Fee(htgChainId, ethNetworkGasPrice) {
-    switch (htgChainId) {
-        case 115:
-        case 129: return getL1FeeOnOptimismOrBase(_l1GasUsedOnOptimismOrBase, ethNetworkGasPrice);
-        case 130: return getL1FeeOnScroll(_l1GasUsedOnScroll, ethNetworkGasPrice);
-        case 133: return getL1FeeOnManta(_l1GasUsedOnManta, ethNetworkGasPrice);
-        default: return new ethers.utils.BigNumber(0);
-    }
-}
-
-function getL1FeeOnScroll(_l1GasUsed, ethNetworkGasPrice) {
-    return _l1GasUsed.mul(ethNetworkGasPrice).mul(scalarOnScroll).div(precision);
-}
-
-function getL1FeeOnOptimismOrBase(_l1GasUsed, ethNetworkGasPrice) {
-    return _l1GasUsed.mul(dynamicOverheadOnOptimismOrBase).mul(ethNetworkGasPrice).div(precision);
-}
-
-function getL1FeeOnManta(_l1GasUsed, ethNetworkGasPrice) {
-    return _l1GasUsed.mul(dynamicOverheadOnManta).mul(ethNetworkGasPrice);
-}
-
 // 9-445 metis
 // 9-446 iotx
 // 9-447 op
@@ -90,7 +59,9 @@ async function getPrice(chainId, assetId) {
 // withdrawalToSomeoneByETH("BASE", isMainnet);
 // withdrawalToSomeoneByNVT("OP", isMainnet);
 // withdrawalToSomeoneByETH("OP", isMainnet);
-withdrawalToL2SomeoneByETH("BASE", 129, isMainnet);
+// withdrawalToL2SomeoneByETH("BASE", 129, isMainnet);
+withdrawalToL2SomeoneByETH("MANTA", 133, isMainnet);
+// withdrawalToL2SomeoneByNVT("MANTA", 133, isMainnet);
 
 async function getWithdrawGas(provider) {
     return provider.getGasPrice().then((gasPrice) => {
@@ -99,13 +70,31 @@ async function getWithdrawGas(provider) {
 }
 
 async function withdrawalToL2SomeoneByETH(chain, htgChainId, isMainnet) {
-    let feeNumber = await calcFee(chain, isMainnet, true, "ETH");
-    console.log("提现到"+chain+"网络需要的ETH:" + feeNumber);
+    const ethGasPrice = new ethers.utils.BigNumber("47486431180");
+    console.log(ethers.utils.formatUnits(ethGasPrice, 9), 'eth gasPrice');
+    let provider = api_ethers.getProvider(chain, isMainnet ? "main" : "test");
+    const chainGasPrice = await getWithdrawGas(provider);
+    console.log(ethers.utils.formatUnits(chainGasPrice, 9), chain + 'gasPrice');
+    let feeNumber = ethers.utils.formatUnits(chainGasPrice.mul(210000), 18);
+    console.log("提现到"+chain+"网络需要L2Fee的ETH:" + feeNumber);
+    let l1Fee = nerve.getL1Fee(htgChainId, ethGasPrice);
+    console.log("提现到"+chain+"网络需要L1Fee的ETH:" + ethers.utils.formatUnits(l1Fee, 18));
+    console.log("提现到"+chain+"网络需要totalFee的ETH:" + ethers.utils.formatUnits(l1Fee.add(ethers.utils.parseUnits(feeNumber, 18)), 18));
+}
+
+async function withdrawalToL2SomeoneByNVT(chain, htgChainId, isMainnet) {
+    let feeNumber = await calcFee(chain, isMainnet, true, "NVT");
+    console.log("提现到"+chain+"网络需要的NVT:" + feeNumber);
+    let nvtCoinPrice = await util.getSymbolPriceOfUsdt(9, 1);
+    let ethCoinPrice = await util.getSymbolPriceOfUsdt(9, 2);
     let provider = new ethers.providers.JsonRpcProvider("https://geth.nerve.network");
     const gasPrice = await getWithdrawGas(provider);
     console.log(ethers.utils.formatUnits(gasPrice, 9), 'eth gasPrice');
-    let l1Fee = getL1Fee(htgChainId, gasPrice);
-    console.log("提现到"+chain+"网络需要L1Fee的ETH:" + l1Fee.toString());
+    let l1Fee = nerve.getL1Fee(htgChainId, gasPrice);
+    let nvtTemp = l1Fee.mul(ethers.utils.parseUnits(ethCoinPrice, 18)).mul(ethers.utils.parseUnits("1", 18)).div(ethers.utils.parseUnits(nvtCoinPrice, 18));
+    let l1FeeNvtNumber = ethers.utils.formatUnits(nvtTemp, 36)
+    console.log("提现到"+chain+"网络需要L1Fee的NVT:" + l1FeeNvtNumber);
+    console.log("提现到"+chain+"网络需要totalFee的NVT:" + (Number(l1FeeNvtNumber) + Number(feeNumber)));
 }
 
 async function withdrawalToOETH(isMainnet) {

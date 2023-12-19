@@ -65,6 +65,10 @@ const RPC_URL = {
     OP: {
         test: "https://optimism-mainnet.public.blastapi.io",
         main: "https://optimism-mainnet.public.blastapi.io"
+    },
+    MANTA: {
+        test: "https://pacific-rpc.manta.network/http",
+        main: "https://pacific-rpc.manta.network/http"
     }
 };
 
@@ -121,6 +125,7 @@ const NERVE_INFOS = {
          SCROLL:    {chainId: 9, assetId: 2, decimals: 18},
          BASE:    {chainId: 9, assetId: 2, decimals: 18},
          OP:    {chainId: 9, assetId: 2, decimals: 18},
+         MANTA:    {chainId: 9, assetId: 745, decimals: 18},
            AVAX:    {chainId: 9, assetId: 267, decimals: 18},
            NULS:    {chainId: 1, assetId: 1, decimals: 8}
         },

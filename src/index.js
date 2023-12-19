@@ -298,6 +298,10 @@ module.exports = {
 
   parseProgramEncodePacked(data) {
     return sdk.parseProgramEncodePacked(data);
+  },
+
+  getL1Fee(htgChainId, ethNetworkGasPrice) {
+    return sdk.getL1Fee(htgChainId, ethNetworkGasPrice);
   }
 
 };
