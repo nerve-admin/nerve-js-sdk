@@ -59,7 +59,7 @@ const RPC_URL = {
         main: "https://rpc.scroll.io"
     },
     BASE: {
-        test: "https://mainnet.base.org",
+        test: "https://goerli.base.org",
         main: "https://mainnet.base.org"
     },
     OP: {
@@ -67,7 +67,7 @@ const RPC_URL = {
         main: "https://optimism-mainnet.public.blastapi.io"
     },
     MANTA: {
-        test: "https://pacific-rpc.manta.network/http",
+        test: "https://manta-testnet.calderachain.xyz/http",
         main: "https://pacific-rpc.manta.network/http"
     }
 };
@@ -94,6 +94,8 @@ const NERVE_INFOS = {
             KCS:    {chainId: 5, assetId: 35, decimals: 18},
             TRX:    {chainId: 5, assetId: 55, decimals: 6},
             CRO:    {chainId: 5, assetId: 93, decimals: 18},
+            BASE:    {chainId: 5, assetId: 2, decimals: 18},
+            MANTA:    {chainId: 5, assetId: 2, decimals: 18},
             FTM:    {chainId: 5, assetId: 0, decimals: 18}
         },
         trxWithdrawFee: '60000000'

@@ -1,7 +1,7 @@
 const nerve = require('../index');
 const {NERVE_INFOS, RPC_URL} = require('./htgConfig');
 
-let isMainnet = true;
+let isMainnet = false;
 if (isMainnet) {
     nerve.mainnet();
 } else {
@@ -34,7 +34,7 @@ async function getPrice(chainId, assetId) {
 // withdrawalToETH(isMainnet);
 // withdrawalToOETH(isMainnet);
 // withdrawalToKAVA(isMainnet);
-// withdrawalToBSC(isMainnet);
+withdrawalToBSC(isMainnet);
 // withdrawalToHECO(isMainnet);
 // withdrawalToOKT(isMainnet);
 // withdrawalToONE(isMainnet);
@@ -60,7 +60,7 @@ async function getPrice(chainId, assetId) {
 // withdrawalToSomeoneByNVT("OP", isMainnet);
 // withdrawalToSomeoneByETH("OP", isMainnet);
 // withdrawalToL2SomeoneByETH("BASE", 129, isMainnet);
-withdrawalToL2SomeoneByETH("MANTA", 133, isMainnet);
+// withdrawalToL2SomeoneByETH("MANTA", 133, isMainnet);
 // withdrawalToL2SomeoneByNVT("MANTA", 133, isMainnet);
 
 async function getWithdrawGas(provider) {
@@ -70,10 +70,14 @@ async function getWithdrawGas(provider) {
 }
 
 async function withdrawalToL2SomeoneByETH(chain, htgChainId, isMainnet) {
-    const ethGasPrice = new ethers.utils.BigNumber("47486431180");
+    let ethRpc = isMainnet ? "https://geth.nerve.network" : "https://rpc.ankr.com/eth_goerli";
+    // const ethGasPrice = new ethers.utils.BigNumber("47486431180");
+    let provider = new ethers.providers.JsonRpcProvider(ethRpc);
+    const ethGasPrice = await getWithdrawGas(provider);
     console.log(ethers.utils.formatUnits(ethGasPrice, 9), 'eth gasPrice');
-    let provider = api_ethers.getProvider(chain, isMainnet ? "main" : "test");
-    const chainGasPrice = await getWithdrawGas(provider);
+
+    let providerChain = api_ethers.getProvider(chain, isMainnet ? "main" : "test");
+    const chainGasPrice = await getWithdrawGas(providerChain);
     console.log(ethers.utils.formatUnits(chainGasPrice, 9), chain + 'gasPrice');
     let feeNumber = ethers.utils.formatUnits(chainGasPrice.mul(210000), 18);
     console.log("提现到"+chain+"网络需要L2Fee的ETH:" + feeNumber);
@@ -83,11 +87,13 @@ async function withdrawalToL2SomeoneByETH(chain, htgChainId, isMainnet) {
 }
 
 async function withdrawalToL2SomeoneByNVT(chain, htgChainId, isMainnet) {
+    let nerveChainId = isMainnet ? 9 : 5;
+    let ethRpc = isMainnet ? "https://geth.nerve.network" : "https://rpc.ankr.com/eth_goerli";
     let feeNumber = await calcFee(chain, isMainnet, true, "NVT");
     console.log("提现到"+chain+"网络需要的NVT:" + feeNumber);
-    let nvtCoinPrice = await util.getSymbolPriceOfUsdt(9, 1);
-    let ethCoinPrice = await util.getSymbolPriceOfUsdt(9, 2);
-    let provider = new ethers.providers.JsonRpcProvider("https://geth.nerve.network");
+    let nvtCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 1);
+    let ethCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 2);
+    let provider = new ethers.providers.JsonRpcProvider(ethRpc);
     const gasPrice = await getWithdrawGas(provider);
     console.log(ethers.utils.formatUnits(gasPrice, 9), 'eth gasPrice');
     let l1Fee = nerve.getL1Fee(htgChainId, gasPrice);
