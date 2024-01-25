@@ -322,3 +322,5 @@ const broadcastTx = async function(txhex) {
   }
 }
 module.exports.broadcastTx = broadcastTx;
+const btc = require("./utils/bitcoin");
+module.exports.bitcoin = btc;

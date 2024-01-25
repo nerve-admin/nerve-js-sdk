@@ -34,5 +34,18 @@ module.exports = {
           reject(err)
         })
     })
+  },
+
+  postCompleteWithHeader(url, methodName, data = [], header = {}) {
+    header['Content-Type'] = 'application/json';
+    return new Promise((resolve, reject) => {
+      const params = {"jsonrpc": "2.0", "method": methodName, "params": data, "id": Math.floor(Math.random() * 1000)};
+      axios.post(url, params, {headers: header})
+        .then(response => {
+          resolve(response.data)
+        }, err => {
+          reject(err)
+        })
+    })
   }
 };
