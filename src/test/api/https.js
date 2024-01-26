@@ -47,5 +47,27 @@ module.exports = {
           reject(err)
         })
     })
-  }
+  },
+
+  postDirect(url, params = {}) {
+    return new Promise((resolve, reject) => {
+      axios.post(url, params)
+          .then(response => {
+            resolve(response.data)
+          }, err => {
+            reject(err)
+          })
+    })
+  },
+
+  get(url) {
+    return new Promise((resolve, reject) => {
+      axios.get(url)
+          .then(response => {
+            resolve(response.data)
+          }, err => {
+            reject(err)
+          })
+    })
+  },
 };
