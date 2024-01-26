@@ -126,10 +126,10 @@ createLegacyTxTest();// dd8ea832075bbc06ea001540c8cd9266c4e0b8b9412c66ed172bed4f
 async function test() {
     // let feeRate = await getFeeRate(true);
     // console.log(feeRate);
-    let a = await getUtxos(false, 'tb1qnwnk40t55dsgfd4nuz5aq8sflj8vanh5nskec5');
+    let a = await nerve.bitcoin.getUtxos(false, 'tb1qnwnk40t55dsgfd4nuz5aq8sflj8vanh5nskec5');
     console.log(a);
-    let b = await getUtxos(true, 'bc1pdgv0kguuwwn9q5qp5e896jxlq346xmpfzfy7a8hy0hewsstegf5s2mjfx9');
-    console.log(b);
+    // let b = await nerve.bitcoin.getUtxos(true, 'bc1pdgv0kguuwwn9q5qp5e896jxlq346xmpfzfy7a8hy0hewsstegf5s2mjfx9');
+    // console.log(b);
 }
 // test();
 // console.log('signed tx', bitcoin.Psbt.fromHex('70736274ff0100cc02000000029f37a189d6642dfe0d0bf2cd9acfb27db020316798143360917f19eede649f4c0200000000ffffffffa999de39f068e9e79799d4a87944abc4041a32d5db73cca93326a3f3895ccf330100000000ffffffff0300000000000000001a6a18546170726f6f74207478206372656174696f6e2074657374a03b0100000000001976a9146e08011a2a94059cf1545cc1da29f51d73efee8688ac543201000000000022512082aaf1d6413627de1b6f6594d23e77a3b82ef3aaff0214bcbab640726eb9218e000000000001012b320c01000000000022512082aaf1d6413627de1b6f6594d23e77a3b82ef3aaff0214bcbab640726eb9218e01084201404414c3c81319c4bd7ef6d4e2c3af9d149482f0bf50c71c2ebaf906864d753565a49ce1683f7ed35a85e32f1f09441f123dec8dd34c78a819d6d54254746eb8430001012bb06201000000000022512082aaf1d6413627de1b6f6594d23e77a3b82ef3aaff0214bcbab640726eb9218e010842014066ad6f57ba56ad03843ebe2d79c01d3b0e374430560c557bf670c53b79f394e9bd072ac3550606e91c4464425df4fd43c9ef90912102066df66f48233b0eabd700000000').extractTransaction().toHex())
