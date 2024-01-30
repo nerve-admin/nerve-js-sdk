@@ -330,15 +330,16 @@ var btc = {
         });
     },
 
-    async getFeeRate(mainnet = false) {
+    async getFeeRate(mainnet = false, highFeeRate = false) {
         if (!mainnet) {
             return 1;
         }
+        let mode = highFeeRate ? "CONSERVATIVE" : "ECONOMICAL";
         let {url, authValue} = getBtcRpc(mainnet);
         return await http.postCompleteWithHeader(
             url,
             'estimatesmartfee',
-            [3, "ECONOMICAL"],
+            [1, mode],
             {'Authorization': authValue}
         ).then((response) => {
             if (response.hasOwnProperty("result")) {
