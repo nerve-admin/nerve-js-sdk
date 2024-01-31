@@ -4,6 +4,9 @@ const {BitcoinRechargeData} = require('../../model/BitcoinRechargeData');
 const http = require('../api/https.js');
 const bitcoin = require('bitcoinjs-lib');
 
+// for node env
+nerve.bitcoin.initEccLibForNode();
+
 /**
  * Legacy地址跨链转入NERVE
  */

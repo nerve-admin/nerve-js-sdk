@@ -1,11 +1,9 @@
 const {ECPairFactory} = require('ecpair');
-const ecc = require('tiny-secp256k1');
 const bufferutils_1 = require('bitcoinjs-lib/src/bufferutils');
 const bitcoin = require('bitcoinjs-lib');
-bitcoin.initEccLib(ecc);
 const bitcore = require('bitcore-lib');
 const http = require("../test/api/https");
-const ECPair = ECPairFactory(ecc);
+let ECPair
 const toXOnly = pubKey => (pubKey.length === 32 ? pubKey : pubKey.slice(1, 33));
 
 function estimateTxSizeHeader(mainnet) {
@@ -297,6 +295,17 @@ function getBtcRpc(mainnet = false) {
 }
 
 var btc = {
+    initEccLibForNode() {
+        const ecc = require('tiny-secp256k1');
+        ECPair = ECPairFactory(ecc);
+        bitcoin.initEccLib(ecc);
+    },
+    initEccLibForWeb() {
+        require('tiny-secp256k1').then(ecc => {
+          ECPair = ECPairFactory(ecc);
+          bitcoin.initEccLib(ecc);
+        });
+    },
     estimateTxSize(txType, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray) {
         switch (txType) {
             case 0:
