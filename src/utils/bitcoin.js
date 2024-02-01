@@ -70,8 +70,7 @@ function estimateTxSizeBody(currentNetwork, inputCount, inputData, address0, add
 function estimateTxSizeFooter(psbt) {
     psbt.finalizeAllInputs();
     let vSize = psbt.extractTransaction(true).virtualSize();
-    // console.log('vSize', vSize);
-    return vSize;
+    return vSize + 1;
 }
 
 function estimateLegacyTxSize(mainnet, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray) {
@@ -86,9 +85,9 @@ function estimateLegacyTxSize(mainnet, inputCount, legacyOutputCount, nestedSegw
             childNodeXOnlyPubkey
         } = estimateTxSizeHeader(mainnet);
         const inputData = {
-            hash: "097185463c95e968755ed7589a57d4561e502323a250819754749e376be0d472",
+            hash: "96cd2cef275b9de5dba26ac969224689eabe71b0ac60787510a10e16af24b7a7",
             index: 0,
-            nonWitnessUtxo: Buffer.from('010000000190a1ae9724b99311109e72d76684a7db5c181b9aad4d37c0698b7e1846ce5a14010000006b483045022100c61529e323d5c268bde6a458ff00fc38028fd1b339305c7a0a0f6ca7ed07b15302205df6d82a9acac5826f8b5db8ea2aad3720fa0d3537b74b2aa86059bf125713bb01210365db9da3f8a260078a7e8f8b708a1161468fb2323ffda5ec16b261ec1056f455ffffffff02f0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88ac24260000000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88ac00000000', 'hex')
+            nonWitnessUtxo: Buffer.from('010000000190a1ae9724b99311109e72d76684a7db5c181b9aad4d37c0698b7e1846ce5a14010000006a47304402201d54971b87675a4f874b1565153cd2b4afea1045292a5024185d68b989931fba02203fe1aa43c40cc88a74e65780c2f37403f113d4ca7df38d3c9e2f99ffbab067a501210365db9da3f8a260078a7e8f8b708a1161468fb2323ffda5ec16b261ec1056f455ffffffff65f0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88acf0e62607000000001976a9148bbc95d2709c71607c60ee3f097c1217482f518d88ac00000000', 'hex')
         };
         const psbt = estimateTxSizeBody(currentNetwork, inputCount, inputData, script0.address, script1.address, script2.address, script3.address, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
         for (let i = 0; i < inputCount; i++) {
@@ -226,44 +225,7 @@ function createSpendingUtxosAndOutput(mainnet, txType, pubkeyHex, utxos, receive
         });
     }
     const psbt = new bitcoin.Psbt({network: currentNetwork});
-    let len0 = 0, len1 = 0, len2 = 0, len3 = 0;
-    let outForType = 'len' + txType + '++';
-    eval(outForType);
-    let add = bitcore.Address.fromString(receiveAddress, mainnet ? 'livenet' : 'testnet');
-    if (add.isPayToPublicKeyHash()) {
-        len0++;
-    } else if (add.isPayToScriptHash()) {
-        len1++;
-    } else if (add.isPayToWitnessPublicKeyHash()) {
-        len2++;
-    } else if (add.isPayToTaproot()) {
-        len3++;
-    }
-    // console.log(len0, len1,len2,len3);
-    let size0 = btc.estimateTxSize(txType, 1, len0, len1, len2, len3, opReturnArray);
-    let fee = size0 * feeRate;
-    let spending = sendAmount + fee;
-    let {spendingUtxos, total, inputCount} = getSpendingUtxos(utxos, spending);
-    if (inputCount > 1) {
-        let _size = btc.estimateTxSize(txType, inputCount, len0, len1, len2, len3, opReturnArray);
-        fee = _size * feeRate;
-        spending = sendAmount + fee;
-        while (total < spending) {
-            let {
-                spendingUtxos: spendingUtxos1,
-                total: total1,
-                inputCount: inputCount1
-            } = getSpendingUtxos(utxos, spending);
-            if (inputCount1 > inputCount) {
-                let size1 = btc.estimateTxSize(txType, inputCount1, len0, len1, len2, len3, opReturnArray);
-                fee = _size * feeRate;
-                spending = sendAmount + fee;
-            }
-            total = total1;
-            inputCount = inputCount1;
-            spendingUtxos = spendingUtxos1;
-        }
-    }
+    let {total, spending, spendingUtxos, size} = btc.calcSpendingUtxosAndFee(mainnet, txType, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
     for (let i = 0; i < opReturnArray.length; i++) {
         let opReturnBuffer = opReturnArray[i];
         psbt.addOutput({
@@ -305,6 +267,49 @@ var btc = {
           ECPair = ECPairFactory(ecc);
           bitcoin.initEccLib(ecc);
         });
+    },
+
+    calcSpendingUtxosAndFee(mainnet, txType, utxos, receiveAddress, sendAmount, feeRate, opReturnArray) {
+        let len0 = 0, len1 = 0, len2 = 0, len3 = 0;
+        let outForType = 'len' + txType + '++';
+        eval(outForType);
+        let add = bitcore.Address.fromString(receiveAddress, mainnet ? 'livenet' : 'testnet');
+        if (add.isPayToPublicKeyHash()) {
+            len0++;
+        } else if (add.isPayToScriptHash()) {
+            len1++;
+        } else if (add.isPayToWitnessPublicKeyHash()) {
+            len2++;
+        } else if (add.isPayToTaproot()) {
+            len3++;
+        }
+        let size = this.estimateTxSize(txType, 1, len0, len1, len2, len3, opReturnArray);
+        let fee = size * feeRate;
+        let spending = sendAmount + fee;
+        let {spendingUtxos, total, inputCount} = getSpendingUtxos(utxos, spending);
+        if (inputCount > 1) {
+            let _size = this.estimateTxSize(txType, inputCount, len0, len1, len2, len3, opReturnArray);
+            fee = _size * feeRate;
+            spending = sendAmount + fee;
+            size = _size;
+            while (total < spending) {
+                let {
+                    spendingUtxos: spendingUtxos1,
+                    total: total1,
+                    inputCount: inputCount1
+                } = getSpendingUtxos(utxos, spending);
+                if (inputCount1 > inputCount) {
+                    let size1 = this.estimateTxSize(txType, inputCount1, len0, len1, len2, len3, opReturnArray);
+                    fee = size1 * feeRate;
+                    spending = sendAmount + fee;
+                    size = size1;
+                }
+                total = total1;
+                inputCount = inputCount1;
+                spendingUtxos = spendingUtxos1;
+            }
+        }
+        return {total, spending, spendingUtxos, size, fee};
     },
     estimateTxSize(txType, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray) {
         switch (txType) {
