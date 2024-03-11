@@ -5,7 +5,7 @@ const http = require('../api/https.js');
 const bitcoin = require('bitcoinjs-lib');
 
 // for node env
-nerve.bitcoin.initEccLibForNode();
+let ECPair = nerve.bitcoin.initEccLibForNode();
 
 let o = {
     "from": "mwyEyEL2bvP2f2LUiuFCFxEqr5UgHjJ7NM",
@@ -136,7 +136,7 @@ console.log(add.isPayToTaproot());*/
 // createNativeSegwitTxTest();// 84ca24ef56b9eb57e27a0b74e38ccb31b0416678b65b27f89b53cb4f9a0b7544
 // createTaprootTxTest();// 0073297d32373a7ec869b4f75f6d8d7e0e163e44debded4c4889ad605a7c9a64
 async function test() {
-    let feeRate = await nerve.bitcoin.getFeeRate(true, true);
+    let feeRate = await nerve.bitcoin.getFeeRate(true, false);
     console.log(feeRate);
     // let a = await nerve.bitcoin.getUtxos(false, 'tb1qnwnk40t55dsgfd4nuz5aq8sflj8vanh5nskec5');
     // console.log(a);
@@ -185,5 +185,119 @@ async function calcSizeTest1() {
     let {size, fee} = nerve.bitcoin.calcSpendingUtxosAndFee(mainnet, addrType, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
     console.log(size, fee);
 }
-calcSizeTest1()
 
+// pubkeyA: 03b77df3d540817d20d3414f920ccec61b3395e1dc1ef298194e5ff696e038edd9, priA: c48f55dbe619e83502be1f72c875ed616aeaab6108196f0d644d72e992f6a155
+// pubkeyB: 024173f84acb3de56b3ef99894fa3b9a1fe4c48c1bdc39163c37c274cd0334ba75, priA: 30002e81d449f16b69bc3e06918ff6ff088863edef8a0ba3d9b06fe5d02744d7
+// pubkeyC: 02c0a82ba398612daa4133a891b3f52832114e0d3d6210348543f1872020556ded, priA: ce608d31bfd260ab5a4098d45c8130fdf407753dfcd88bcb366ae8f362b0c8ba
+
+function nativeSegwitMultiSignTx() {
+    let network = bitcoin.networks.testnet;
+    const p2ms = bitcoin.payments.p2ms({
+        m: 2, pubkeys: [
+            Buffer.from('03b77df3d540817d20d3414f920ccec61b3395e1dc1ef298194e5ff696e038edd9', 'hex'),
+            Buffer.from('024173f84acb3de56b3ef99894fa3b9a1fe4c48c1bdc39163c37c274cd0334ba75', 'hex'),
+            Buffer.from('02c0a82ba398612daa4133a891b3f52832114e0d3d6210348543f1872020556ded', 'hex'),
+        ], network});
+    const p2wsh = bitcoin.payments.p2wsh({redeem: p2ms, network})
+    console.log('P2WSH address', p2wsh.address);
+    console.log('p2ms.output', p2ms.output.toString('hex'));
+    console.log('p2wsh.redeem.output', p2wsh.redeem.output.toString('hex'));
+
+    const psbt = new bitcoin.Psbt({network})
+        .addInput({
+            hash: 'a2265316922e3e749271103ed215cd36ec607341ec33ed45032dc1c2b462c791',
+            index: 1,
+            witnessScript: p2wsh.redeem.output,
+            witnessUtxo: {
+                script: Buffer.from('0020' + bitcoin.crypto.sha256(p2ms.output).toString('hex'), 'hex'),
+                value: 179724,
+            }
+        })
+        .addOutput({
+            address: 'mmLahgkWGHQSKszCDcZXPooWoRuYhQPpCF',
+            value: 7100,
+        })
+        .addOutput({
+            address: 'tb1q7xe4hh34v66nep9qz9dj850l0e02deasua2lryse9p648kcegyrsysrarw',
+            value: 179724 - 7100 - 300,
+        });
+    psbt.addOutput({
+        script: bitcoin.payments.embed({data: [Buffer.from('withdraw 581a896871161de3b879853cfef41b3bdbf69113ba66b0b9f699535f72a5ba68', 'utf8')]}).output,
+        value: 0,
+    });
+
+    const keyPairAlice1 = ECPair.fromWIF('cUAngTZ4WSbrkE7vRG8Qh2emAUdHAogN5CN9SHTXk3ohH7FQMgFH', network);
+    const keyPairBob1 = ECPair.fromWIF('cPC1TgQ7WCwJMjMfFjMt3Bbri6nbgjs5SQT4PcmffWjKFvQjcVsJ', network);
+
+    psbt.signInput(0, keyPairAlice1)
+        .signInput(0, keyPairBob1);
+
+    // psbt.validateSignaturesOfInput(0, bitcoin.Psbt. Buffer.from('03b77df3d540817d20d3414f920ccec61b3395e1dc1ef298194e5ff696e038edd9', 'hex'));
+    // psbt.validateSignaturesOfInput(0, Buffer.from('024173f84acb3de56b3ef99894fa3b9a1fe4c48c1bdc39163c37c274cd0334ba75', 'hex'));
+
+    psbt.finalizeAllInputs();
+
+    console.log('Transaction hexadecimal:');
+    console.log(psbt.extractTransaction().toHex());
+}
+
+function nativeSegwitMultiSignTxFor10Of15() {
+    let network = bitcoin.networks.testnet;
+    let eckeys = [];
+    for (let i=0;i<15;i++) {
+        eckeys.push(ECPair.makeRandom({network}));
+    }
+    let _pubkeys = [];
+    for (let i=0;i<15;i++) {
+        _pubkeys.push(eckeys[i].publicKey);
+    }
+    const p2ms = bitcoin.payments.p2ms({
+        m: 10, pubkeys: _pubkeys, network});
+    const p2wsh = bitcoin.payments.p2wsh({redeem: p2ms, network})
+    console.log('P2WSH address', p2wsh.address);
+
+    const psbt = new bitcoin.Psbt({network})
+        .addInput({
+            hash: '668faa5aaea6319336290c2778edc099228fae0e099b2d4170a4903d4d9f38c2',
+            index: 0,
+            witnessScript: p2wsh.redeem.output,
+            witnessUtxo: {
+                script: Buffer.from('0020' + bitcoin.crypto.sha256(p2ms.output).toString('hex'), 'hex'),
+                value: 187252,
+            }
+        })
+        // .addInput({
+        //     hash: '668faa5aaea6319336290c2778edc099228fae0e099b2d4170a4903d4d9f38c3',
+        //     index: 0,
+        //     witnessScript: p2wsh.redeem.output,
+        //     witnessUtxo: {
+        //         script: Buffer.from('0020' + bitcoin.crypto.sha256(p2ms.output).toString('hex'), 'hex'),
+        //         value: 187252,
+        //     }
+        // })
+        .addOutput({
+            address: 'mmLahgkWGHQSKszCDcZXPooWoRuYhQPpCF',
+            value: 7252,
+        })
+        .addOutput({
+            address: p2wsh.address,
+            value: 187252 - 7252 - 276,
+        });
+    psbt.addOutput({
+        script: bitcoin.payments.embed({data: [Buffer.from('withdraw 581a896871161de3b879853cfef41b3bdbf69113ba66b0b9f699535f72a5ba68', 'utf8')]}).output,
+        value: 0,
+    });
+
+    for (let i=0;i<10;i++) {
+        psbt.signInput(0, eckeys[i])
+    }
+
+    // psbt.validateSignaturesOfInput(0, Buffer.from('03b77df3d540817d20d3414f920ccec61b3395e1dc1ef298194e5ff696e038edd9', 'hex'));
+    // psbt.validateSignaturesOfInput(0, Buffer.from('024173f84acb3de56b3ef99894fa3b9a1fe4c48c1bdc39163c37c274cd0334ba75', 'hex'));
+
+    psbt.finalizeAllInputs();
+
+    console.log('Transaction hexadecimal:');
+    console.log(psbt.extractTransaction().toHex());
+}
+test();
