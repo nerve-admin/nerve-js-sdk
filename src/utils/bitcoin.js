@@ -261,6 +261,7 @@ var btc = {
         const ecc = require('tiny-secp256k1');
         ECPair = ECPairFactory(ecc);
         bitcoin.initEccLib(ecc);
+        return ECPair;
     },
     initEccLibForWeb() {
         require('tiny-secp256k1').then(ecc => {
