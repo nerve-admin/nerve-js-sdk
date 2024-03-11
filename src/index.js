@@ -15,7 +15,7 @@ module.exports = {
   testnet() {
     API_CHAIN_ID = 5;
     axios.defaults.timeout = 9000;
-    axios.defaults.baseURL = 'http://beta.public.nerve.network';
+    axios.defaults.baseURL = 'https://beta.public.nerve.network';
   },
   customnet(chainId, url, timeout) {
     API_CHAIN_ID = chainId;

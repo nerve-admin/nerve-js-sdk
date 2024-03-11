@@ -269,6 +269,34 @@ var btc = {
         });
     },
 
+    getAddressByPub(pubKey, isMainnet) {
+        const network = isMainnet ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
+        const publicKeyBuffer = Buffer.from(pubKey, 'hex');
+
+        // p2pkh Legacy
+        const { address: Legacy } = bitcoin.payments.p2pkh({network, pubkey: publicKeyBuffer});
+
+        // p2wpkh Native Segwit
+        const { address: NativeSegwit } = bitcoin.payments.p2wpkh({network, pubkey: publicKeyBuffer});
+        
+        // p2sh Nested Segwit
+        const { address: NestedSegwit } = bitcoin.payments.p2sh({
+            redeem: bitcoin.payments.p2wpkh({network, pubkey: publicKeyBuffer}),
+        });
+
+        // p2tr Taproot
+        const { address: Taproot } = bitcoin.payments.p2tr({
+            network,
+            internalPubkey: toXOnly(publicKeyBuffer)
+        });
+        return {
+            Legacy,
+            NativeSegwit,
+            NestedSegwit,
+            Taproot
+        }
+    },
+
     calcSpendingUtxosAndFee(mainnet, txType, utxos, receiveAddress, sendAmount, feeRate, opReturnArray) {
         let len0 = 0, len1 = 0, len2 = 0, len3 = 0;
         let outForType = 'len' + txType + '++';
