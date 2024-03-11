@@ -28,7 +28,7 @@ async function getPrice(chainId, assetId) {
 // getPrice(9, 447);
 // getPrice(9, 448);
 // getPrice(9, 449);
-917958010468536
+// 917958010468536
 
 // f();
 // withdrawalToETH(isMainnet);
@@ -67,11 +67,17 @@ async function getPrice(chainId, assetId) {
 // withdrawalToL2SomeoneByNVT("OP", 115, isMainnet);
 // withdrawalToL2SomeoneByETH("BASE", 129, isMainnet);
 // withdrawalToL2SomeoneByNVT("BASE", 129, isMainnet);
-withdrawalToL2SomeoneByETH("SCROLL", 130, isMainnet);
-withdrawalToL2SomeoneByNVT("SCROLL", 130, isMainnet);
+// withdrawalToL2SomeoneByETH("SCROLL", 130, isMainnet);
+// withdrawalToL2SomeoneByNVT("SCROLL", 130, isMainnet);
+
+// let provider = new ethers.providers.JsonRpcProvider('https://geth.nerve.network');
+// getWithdrawGas(new ethers.providers.JsonRpcProvider('https://geth.nerve.network'))
+getWithdrawGas(new ethers.providers.JsonRpcProvider('https://eth.drpc.org/'))
+withdrawalToL2SomeoneByNVT("BLAST", 139, isMainnet);
 
 async function getWithdrawGas(provider) {
     return provider.getGasPrice().then((gasPrice) => {
+        console.log('gasPrice', provider.connection.url, ethers.utils.formatUnits(gasPrice, 9))
         return gasPrice;
     });
 }
@@ -97,20 +103,23 @@ async function withdrawalToL2SomeoneByETH(chain, htgChainId, isMainnet) {
 
 async function withdrawalToL2SomeoneByNVT(chain, htgChainId, isMainnet) {
     let nerveChainId = isMainnet ? 9 : 5;
-    // let ethRpc = isMainnet ? "https://geth.nerve.network" : "https://rpc.ankr.com/eth_goerli";
-    let ethRpc = isMainnet ? "https://cloudflare-eth.com" : "https://rpc.ankr.com/eth_goerli";
-    let feeNumber = await calcFee(chain, isMainnet, true, "NVT");
-    console.log("提现到"+chain+"网络需要的NVT:" + feeNumber);
-    // let nvtCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 1);
-    // let ethCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 2);
-    let nvtCoinPrice = '0.0067592';
-    let ethCoinPrice = '2177.72215584';
+    let ethRpc = isMainnet ? "https://geth.nerve.network" : "https://rpc.ankr.com/eth_goerli";
+    // let feeNumber = await calcFee(chain, isMainnet, true, "NVT");
+    // console.log("提现到"+chain+"网络需要的NVT:" + feeNumber);
+    let feeNumber = 1;
+    // let nvtCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 1, 'FEE');
+    let nvtCoinPrice = '0.00928501';
+    let ethCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 2);
+    console.log(nvtCoinPrice, "nvtCoinPrice");
+    console.log(ethCoinPrice, "ethCoinPrice");
     let provider = new ethers.providers.JsonRpcProvider(ethRpc);
     const gasPrice = await getWithdrawGas(provider);
+    // const gasPrice = '54861998732';
     console.log(ethers.utils.formatUnits(gasPrice, 9), 'eth gasPrice');
     let l1Fee = nerve.getL1Fee(htgChainId, gasPrice);
     let nvtTemp = l1Fee.mul(ethers.utils.parseUnits(ethCoinPrice, 18)).mul(ethers.utils.parseUnits("1", 18)).div(ethers.utils.parseUnits(nvtCoinPrice, 18));
     let l1FeeNvtNumber = ethers.utils.formatUnits(nvtTemp, 36)
+    console.log("提现到"+chain+"网络需要L1Fee的ETH:" + ethers.utils.formatUnits(l1Fee, 18));
     console.log("提现到"+chain+"网络需要L1Fee的NVT:" + l1FeeNvtNumber);
     console.log("提现到"+chain+"网络需要totalFee的NVT:" + (Number(l1FeeNvtNumber) + Number(feeNumber)));
     console.log("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
@@ -268,16 +277,10 @@ async function calcFee(withdrawChain, isMainnet, isToken, feeChain) {
     }
     // 获取资产信息
     let feeCoin = NERVE_INFO.htgMainAsset[feeChain];
-    // let feeCoinPrice = await util.getSymbolPriceOfUsdt(feeCoin.chainId, feeCoin.assetId, 'FEE');
+    let feeCoinPrice = await util.getSymbolPriceOfUsdt(feeCoin.chainId, feeCoin.assetId, 'FEE');
 
     // let feeCoinPrice = await util.getSymbolPriceOfUsdt(feeCoin.chainId, feeCoin.assetId);
-    // let withdrawCoinPrice = await util.getSymbolPriceOfUsdt(withdrawCoin.chainId, withdrawCoin.assetId);
-    let feeCoinPrice = '0.0067592';
-    if (feeChain == 'ETH') {
-        feeCoinPrice = '2177.72215584';
-    }
-    let withdrawCoinPrice = '2177.72215584';
-
+    let withdrawCoinPrice = await util.getSymbolPriceOfUsdt(withdrawCoin.chainId, withdrawCoin.assetId);
     console.log(feeCoinPrice, "feeCoinPrice", feeChain);
     console.log(withdrawCoinPrice, "withdrawCoinPrice", withdrawChain);
     let result = await api_ethers.calcOtherMainAssetOfWithdrawTest(provider, feeCoin, feeCoinPrice, withdrawCoinPrice, isToken);

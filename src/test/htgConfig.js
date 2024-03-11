@@ -69,6 +69,10 @@ const RPC_URL = {
     MANTA: {
         test: "https://manta-testnet.calderachain.xyz/http",
         main: "https://pacific-rpc.manta.network/http"
+    },
+    BLAST: {
+        test: "https://sepolia.blast.io",
+        main: "https://rpc.blast.io"
     }
 };
 
@@ -129,6 +133,7 @@ const NERVE_INFOS = {
          OP:    {chainId: 9, assetId: 2, decimals: 18},
          MANTA:    {chainId: 9, assetId: 745, decimals: 18},
            AVAX:    {chainId: 9, assetId: 267, decimals: 18},
+           BLAST:    {chainId: 9, assetId: 790, decimals: 18},
            NULS:    {chainId: 1, assetId: 1, decimals: 8}
         },
         trxWithdrawFee: '60000000'
