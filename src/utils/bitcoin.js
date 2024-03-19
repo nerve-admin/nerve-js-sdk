@@ -237,7 +237,7 @@ function createSpendingUtxosAndOutput(mainnet, txType, pubkeyHex, utxos, receive
         address: receiveAddress,
         value: sendAmount,
     });
-    if (total > spending) {
+    if (total > spending && total - spending > 546) {
         psbt.addOutput({
             address: script.address,
             value: total - spending,
