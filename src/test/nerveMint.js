@@ -58,7 +58,7 @@ async function mint(pri, pub, fromAddress, pid) {
 }
 
 async function test() {
-  let {pri, pub, fromAddress} = acc3();
+  let {pri, pub, fromAddress} = acc2();
   let pid = 0;
   await mint(pri, pub, fromAddress, pid);
   await mint(pri, pub, fromAddress, pid);

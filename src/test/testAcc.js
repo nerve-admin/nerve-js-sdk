@@ -24,6 +24,9 @@ var testAcc = {
     acc3() {
         return acc(process.env.acc3);
     },
+    acc4() {
+        return acc(process.env.acc4);
+    },
 }
 
 module.exports = testAcc;
