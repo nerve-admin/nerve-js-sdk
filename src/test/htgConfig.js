@@ -73,6 +73,10 @@ const RPC_URL = {
     BLAST: {
         test: "https://sepolia.blast.io",
         main: "https://rpc.blast.io"
+    },
+    REI: {
+        test: "https://rpc-testnet.rei.network",
+        main: "https://rpc-mainnet.rei.network"
     }
 };
 
@@ -128,6 +132,7 @@ const NERVE_INFOS = {
            KAVA:    {chainId: 9, assetId: 597, decimals: 18},
            OETH:    {chainId: 9, assetId: 447, decimals: 18},
           LINEA:    {chainId: 9, assetId: 694, decimals: 18},
+            REI:    {chainId: 9, assetId: 620, decimals: 18},
          SCROLL:    {chainId: 9, assetId: 2, decimals: 18},
          BASE:    {chainId: 9, assetId: 2, decimals: 18},
          OP:    {chainId: 9, assetId: 2, decimals: 18},

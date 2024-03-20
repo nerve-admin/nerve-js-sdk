@@ -86,7 +86,8 @@
     "rimraf": "^2.6.3",
     "sha256": "^0.2.0",
     "stream-browserify": "^3.0.0",
-    "webpack": "^5.40.0"
+    "webpack": "^5.40.0",
+    "fch-sdk": "^1.0.2"
   },
   "optionalDependencies": {
     "secp256k1": "3.7.1"
