@@ -21,7 +21,7 @@ async function createLegacyTxTest() {
     const pubkeyHex = fch.getPublicKey(pri);
     const senderAddress = fch.getAddress(pubkeyHex);
     const sendAmount = "0.0001";
-    
+
     const txData = new BitcoinRechargeData();
     txData.to = 'TNVTdTSPMvHcrsgCsGKxsbjQn66W4QN2Azo4r';
     txData.value = computerSatoshi(sendAmount);
@@ -29,7 +29,7 @@ async function createLegacyTxTest() {
     const msg = opReturnBuffer.toString('hex');
 
     let utxos = await fch.getAccountUTXOs(senderAddress);
-    let feeAndUTXO = fch.calcFeeAndUTXO(utxos, sendAmount, opReturnBuffer)
+    let feeAndUTXO = fch.calcFeeAndUTXO(utxos, sendAmount, msg)
     const receiveAddress = "3BXpnXkAG7SYNxyKyDimcxjkyYQcaaJs5X";
     const hash = await fch.sendTransaction(pri, feeAndUTXO.utxo, receiveAddress, sendAmount, msg);
     console.log('hash', hash);
