@@ -424,6 +424,9 @@ module.exports = {
     this.type = 56;
     let bw = new Serializers();
     bw.writeString(entity.txHash)
+    if (entity.extend) {
+      bw.writeBytesWithLength(Buffer.from(entity.extend, 'hex'))
+    }
     this.txData = bw.getBufWriter().toBuffer();
   },
 

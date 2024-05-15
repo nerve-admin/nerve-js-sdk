@@ -3762,10 +3762,10 @@ fastest-levenshtein@^1.0.12:
   resolved "https://registry.yarnpkg.com/fastest-levenshtein/-/fastest-levenshtein-1.0.12.tgz#9990f7d3a88cc5a9ffd1f1745745251700d497e2"
   integrity sha512-On2N+BpYJ15xIC974QNVuYGMOlEVt4s0EOI3wwMqOmK1fdDY+FN/zltPV8vosq4ad4c/gJ1KHScUn/6AWIgiow==
 
-fch-sdk@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/fch-sdk/-/fch-sdk-1.0.2.tgz#79860b35605899371912314475cf0fbc0a14d5c6"
-  integrity sha512-5xfeMcCL5vmZWbnKDs7MTFzsOrBYhOHMPSlwt1I8UVE8t9q0fgDcwWzhhmrZk+CQB9dINKwLzPAPrqYW+JuGRg==
+fch-sdk@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/fch-sdk/-/fch-sdk-1.0.6.tgz#c034eeddc55d69f2b0bd76adf945368bf79baee8"
+  integrity sha512-WgzLKI6wrDxjqhV0M31iBdHfzd+5zGFbIT8sP3vmfaUxJNLiMR/QRSTGt6G/M4XNxgfrl05h442k9LJlk8LMXg==
   dependencies:
     axios "^1.6.7"
     bitcoinjs-message "^2.2.0"

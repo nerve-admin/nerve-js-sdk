@@ -3,8 +3,10 @@ const bufferutils_1 = require('bitcoinjs-lib/src/bufferutils');
 const bitcoin = require('bitcoinjs-lib');
 const bitcore = require('bitcore-lib');
 const http = require("../test/api/https");
+const nerve = require("../index");
 let ECPair
 const toXOnly = pubKey => (pubKey.length === 32 ? pubKey : pubKey.slice(1, 33));
+const MAX_SAFE_INTEGER = 9007199254740991;
 
 function estimateTxSizeHeader(mainnet) {
     if (!mainnet) mainnet = false;
@@ -256,6 +258,63 @@ function getBtcRpc(mainnet = false) {
     return {url, authValue};
 }
 
+async function getFeeRateOnChain(mainnet = false, highFeeRate = false) {
+    // if (!mainnet) {
+    //     return 1;
+    // }
+    let mode = highFeeRate ? "CONSERVATIVE" : "ECONOMICAL";
+    let {url, authValue} = getBtcRpc(mainnet);
+    return await http.postCompleteWithHeader(
+        url,
+        'estimatesmartfee',
+        [15, mode],
+        {'Authorization': authValue}
+    ).then((response) => {
+        if (response.hasOwnProperty("result")) {
+            return Math.ceil(response.result.feerate * 1.1 * 100000)
+        } else {
+            throw "Get rawtransaction error"
+        }
+    }).catch((error) => {
+        throw "Network error"
+    });
+}
+
+function getMempoolSpaceRpc(mainnet = false) {
+    let url = 'https://mempool.space/testnet/api/v1/';
+    if (mainnet) {
+        url = 'https://mempool.space/api/v1/';
+    }
+    return url;
+}
+
+function checkUInt53(n) {
+    if (n < 0 || n > MAX_SAFE_INTEGER || n % 1 !== 0) throw new RangeError('value out of range')
+}
+
+function encodingLength(number) {
+    checkUInt53(number)
+    return (
+        number < 0xfd ? 1
+            : number <= 0xffff ? 3
+                : number <= 0xffffffff ? 5
+                    : 9
+    )
+}
+
+function calcOpReturnLen(opReturnBytesLen) {
+    let dataLen;
+    if (opReturnBytesLen < 76) {
+        dataLen = opReturnBytesLen + 1;
+    } else if (opReturnBytesLen < 256) {
+        dataLen = opReturnBytesLen + 2;
+    } else dataLen = opReturnBytesLen + 3;
+    let scriptLen;
+    scriptLen = (dataLen + 1) + encodingLength(dataLen + 1);
+    let amountLen = 8;
+    return scriptLen + amountLen;
+}
+
 var btc = {
     initEccLibForNode() {
         const ecc = require('tiny-secp256k1');
@@ -279,7 +338,7 @@ var btc = {
 
         // p2wpkh Native Segwit
         const { address: NativeSegwit } = bitcoin.payments.p2wpkh({network, pubkey: publicKeyBuffer});
-        
+
         // p2sh Nested Segwit
         const { address: NestedSegwit } = bitcoin.payments.p2sh({
             redeem: bitcoin.payments.p2wpkh({network, pubkey: publicKeyBuffer}),
@@ -373,25 +432,18 @@ var btc = {
         });
     },
 
-    async getFeeRate(mainnet = false, highFeeRate = false) {
-        if (!mainnet) {
-            return 1;
-        }
+    async getFeeRate(mainnet = false, highFeeRate = true) {
         let mode = highFeeRate ? "CONSERVATIVE" : "ECONOMICAL";
-        let {url, authValue} = getBtcRpc(mainnet);
-        return await http.postCompleteWithHeader(
-            url,
-            'estimatesmartfee',
-            [1, mode],
-            {'Authorization': authValue}
-        ).then((response) => {
-            if (response.hasOwnProperty("result")) {
-                return Math.ceil(response.result.feerate * 1.1 * 100000)
+        let url = getMempoolSpaceRpc(mainnet);
+        url += 'fees/recommended';
+        return await http.get(url).then((response) => {
+            if (response.hasOwnProperty("fastestFee")) {
+                return highFeeRate ? response.fastestFee : response.halfHourFee;
             } else {
-                throw "Get rawtransaction error"
+                throw "Get recommended fee error: " + response
             }
         }).catch((error) => {
-            throw "Network error"
+            throw "Network error: " + error
         });
     },
 
@@ -537,5 +589,55 @@ var btc = {
         return psbtHex;
     },
 
+    calcMultiSignSizeP2WSH(inputNum, outputNum, opReturnBytesLenArray, m, n) {
+        let redeemScriptLength = 1 + (n * 33) + 1 + 1;
+        let scriptLength = 1 + (m * (1 + 1 + 69 + 1)) + encodingLength(redeemScriptLength) + redeemScriptLength;
+        let inputLength = 40 + (scriptLength / 4 + 1);
+
+        let length;
+        if (!opReturnBytesLenArray || opReturnBytesLenArray.length == 0) {
+            length = 12 + inputLength * inputNum + 43 * (outputNum + 1);
+        } else {
+            let totalOpReturnLen = 0;
+            let arrayLength = opReturnBytesLenArray.length;
+            for (let i = 0; i < arrayLength; i++) {
+                let len = opReturnBytesLenArray[i];
+                totalOpReturnLen += calcOpReturnLen(len);
+            }
+            length = 12 + inputLength * inputNum + 43 * (outputNum + 1) + totalOpReturnLen;
+        }
+        return length;
+    },
+
+    calcTxSizeWithdrawal(utxoSize) {
+        let m, n;
+        if (nerve.chainId() == 9) {
+            m = 10, n = 15;
+        } else {
+            m = 2, n = 3;
+        }
+        return nerve.bitcoin.calcMultiSignSizeP2WSH(utxoSize, 1, [32], m, n);
+    },
+
+    calcFeeWithdrawal(utxos, amount, feeRate) {
+        let _fee = 0, total = 0;
+        let resultList = [];
+        for (let i = 0; i < utxos.length; i++) {
+            let utxo = utxos[i];
+            total = total + utxo.amount;
+            resultList.push(utxo);
+            _fee = this.calcTxSizeWithdrawal(resultList.length) * feeRate;
+            let totalSpend = amount + _fee;
+            if (total >= totalSpend) {
+                break;
+            }
+        }
+        if (total < totalSpend) {
+            throw "not enough fee";
+        }
+        return _fee;
+    }
+
 }
+
 module.exports = btc;

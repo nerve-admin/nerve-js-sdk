@@ -72,12 +72,15 @@ async function getPrice(chainId, assetId) {
 
 // let provider = new ethers.providers.JsonRpcProvider('https://geth.nerve.network');
 // getWithdrawGas(new ethers.providers.JsonRpcProvider('https://geth.nerve.network'))
-getWithdrawGas(new ethers.providers.JsonRpcProvider('https://eth.drpc.org/'))
-withdrawalToL2SomeoneByNVT("BLAST", 139, isMainnet);
+// getWithdrawGas(new ethers.providers.JsonRpcProvider('https://eth.drpc.org/'))
+// withdrawalToL2SomeoneByNVT("BLAST", 139, isMainnet);
+
+// withdrawalToSomeoneByNVT("REI", isMainnet);
+withdrawalToSomeoneByOwnMainAsset("REI", isMainnet);
 
 async function getWithdrawGas(provider) {
     return provider.getGasPrice().then((gasPrice) => {
-        console.log('gasPrice', provider.connection.url, ethers.utils.formatUnits(gasPrice, 9))
+        console.log('gasPrice', provider.connection.url, ethers.utils.formatUnits(gasPrice, 9), 'gasPriceHex', gasPrice)
         return gasPrice;
     });
 }
@@ -103,7 +106,8 @@ async function withdrawalToL2SomeoneByETH(chain, htgChainId, isMainnet) {
 
 async function withdrawalToL2SomeoneByNVT(chain, htgChainId, isMainnet) {
     let nerveChainId = isMainnet ? 9 : 5;
-    let ethRpc = isMainnet ? "https://geth.nerve.network" : "https://rpc.ankr.com/eth_goerli";
+    // let ethRpc = isMainnet ? "https://geth.nerve.network" : "https://rpc.ankr.com/eth_goerli";
+    let ethRpc = isMainnet ? "https://eth.drpc.org/" : "https://rpc.ankr.com/eth_goerli";
     // let feeNumber = await calcFee(chain, isMainnet, true, "NVT");
     // console.log("提现到"+chain+"网络需要的NVT:" + feeNumber);
     let feeNumber = 1;
@@ -240,6 +244,16 @@ async function withdrawalToSomeoneByETH(chain, isMainnet) {
     console.log(chain + ", 15倍ETH: ", Number(feeNumber) * 15)
     console.log(chain + ", 20倍ETH: ", Number(feeNumber) * 20)
     console.log(chain + ", 2000倍ETH: ", Number(feeNumber) * 2000)
+}
+
+async function withdrawalToSomeoneByOwnMainAsset(chain, isMainnet) {
+    let feeNumber = await calcFee(chain, isMainnet, true, chain);
+    console.log("提现到"+chain+"网络需要的" + chain + ":" + feeNumber);
+    console.log(chain + ", 1.2倍: ", Number(feeNumber) * 1.2)
+    console.log(chain + ", 1.5倍: ", Number(feeNumber) * 1.5)
+    console.log(chain + ", 15倍: ", Number(feeNumber) * 15)
+    console.log(chain + ", 20倍: ", Number(feeNumber) * 20)
+    console.log(chain + ", 2000倍: ", Number(feeNumber) * 2000)
 }
 
 async function withdrawalToAvaxByNVT(isMainnet) {

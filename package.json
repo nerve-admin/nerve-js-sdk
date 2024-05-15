@@ -79,7 +79,7 @@
     "elliptic": "6.5.3",
     "es6-promise": "3.0.2",
     "ethers": "^4.0.47",
-    "fch-sdk": "^1.0.2",
+    "fch-sdk": "^1.0.6",
     "jsrsasign": "8.0.20",
     "nan": "2.11.1",
     "randombytes": "2.0.6",

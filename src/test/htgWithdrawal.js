@@ -12,18 +12,18 @@ let fromAddress = "TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad";
 let pri = '';
 
 // 提现接收地址
-let toAddress = '0xC9aFB4fA1D7E2B7D324B7cb1178417FF705f5996';
+let toAddress = 'mmLahgkWGHQSKszCDcZXPooWoRuYhQPpCF';
 // 提现金额
-let withdrawalAmount = '220.0001';
+let withdrawalAmount = '0.00001';
 // 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107, TRX:108)
-let heterogeneousChainId = 133;
+let heterogeneousChainId = 201;
 // 提现资产信息
 let withdrawalAssetChainId = 5;
-let withdrawalAssetId = 1;
+let withdrawalAssetId = 171;
 // 提现资产小数位
 let withdrawalDecimals = 8;
 // 提现手续费(NVT)
-let withdrawalFee = '5';
+let withdrawalFee = '500';
 let feeChain = 'NVT';
 
 let remark = 'withdrawal transaction remark...';

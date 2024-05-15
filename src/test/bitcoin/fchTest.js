@@ -20,17 +20,17 @@ async function createLegacyTxTest() {
     let {pri} = acc4();
     const pubkeyHex = fch.getPublicKey(pri);
     const senderAddress = fch.getAddress(pubkeyHex);
-    const sendAmount = "0.0001";
+    const sendAmount = "0.23";
 
     const txData = new BitcoinRechargeData();
-    txData.to = 'TNVTdTSPMvHcrsgCsGKxsbjQn66W4QN2Azo4r';
+    txData.to = 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad';
     txData.value = computerSatoshi(sendAmount);
     const opReturnBuffer = txData.serialize();
     const msg = opReturnBuffer.toString('hex');
 
     let utxos = await fch.getAccountUTXOs(senderAddress);
     let feeAndUTXO = fch.calcFeeAndUTXO(utxos, sendAmount, msg)
-    const receiveAddress = "3BXpnXkAG7SYNxyKyDimcxjkyYQcaaJs5X";
+    const receiveAddress = "338uHAHG2Gs3aufiFz89R4wsvPYH6yYTHv";
     const hash = await fch.sendTransaction(pri, feeAndUTXO.utxo, receiveAddress, sendAmount, msg);
     console.log('hash', hash);
 }
@@ -42,7 +42,12 @@ function test() {
     const opReturnBuffer = txData.serialize();
     console.log(opReturnBuffer.length);
     console.log(opReturnBuffer.toString('hex'));
+
+    let {pri} = acc4();
+    const pubkeyHex = fch.getPublicKey(pri);
+    const senderAddress = fch.getAddress(pubkeyHex);
+    console.log(senderAddress);
 }
 
-test();
-// acc4()
+createLegacyTxTest();
+// test()

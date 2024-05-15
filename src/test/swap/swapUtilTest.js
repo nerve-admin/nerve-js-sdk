@@ -166,7 +166,7 @@ function bestTradeExactInTest() {
     console.log(JSON.stringify(trade));
 }
 
-bestTradeExactOutTest();
+// bestTradeExactOutTest();
 function bestTradeExactOutTest() {
     let stableInfoArray;
     // let stableInfoArray = [{
@@ -338,8 +338,8 @@ function divTest() {
  3. 使用现有方式查找最优路径
  4. 页面上显示 tokenA-> result.lpToken -> ... -> tokenB
  5. 交易组装调用此函数: nerve.swap.stableLpSwapTrade
-     5.1 比swapTrade多出一个stablePairAddrss, 使用result.address填入
-     5.2 tokenPath 更换为 [tokenA, result.lpToken, ..., tokenB]
+ 5.1 比swapTrade多出一个stablePairAddrss, 使用result.address填入
+ 5.2 tokenPath 更换为 [tokenA, result.lpToken, ..., tokenB]
  */
 async function stableLpSwapTradeTest() {
     // 账户信息
@@ -499,15 +499,15 @@ let stablePairInfo = {
             "decimals": 18
         }
     ],
-    "totalLP": "102011540000000000000000",
+    "totalLP": "242624559880418148907617",
     "balances": [
-        "19998520000",
-        "21609445609803663208296",
-        "28613970590196336791704",
-        "11779564400000000000000",
-        "12519400",
-        "19997520000000000000000"
-    ]
+        "20472632410",
+        "186440810665380453160712",
+        "13337326273624497142272",
+        "0",
+        "34035",
+        "22373756507916810880374"
+    ],
 };
 
 // stableSwapAddLiquidityMinReceiveTest();
@@ -524,18 +524,20 @@ function calcStableSwapAddLiquidityMinReceiveTest() {
     console.log(minReceive, 'minReceive');
 }
 
-// calcStableSwapRemoveLiquidityMinReceiveTest();
+calcStableSwapRemoveLiquidityMinReceiveTest();
 // 计算用户移除稳定币流动性LP资产获取的资产
 function calcStableSwapRemoveLiquidityMinReceiveTest() {
     // 移除的LP资产
     let tokenAmountLP = {
         chainId: 5,
         assetId: 102,
-        amount: '222123456789123456789',
+        amount: '31030165533002692',
         decimals: 18
     };
+    // 31030165534473932
+    // 31030165533002692
     // 指定接收的资产
-    let receiveIndex = 0;
+    let receiveIndex = 5;
     let minReceive = nerve.swap.calcStableSwapRemoveLiquidityMinReceive(stablePairInfo, tokenAmountLP, receiveIndex);
     console.log(minReceive, 'minReceive');
 }

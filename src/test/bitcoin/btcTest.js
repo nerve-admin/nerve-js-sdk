@@ -1,8 +1,13 @@
 const nerve = require('../../index');
 const bitcore = require('bitcore-lib');
 const {BitcoinRechargeData} = require('../../model/BitcoinRechargeData');
-const http = require('../api/https.js');
+const nerveUtil = require('../api/util');
 const bitcoin = require('bitcoinjs-lib');
+const {main} = require("mocha/lib/cli");
+const sdk = require("../../api/sdk");
+const {NERVE_INFOS, Plus, timesDecimals} = require('../htgConfig');
+const {getNulsBalance, validateTx, broadcastTx} = require('../api/util');
+let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // for node env
 let ECPair = nerve.bitcoin.initEccLibForNode();
@@ -136,14 +141,14 @@ console.log(add.isPayToTaproot());*/
 // createNativeSegwitTxTest();// 84ca24ef56b9eb57e27a0b74e38ccb31b0416678b65b27f89b53cb4f9a0b7544
 // createTaprootTxTest();// 0073297d32373a7ec869b4f75f6d8d7e0e163e44debded4c4889ad605a7c9a64
 async function test() {
-    let feeRate = await nerve.bitcoin.getFeeRate(true, false);
+    let feeRate = await nerve.bitcoin.getFeeRate(false, true);
     console.log(feeRate);
     // let a = await nerve.bitcoin.getUtxos(false, 'tb1qnwnk40t55dsgfd4nuz5aq8sflj8vanh5nskec5');
     // console.log(a);
     // let b = await nerve.bitcoin.getUtxos(true, 'bc1pdgv0kguuwwn9q5qp5e896jxlq346xmpfzfy7a8hy0hewsstegf5s2mjfx9');
     // console.log(b);
 }
-// test();
+test();
 /*let psbt = bitcoin.Psbt.fromHex('70736274ff0100c90200000003a9ca7f4e28aca6b92119800236bdc7f847ae3c7cd384c9b009b9b7895b112d5d0000000000ffffffff64b29ded4b31c3ad3c4f1f31627f5d6526716767c2b619512907fbbc09ad03b10000000000ffffffffc0f61fe9093e9851e4144ad7f94fb3235f4acc24e502f60d44a6ad5cb9616e460100000000ffffffff02a0860100000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac0b911c00000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac0000000000010122e8030000000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac00010122e8030000000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac000101229d111e00000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac000000');
 let outputs = psbt.txOutputs;
 console.log(outputs);
@@ -300,4 +305,120 @@ function nativeSegwitMultiSignTxFor10Of15() {
     console.log('Transaction hexadecimal:');
     console.log(psbt.extractTransaction().toHex());
 }
-test();
+
+function testTxSizeOfWithdrawalBTC() {
+    let utxoSize = 3;
+    let txSize = nerve.bitcoin.calcTxSizeWithdrawal(utxoSize);
+    console.log('txSize', txSize);
+}
+
+async function testWithdrawalFee() {
+    let mainnet = false;
+    let currentMultiSignAddr = '';
+    const utxos = await nerve.bitcoin.getUtxos(mainnet, currentMultiSignAddr, 0);
+    let amount = 30000;
+    let feeRate = await nerve.bitcoin.getFeeRate(mainnet);
+    let fee = nerve.bitcoin.calcFeeWithdrawal(utxos, amount, feeRate);
+    console.log('fee', fee);
+}
+
+function testGetMinimumFeeOfWithdrawal() {
+    nerve.testnet();
+    let nerveTxHash = '';
+    let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
+}
+
+/*
+    满足Nerve底层的手续费要求
+ */
+function testAddFeeOfWithdrawalI() {
+    nerve.testnet();
+    let nerveTxHash = '';
+    let mainnet = nerve.chainId() == 9;
+    let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
+    let minimumFee = feeInfo.minimumFee;
+    //todo 1. minimumFee是BTC资产，需转换成用户支付的手续费资产，再和用户已支付的手续费数量比较
+    //  2. 不够则追加，发普通追加手续费交易
+}
+
+/*
+    满足BTC网络的矿工打包的手续费要求
+ */
+function testAddFeeOfWithdrawalII() {
+    nerve.testnet();
+    let nerveTxHash = '';
+    let mainnet = nerve.chainId() == 9;
+    let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
+    let minimumFee = feeInfo.minimumFee;
+    let utxoSize = feeInfo.utxoSize;
+    let feeRateOnTx = feeInfo.feeRate;
+    let feeRateOnNetwork = nerve.bitcoin.getFeeRate(mainnet);
+    if (feeRateOnNetwork > feeRateOnTx && (feeRateOnNetwork - feeRateOnTx > 2)) {
+        let txSize = nerve.bitcoin.calcTxSizeWithdrawal(utxoSize);
+        let needAddFee = txSize * (feeRateOnNetwork - feeRateOnTx);
+        //todo 1. needAddFee是BTC资产，需转换成用户支付的手续费资产
+        //  2. 按换算出来的数量追加，发`特殊`的追加手续费交易
+        // 参考以下追加 withdrawalAddFeeTest()
+    }
+}
+
+/**
+ * 异构链提现追加手续费交易
+ */
+async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, feeChain, remark) {
+    // 默认使用NVT作为跨链手续费
+    if (!feeChain || feeChain == '') {
+        feeChain = 'NVT';
+    }
+    // 获取手续费资产信息
+    let feeCoin = NERVE_INFO.htgMainAsset[feeChain];
+    let feeAddress = nerve.getAddressByPub(NERVE_INFO.chainId, NERVE_INFO.assetId, NERVE_INFO.feePubkey, NERVE_INFO.prefix);
+    let transferInfo = {
+        fromAddress: fromAddress,
+        toAddress: feeAddress,//this.info.blockHoleAddress,
+        fee: 0,
+        chainId: feeCoin.chainId,
+        assetId: feeCoin.assetId,
+        feeCoin: feeCoin,
+        amount: addFeeAmount,
+    };
+    let inOrOutputs = await inputsOrOutputs(transferInfo);
+    //console.log(inOrOutputs);
+    if (!inOrOutputs.success) {
+        throw "inputs、outputs组装错误";
+    }
+
+    let tAssemble = await nerve.transactionAssemble(
+        inOrOutputs.data.inputs,
+        inOrOutputs.data.outputs,
+        remark,
+        56,
+        {
+            txHash: withdrawalTxHash,
+            extend: '020000'
+        }
+    );
+    //获取hash
+    let hash = await tAssemble.getHash();
+
+    //交易签名
+    let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
+    //通过拼接签名、公钥获取HEX
+    let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
+    tAssemble.signatures = signData;
+    let txhex = tAssemble.txSerialize().toString("hex");
+    console.log(txhex.toString('hex'));
+
+    // let result = await nerve.broadcastTx(txhex);
+    // console.log(result);
+}
+
+// test();
+// const k1 = require("tiny-secp256k1");
+// const {isPoint} = require("tiny-secp256k1");
+// const {isPrivate} = require("tiny-secp256k1");
+// k1.isPrivate(Buffer.from("b77df3d540817d20d3414f920ccec61b3395e1dc1ef298194e5ff696e038edd9").valueOf())
+// console.log(k1.__initializeContext())
+// console.log(k1.sign(Buffer.from("581a896871161de3b879853cfef41b3bdbf69113ba66b0b9f699535f72a5ba68", 'hex').valueOf(), Buffer.from("4173f84acb3de56b3ef99894fa3b9a1fe4c48c1bdc39163c37c274cd0334ba75", 'hex').valueOf()))
+
+

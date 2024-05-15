@@ -544,8 +544,8 @@ module.exports = {
    * @returns {Promise<AxiosResponse<any>>}
    */
   async getSymbolPriceOfUsdt(chainId, assetId, assetType = '') {
-    return await http.postComplete('/', 'getQuotationUsdtPrice', [chainId, assetId, assetType])
-    // return await http.postComplete('/', 'getBestSymbolPrice', [chainId, assetId, assetType])
+    // return await http.postComplete('/', 'getQuotationUsdtPrice', [chainId, assetId, assetType])
+    return await http.postComplete('/', 'getBestSymbolPrice', [chainId, assetId, assetType])
         .then((response) => {
           if (response.hasOwnProperty("result")) {
             return response.result;
@@ -563,6 +563,20 @@ module.exports = {
    */
   async getHeterogeneousMainAsset(htgChainId) {
     return await http.postComplete('/', 'getHeterogeneousMainAsset', [htgChainId])
+        .then((response) => {
+          if (response.hasOwnProperty("result")) {
+            return response.result;
+          } else {
+            return response.error;
+          }
+        })
+        .catch((error) => {
+          return {success: false, data: error};
+        });
+  },
+
+  async getMinimumFeeOfWithdrawal(nerveTxHash) {
+    return await http.post('/', 'getMinimumFeeOfWithdrawal', [nerveTxHash])
         .then((response) => {
           if (response.hasOwnProperty("result")) {
             return response.result;
