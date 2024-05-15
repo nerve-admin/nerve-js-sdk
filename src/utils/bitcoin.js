@@ -448,6 +448,9 @@ var btc = {
     },
 
     async getUtxos(mainnet = false, address, amount) {
+        if (!amount) {
+            amount = 0;
+        }
         if (mainnet) {
             return await http.postDirect(
                 'https://api.v2.nabox.io/nabox-api/btc/utxo',

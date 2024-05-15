@@ -315,18 +315,20 @@ function testTxSizeOfWithdrawalBTC() {
 async function testWithdrawalFee() {
     let mainnet = false;
     let currentMultiSignAddr = '';
-    const utxos = await nerve.bitcoin.getUtxos(mainnet, currentMultiSignAddr, 0);
+    const utxos = await nerve.bitcoin.getUtxos(mainnet, currentMultiSignAddr);
     let amount = 30000;
     let feeRate = await nerve.bitcoin.getFeeRate(mainnet);
     let fee = nerve.bitcoin.calcFeeWithdrawal(utxos, amount, feeRate);
     console.log('fee', fee);
 }
 
-function testGetMinimumFeeOfWithdrawal() {
+async function testGetMinimumFeeOfWithdrawal() {
     nerve.testnet();
-    let nerveTxHash = '';
-    let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
+    let nerveTxHash = '0af2b4c96b26c5b6a92a33056a14f1d96d51a4c777b8d5cb96b8f44f0558083c';
+    let feeInfo = await nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
+    console.log(JSON.stringify(feeInfo))
 }
+testGetMinimumFeeOfWithdrawal();
 
 /*
     满足Nerve底层的手续费要求
@@ -349,7 +351,6 @@ function testAddFeeOfWithdrawalII() {
     let nerveTxHash = '';
     let mainnet = nerve.chainId() == 9;
     let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
-    let minimumFee = feeInfo.minimumFee;
     let utxoSize = feeInfo.utxoSize;
     let feeRateOnTx = feeInfo.feeRate;
     let feeRateOnNetwork = nerve.bitcoin.getFeeRate(mainnet);
