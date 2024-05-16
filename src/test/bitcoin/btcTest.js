@@ -324,8 +324,8 @@ async function testWithdrawalFee() {
 
 async function testGetMinimumFeeOfWithdrawal() {
     nerve.testnet();
-    let nerveTxHash = '0af2b4c96b26c5b6a92a33056a14f1d96d51a4c777b8d5cb96b8f44f0558083c';
-    let feeInfo = await nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
+    let nerveTxHash = 'ffcc90da59b4590e031c32890212c26bffd0aafea35d5c9ed3e2d3ff2573efdd';
+    let feeInfo = await nerveUtil.getMinimumFeeOfWithdrawal(201, nerveTxHash);
     console.log(JSON.stringify(feeInfo))
 }
 testGetMinimumFeeOfWithdrawal();
@@ -337,7 +337,7 @@ function testAddFeeOfWithdrawalI() {
     nerve.testnet();
     let nerveTxHash = '';
     let mainnet = nerve.chainId() == 9;
-    let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
+    let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(201, nerveTxHash);
     let minimumFee = feeInfo.minimumFee;
     //todo 1. minimumFee是BTC资产，需转换成用户支付的手续费资产，再和用户已支付的手续费数量比较
     //  2. 不够则追加，发普通追加手续费交易
@@ -350,7 +350,7 @@ function testAddFeeOfWithdrawalII() {
     nerve.testnet();
     let nerveTxHash = '';
     let mainnet = nerve.chainId() == 9;
-    let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(nerveTxHash);
+    let feeInfo = nerveUtil.getMinimumFeeOfWithdrawal(201, nerveTxHash);
     let utxoSize = feeInfo.utxoSize;
     let feeRateOnTx = feeInfo.feeRate;
     let feeRateOnNetwork = nerve.bitcoin.getFeeRate(mainnet);

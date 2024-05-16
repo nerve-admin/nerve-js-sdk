@@ -575,8 +575,8 @@ module.exports = {
         });
   },
 
-  async getMinimumFeeOfWithdrawal(nerveTxHash) {
-    return await http.post('/', 'getMinimumFeeOfWithdrawal', [nerveTxHash])
+  async getMinimumFeeOfWithdrawal(htgChainId, nerveTxHash) {
+    return await http.postComplete('/', 'getMinimumFeeOfWithdrawal', [htgChainId, nerveTxHash])
         .then((response) => {
           if (response.hasOwnProperty("result")) {
             return response.result;
