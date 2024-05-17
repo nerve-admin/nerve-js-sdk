@@ -623,14 +623,15 @@ var btc = {
     },
 
     calcFeeWithdrawal(utxos, amount, feeRate) {
-        let _fee = 0, total = 0;
+        let _fee = 0, total = 0, totalSpend = 0;
         let resultList = [];
+        amount = Number(amount)
         for (let i = 0; i < utxos.length; i++) {
             let utxo = utxos[i];
             total = total + utxo.amount;
             resultList.push(utxo);
             _fee = this.calcTxSizeWithdrawal(resultList.length) * feeRate;
-            let totalSpend = amount + _fee;
+            totalSpend = amount + _fee;
             if (total >= totalSpend) {
                 break;
             }
