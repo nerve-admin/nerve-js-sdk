@@ -640,6 +640,15 @@ var btc = {
             throw "not enough fee";
         }
         return _fee;
+    },
+    isValidBTCAddress(mainnet = false, address) {
+        try {
+            const network = !mainnet ? bitcoin?.networks.testnet : bitcoin?.networks.bitcoin;
+            bitcoin.address.toOutputScript(address, network);
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
 }
