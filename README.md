@@ -6,6 +6,8 @@ $ npm i nerve-sdk-js
 # build
 ```angular2
 webpack --mode production --config webpack.conf.js --progress
+
+webpack --mode development --config webpack.conf.js --progress
 ```
 
 # Usage

@@ -86,6 +86,7 @@
     "rimraf": "^2.6.3",
     "sha256": "^0.2.0",
     "stream-browserify": "^3.0.0",
+    "text-encoding": "^0.7.0",
     "tiny-secp256k1": "^2.2.3",
     "webpack": "^5.40.0"
   },

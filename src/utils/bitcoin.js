@@ -4,7 +4,16 @@ const bitcoin = require('bitcoinjs-lib');
 const bitcore = require('bitcore-lib');
 const http = require("../test/api/https");
 const nerve = require("../index");
-let ECPair
+let ECPair;
+const ecc = require('tiny-secp256k1');
+ECPair = ECPairFactory(ecc);
+bitcoin.initEccLib(ecc);
+
+// require('tiny-secp256k1').then(ecc => {
+//     ECPair = ECPairFactory(ecc);
+//     bitcoin.initEccLib(ecc);
+// });
+
 const toXOnly = pubKey => (pubKey.length === 32 ? pubKey : pubKey.slice(1, 33));
 const MAX_SAFE_INTEGER = 9007199254740991;
 
@@ -519,11 +528,9 @@ var btc = {
             currentNetwork,
             spendingUtxos,
             script
-        } = createSpendingUtxosAndOutput(mainnet, 0, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray)
+        } = createSpendingUtxosAndOutput(mainnet, 0, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
         for (let i = 0; i < spendingUtxos.length; i++) {
             let utxo = spendingUtxos[i];
-            let txHex = await this.getrawtransaction(mainnet, utxo.txid);
-            utxo.txHex = txHex;
             psbt.addInput({
                 hash: utxo.txid,
                 index: Number(utxo.vout),

@@ -7,6 +7,9 @@ const axios = require('axios');
 let API_CHAIN_ID;
 
 module.exports = {
+  buffer() {
+    return Buffer;
+  },
   mainnet() {
     API_CHAIN_ID = 9;
     axios.defaults.timeout = 9000;

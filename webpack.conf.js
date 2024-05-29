@@ -10,6 +10,7 @@ const config = {
     },
     // 输出
     output: {
+        globalObject: 'this',
         // 带五位hash值的js
         filename: 'nerve.min.js',
         library: "nerve",
