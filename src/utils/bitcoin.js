@@ -534,7 +534,7 @@ var btc = {
             psbt.addInput({
                 hash: utxo.txid,
                 index: Number(utxo.vout),
-                nonWitnessUtxo: Buffer.from(utxo.txHex, 'hex')
+                nonWitnessUtxo: Buffer.from(utxo.preTxHex, 'hex')
             });
         }
         const psbtHex = psbt.toHex();
