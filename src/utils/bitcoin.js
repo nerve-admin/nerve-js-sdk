@@ -80,7 +80,8 @@ function estimateTxSizeBody(currentNetwork, inputCount, inputData, address0, add
 
 function estimateTxSizeFooter(psbt) {
     psbt.finalizeAllInputs();
-    let vSize = psbt.extractTransaction(true).virtualSize();
+    let tx = psbt.extractTransaction(true);
+    let vSize = tx.virtualSize();
     return vSize + 1;
 }
 
@@ -236,7 +237,12 @@ function createSpendingUtxosAndOutput(mainnet, txType, pubkeyHex, utxos, receive
         });
     }
     const psbt = new bitcoin.Psbt({network: currentNetwork});
-    let {total, spending, spendingUtxos, size} = btc.calcSpendingUtxosAndFee(mainnet, txType, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
+    let {
+        total,
+        spending,
+        spendingUtxos,
+        size
+    } = btc.calcSpendingUtxosAndFee(mainnet, txType, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
     for (let i = 0; i < opReturnArray.length; i++) {
         let opReturnBuffer = opReturnArray[i];
         psbt.addOutput({
@@ -333,8 +339,8 @@ var btc = {
     },
     initEccLibForWeb() {
         require('tiny-secp256k1').then(ecc => {
-          ECPair = ECPairFactory(ecc);
-          bitcoin.initEccLib(ecc);
+            ECPair = ECPairFactory(ecc);
+            bitcoin.initEccLib(ecc);
         });
     },
 
@@ -343,18 +349,18 @@ var btc = {
         const publicKeyBuffer = Buffer.from(pubKey, 'hex');
 
         // p2pkh Legacy
-        const { address: Legacy } = bitcoin.payments.p2pkh({network, pubkey: publicKeyBuffer});
+        const {address: Legacy} = bitcoin.payments.p2pkh({network, pubkey: publicKeyBuffer});
 
         // p2wpkh Native Segwit
-        const { address: NativeSegwit } = bitcoin.payments.p2wpkh({network, pubkey: publicKeyBuffer});
+        const {address: NativeSegwit} = bitcoin.payments.p2wpkh({network, pubkey: publicKeyBuffer});
 
         // p2sh Nested Segwit
-        const { address: NestedSegwit } = bitcoin.payments.p2sh({
+        const {address: NestedSegwit} = bitcoin.payments.p2sh({
             redeem: bitcoin.payments.p2wpkh({network, pubkey: publicKeyBuffer}),
         });
 
         // p2tr Taproot
-        const { address: Taproot } = bitcoin.payments.p2tr({
+        const {address: Taproot} = bitcoin.payments.p2tr({
             network,
             internalPubkey: toXOnly(publicKeyBuffer)
         });
@@ -375,17 +381,38 @@ var btc = {
             len0++;
         } else if (add.isPayToScriptHash()) {
             len1++;
-        } else if (add.isPayToWitnessPublicKeyHash()) {
+        } else if (add.isPayToWitnessPublicKeyHash() || add.isPayToWitnessScriptHash()) {
             len2++;
         } else if (add.isPayToTaproot()) {
             len3++;
         }
-        let size = this.estimateTxSize(txType, 1, len0, len1, len2, len3, opReturnArray);
+        const nativeWitnessScriptOutCount = add.isPayToWitnessScriptHash() ? 1 : 0;
+        let fee = 0;
+        let size = 0;
+        let total = 0;
+        let enoughUTXO = true;
+        let spendingUtxos = [];
+        for (let k = 0; k < utxos.length; k++) {
+            let utxo = utxos[k];
+            spendingUtxos.push(utxo);
+            total += Number(utxo.amount);
+            size = this.estimateTxSize(txType, spendingUtxos.length, len0, len1, len2, len3, opReturnArray, nativeWitnessScriptOutCount);
+            fee = size * feeRate;
+            if (total >= (sendAmount + fee)) {
+                enoughUTXO = true;
+                break;
+            }
+        }
+        if (!enoughUTXO) {
+            throw "not enough utxo, may need more: " + (sendAmount + fee - total);
+        }
+        let spending = sendAmount + fee;
+        /*let size = this.estimateTxSize(txType, 1, len0, len1, len2, len3, opReturnArray, nativeWitnessScriptOutCount);
         let fee = size * feeRate;
         let spending = sendAmount + fee;
         let {spendingUtxos, total, inputCount} = getSpendingUtxos(utxos, spending);
         if (inputCount > 1) {
-            let _size = this.estimateTxSize(txType, inputCount, len0, len1, len2, len3, opReturnArray);
+            let _size = this.estimateTxSize(txType, inputCount, len0, len1, len2, len3, opReturnArray, nativeWitnessScriptOutCount);
             fee = _size * feeRate;
             spending = sendAmount + fee;
             size = _size;
@@ -396,7 +423,7 @@ var btc = {
                     inputCount: inputCount1
                 } = getSpendingUtxos(utxos, spending);
                 if (inputCount1 > inputCount) {
-                    let size1 = this.estimateTxSize(txType, inputCount1, len0, len1, len2, len3, opReturnArray);
+                    let size1 = this.estimateTxSize(txType, inputCount1, len0, len1, len2, len3, opReturnArray, nativeWitnessScriptOutCount);
                     fee = size1 * feeRate;
                     spending = sendAmount + fee;
                     size = size1;
@@ -407,20 +434,32 @@ var btc = {
             }
         }
         return {total, spending, spendingUtxos, size, fee};
+        */
+        return {total, spending, spendingUtxos, size, fee};
     },
-    estimateTxSize(txType, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray) {
+
+    estimateTxSize(txType, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray, nativeSegwitScriptOutputCount) {
+        let size = 0;
+        if (nativeSegwitScriptOutputCount) {
+            size += nativeSegwitScriptOutputCount * 12;
+        }
         switch (txType) {
             case 0:
-                return estimateLegacyTxSize(false, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
+                size += estimateLegacyTxSize(false, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
+                break;
             case 1:
-                return estimateNestedSegwitTxSize(false, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
+                size += estimateNestedSegwitTxSize(false, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
+                break;
             case 2:
-                return estimateNativeSegwitTxSize(false, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
+                size += estimateNativeSegwitTxSize(false, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
+                break;
             case 3:
-                return estimateTaprootTxSize(false, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
+                size += estimateTaprootTxSize(false, inputCount, legacyOutputCount, nestedSegwitOutputCount, nativeSegwitOutputCount, taprootOutputCount, opReturnArray);
+                break;
             default:
                 return 0;
         }
+        return size;
     },
 
     async getrawtransaction(mainnet = false, txid, verbose = false) {
@@ -514,7 +553,7 @@ var btc = {
             return 0;
         } else if (add.isPayToScriptHash()) {
             return 1;
-        } else if (add.isPayToWitnessPublicKeyHash()) {
+        } else if (add.isPayToWitnessPublicKeyHash() || add.isPayToWitnessScriptHash()) {
             return 2;
         } else if (add.isPayToTaproot()) {
             return 3;
@@ -522,69 +561,80 @@ var btc = {
         return -1;
     },
 
-    async createLegacyTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray) {
+    async createLegacyTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray, isRBF) {
         const {
             psbt,
             currentNetwork,
             spendingUtxos,
             script
         } = createSpendingUtxosAndOutput(mainnet, 0, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
+        let _SEQUENCE = bitcoin.Transaction.DEFAULT_SEQUENCE;
+        if (isRBF) _SEQUENCE -= 2;
         for (let i = 0; i < spendingUtxos.length; i++) {
             let utxo = spendingUtxos[i];
             psbt.addInput({
                 hash: utxo.txid,
                 index: Number(utxo.vout),
-                nonWitnessUtxo: Buffer.from(utxo.preTxHex, 'hex')
+                nonWitnessUtxo: Buffer.from(utxo.preTxHex, 'hex'),
+                sequence: _SEQUENCE
             });
         }
         const psbtHex = psbt.toHex();
         return psbtHex;
     },
 
-    createNestedSegwitTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray) {
+    createNestedSegwitTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray, isRBF) {
         const {
             psbt,
             currentNetwork,
             spendingUtxos,
             script
-        } = createSpendingUtxosAndOutput(mainnet, 1, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray)
+        } = createSpendingUtxosAndOutput(mainnet, 1, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
+        let _SEQUENCE = bitcoin.Transaction.DEFAULT_SEQUENCE;
+        if (isRBF) _SEQUENCE -= 2;
         for (let i = 0; i < spendingUtxos.length; i++) {
             let utxo = spendingUtxos[i];
             psbt.addInput({
                 hash: utxo.txid,
                 index: Number(utxo.vout),
                 witnessUtxo: {script: script.output, value: utxo.amount},
-                redeemScript: script.redeem.output
+                redeemScript: script.redeem.output,
+                sequence: _SEQUENCE
             });
         }
         const psbtHex = psbt.toHex();
         return psbtHex;
     },
-    createNativeSegwitTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray) {
+    createNativeSegwitTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray, isRBF) {
         const {
             psbt,
             currentNetwork,
             spendingUtxos,
             script
-        } = createSpendingUtxosAndOutput(mainnet, 2, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray)
+        } = createSpendingUtxosAndOutput(mainnet, 2, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
+        let _SEQUENCE = bitcoin.Transaction.DEFAULT_SEQUENCE;
+        if (isRBF) _SEQUENCE -= 2;
         for (let i = 0; i < spendingUtxos.length; i++) {
             let utxo = spendingUtxos[i];
             psbt.addInput({
                 hash: utxo.txid,
                 index: Number(utxo.vout),
-                witnessUtxo: {script: script.output, value: utxo.amount}
+                witnessUtxo: {script: script.output, value: utxo.amount},
+                sequence: _SEQUENCE
             });
         }
         const psbtHex = psbt.toHex();
         return psbtHex;
     },
-    createTaprootTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray) {
+    createTaprootTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray, isRBF) {
         const {
             psbt,
             currentNetwork,
             spendingUtxos,
             script
-        } = createSpendingUtxosAndOutput(mainnet, 3, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray)
+        } = createSpendingUtxosAndOutput(mainnet, 3, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
+        let _SEQUENCE = bitcoin.Transaction.DEFAULT_SEQUENCE;
+        if (isRBF) _SEQUENCE -= 2;
         const childNodeXOnlyPubkey = toXOnly(Buffer.from(pubkeyHex, 'hex'));
         for (let i = 0; i < spendingUtxos.length; i++) {
             let utxo = spendingUtxos[i];
@@ -592,7 +642,8 @@ var btc = {
                 hash: utxo.txid,
                 index: Number(utxo.vout),
                 witnessUtxo: {script: script.output, value: utxo.amount},
-                tapInternalKey: childNodeXOnlyPubkey
+                tapInternalKey: childNodeXOnlyPubkey,
+                sequence: _SEQUENCE
             });
         }
         const psbtHex = psbt.toHex();
