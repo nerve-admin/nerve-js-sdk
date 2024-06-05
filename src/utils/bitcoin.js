@@ -561,7 +561,7 @@ var btc = {
         return -1;
     },
 
-    async createLegacyTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray, isRBF) {
+    createLegacyTx(mainnet = false, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray, isRBF) {
         const {
             psbt,
             currentNetwork,
