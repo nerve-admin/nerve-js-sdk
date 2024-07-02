@@ -50,12 +50,15 @@ async function createNestedSegwitTxTest() {
     const pubkeyHex = "02c33b15d12f51122974d6c44aa429ea19efad06431803711b2658a967dfa574e4";
     const senderAddress = '2N9zTP5UCTiHr9wB5y3kMT94h7aK4x6DaTU';
     const utxos = await nerve.bitcoin.getUtxos(mainnet, senderAddress, 10100);
+    console.log('utxos', JSON.stringify(utxos))
     const receiveAddress = "2NDu3vcpjyiMgvRjDpQfbyh9uF2McfDJ3NF";
-    const feeRate = await nerve.bitcoin.getFeeRate(mainnet);
+    // const feeRate = await nerve.bitcoin.getFeeRate(mainnet);
+    const feeRate = 1;
     const txData = new BitcoinRechargeData();
     txData.to = 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad';
-    txData.value = 10800;
+    txData.value = 800;
     const opReturnBuffer = txData.serialize();
+    console.log('opReturnBuffer', opReturnBuffer.toString('hex'));
     const opReturnArray = [
         opReturnBuffer
     ];
@@ -68,24 +71,30 @@ async function createNestedSegwitTxTest() {
  * NativeSegwit地址跨链转入NERVE
  */
 async function createNativeSegwitTxTest() {
-    const mainnet = false;
-    const pubkeyHex = "026bcdc8821c9d7288b6bfab48ee6ed5347df45261d9a5ea88e27cbccc457c5c6e";
-    const senderAddress = 'tb1qnwnk40t55dsgfd4nuz5aq8sflj8vanh5nskec5';
-    const utxos = await nerve.bitcoin.getUtxos(mainnet, senderAddress, 10200);
-    const receiveAddress = "2NDu3vcpjyiMgvRjDpQfbyh9uF2McfDJ3NF";
-    const feeRate = await nerve.bitcoin.getFeeRate(mainnet);
+    const mainnet = true;
+    const pubkeyHex = "0362d61ec650f9b56601477c111a554a1217fb3b3a0ea02c1db47c3f930b9e187e";
+    const senderAddress = 'bc1qyzdyruj0f8xd90zjftfhxrgev3sst3jcdjl30c';
+    const utxos = await nerve.bitcoin.getUtxos(mainnet, senderAddress);
+    // let utxos = [];
+    // let u1 = {txid: 'cbe2aaf109ce7b47343c48b917ddaee420fbb0efa979889247d7874b4f8d7011', vout: 1, amount: 13654};
+    // let u2 = {txid: '5cfa6560e383720bc35668da5539039e633fd754a4220ffd27399a55f5ca41e3', vout: 0, amount: 100000};
+    // utxos.push(u1);
+    // utxos.push(u2);
+    const receiveAddress = "bc1q7l4q8kqekyur4ak3tf4s2rr9rp4nhz6axejxjwrc3f28ywm4tl8smz5dpd";
+    // const feeRate = await nerve.bitcoin.getFeeRate(mainnet);
+    const feeRate = 19;
+    console.log('=======feeRate', feeRate);
     const txData = new BitcoinRechargeData();
-    txData.to = 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad';
-    txData.value = 10800;
+    txData.to = 'NERVEepb6CwyEWh9mhnmPTJcuWpRzmYvoS7tLm';
+    txData.value = 500000;
     const opReturnBuffer = txData.serialize();
     const opReturnArray = [
         opReturnBuffer
     ];
     const sendAmount = txData.value;
-    const pbstHex = nerve.bitcoin.createNativeSegwitTx(mainnet, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
+    const pbstHex = nerve.bitcoin.createNativeSegwitTx(mainnet, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray, true);
     console.log('pbstHex', pbstHex);
 }
-
 /**
  * Taproot地址跨链转入NERVE
  */
@@ -148,7 +157,8 @@ async function test() {
     // let b = await nerve.bitcoin.getUtxos(true, 'bc1pdgv0kguuwwn9q5qp5e896jxlq346xmpfzfy7a8hy0hewsstegf5s2mjfx9');
     // console.log(b);
 }
-test();
+
+
 /*let psbt = bitcoin.Psbt.fromHex('70736274ff0100c90200000003a9ca7f4e28aca6b92119800236bdc7f847ae3c7cd384c9b009b9b7895b112d5d0000000000ffffffff64b29ded4b31c3ad3c4f1f31627f5d6526716767c2b619512907fbbc09ad03b10000000000ffffffffc0f61fe9093e9851e4144ad7f94fb3235f4acc24e502f60d44a6ad5cb9616e460100000000ffffffff02a0860100000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac0b911c00000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac0000000000010122e8030000000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac00010122e8030000000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac000101229d111e00000000001976a9149393d5936cf79b3b480b52f9652c2f2bf04d270088ac000000');
 let outputs = psbt.txOutputs;
 console.log(outputs);
@@ -307,20 +317,21 @@ function nativeSegwitMultiSignTxFor10Of15() {
 }
 
 function testTxSizeOfWithdrawalBTC() {
-    let utxoSize = 3;
+    let utxoSize = 2;
     let txSize = nerve.bitcoin.calcTxSizeWithdrawal(utxoSize);
     console.log('txSize', txSize);
 }
 
 async function testWithdrawalFee() {
     let mainnet = false;
-    let currentMultiSignAddr = '';
+    let currentMultiSignAddr = 'tb1qtskq8773jlhjqm7ad6a8kxhxleznp0nech0wpk0nxt45khuy0vmqwzeumf';
     const utxos = await nerve.bitcoin.getUtxos(mainnet, currentMultiSignAddr);
-    let amount = 30000;
+    let amount = 300000;
     let feeRate = await nerve.bitcoin.getFeeRate(mainnet);
     let fee = nerve.bitcoin.calcFeeWithdrawal(utxos, amount, feeRate);
-    console.log('fee', fee);
+    console.log('fee', fee, 'feeRate', feeRate);
 }
+
 
 async function testGetMinimumFeeOfWithdrawal() {
     nerve.testnet();
@@ -328,7 +339,6 @@ async function testGetMinimumFeeOfWithdrawal() {
     let feeInfo = await nerveUtil.getMinimumFeeOfWithdrawal(201, nerveTxHash);
     console.log(JSON.stringify(feeInfo))
 }
-testGetMinimumFeeOfWithdrawal();
 
 /*
     满足Nerve底层的手续费要求
@@ -422,4 +432,61 @@ async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAm
 // console.log(k1.__initializeContext())
 // console.log(k1.sign(Buffer.from("581a896871161de3b879853cfef41b3bdbf69113ba66b0b9f699535f72a5ba68", 'hex').valueOf(), Buffer.from("4173f84acb3de56b3ef99894fa3b9a1fe4c48c1bdc39163c37c274cd0334ba75", 'hex').valueOf()))
 
+async function createLegacyPbstTest() {
+    const mainnet = false;
+    const pubkeyHex = '0218509f52e47491df3b8331cbb3d2c784512c5ffb58689413a748a0c9fbd77aa5';
+    const senderAddress = 'mqYkDJboJGMa7XJjrVm3pDxYwB6icxTQrW';
+    const utxos = await nerve.bitcoin.getUtxos(mainnet, senderAddress);
+    const receiveAddress = "mmLahgkWGHQSKszCDcZXPooWoRuYhQPpCF";
+    // const feeRate = await nerve.bitcoin.getFeeRate(mainnet);
+    const feeRate = 100;
+    const opReturnArray = [];
+    const sendAmount = 5000;
+    const pbstHex = await nerve.bitcoin.createLegacyTx(mainnet, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
+    console.log('pbstHex', pbstHex);
+}
+// createLegacyPbstTest();
 
+async function processLegacyPsbt(psbtHex) {
+    let psbt = bitcoin.Psbt.fromHex(psbtHex);
+    let inputs = psbt.txInputs;
+    for (let i = 0; i < inputs.length; i++) {
+        let input = inputs[i];
+        let preHash = input.hash.toString('hex');
+        let preTxHex = await nerve.bitcoin.getrawtransaction(mainnet, utxo.txid);// 请求网络，根据txHash请求rawTx
+        psbt.updateInput(i, {nonWitnessUtxo: Buffer.from(preTxHex, 'hex')});
+    }
+    return psbt.toHex();
+}
+/*let psbt = bitcoin.Psbt.fromHex("70736274ff01008f0100000001188feea4d9e4a46028f17b21ebc98426f9d2819e625142ee4f407621309a8e560000000000fdffffff0388130000000000001976a9143fda920e686292be324b438d6509123ecd8e1e9f88acfe740200000000001976a9146e08011a2a94059cf1545cc1da29f51d73efee8688ac00000000000000000f6a0d74657374207073627420686578000000000000000000");
+let inputs = psbt.txInputs;
+psbt.updateInput(0, {nonWitnessUtxo: Buffer.from('0100000001bc3be3e8e4c4367b63c2d6a59b6d1e9052ba0f44ff9fe300a5439607ec7fda4c010000006a47304402204fdec92dde647b4a265da3227c6bcd3efb6b415eb3fe727b71c3fb85cec943c7022033cbf5b0d2824fe0347810b1e7877e561ae30695b72da7e15bab6f9e8a78b4328121039087cc88855da54458e231c50cb76300334abe46553d3c7a76bc8af0852b87f0fdffffff028e0c0300000000001976a9146e08011a2a94059cf1545cc1da29f51d73efee8688acdcf10100000000001976a9143fda920e686292be324b438d6509123ecd8e1e9f88ac00000000', 'hex')});
+console.log(psbt.toHex());*/
+
+// console.log(inputs);
+// let psbt2 = bitcoin.Psbt.fromHex("70736274ff0100770200000001188feea4d9e4a46028f17b21ebc98426f9d2819e625142ee4f407621309a8e560000000000ffffffff0288130000000000001976a9143fda920e686292be324b438d6509123ecd8e1e9f88ac9e920200000000001976a9146e08011a2a94059cf1545cc1da29f51d73efee8688ac00000000000100e10100000001bc3be3e8e4c4367b63c2d6a59b6d1e9052ba0f44ff9fe300a5439607ec7fda4c010000006a47304402204fdec92dde647b4a265da3227c6bcd3efb6b415eb3fe727b71c3fb85cec943c7022033cbf5b0d2824fe0347810b1e7877e561ae30695b72da7e15bab6f9e8a78b4328121039087cc88855da54458e231c50cb76300334abe46553d3c7a76bc8af0852b87f0fdffffff028e0c0300000000001976a9146e08011a2a94059cf1545cc1da29f51d73efee8688acdcf10100000000001976a9143fda920e686292be324b438d6509123ecd8e1e9f88ac00000000000000");
+// let inputs2 = psbt2.txInputs;
+// console.log(inputs2);
+
+// createLegacyPbstTest();
+function pbstConverter() {
+    let pbstHex = '70736274ff0100a90200000001fcd832950f9f9664780743e8d65eec24d140c6827baa9d9698e301d0e34a3be20200000000fdffffff030000000000000000236a210500013fda920e686292be324b438d6509123ecd8e1e9ffd20030000000000000020030000000000002200205c2c03fbd197ef206fdd6eba7b1ae6fe4530be79c5dee0d9f332eb4b5f847b36a0cf0000000000001600149ba76abd74a36084b6b3e0a9d01e09fc8ececef4000000000001011fd43c0100000000001600149ba76abd74a36084b6b3e0a9d01e09fc8ececef401086c02483045022100f730a44c07fec517ed138ee297864bfbf2df6ffe5f3ab35b00c9a6bf5c3544bd02204934ab30aef9c143e80483993f6db766b9674e934ed08936aabddbd9535d138d0121026bcdc8821c9d7288b6bfab48ee6ed5347df45261d9a5ea88e27cbccc457c5c6e00000000';
+    let tx = bitcoin.Psbt.fromHex(pbstHex).extractTransaction(true);
+    console.log('txHex', tx.toHex());
+}
+function testTxSize() {
+    const txData = new BitcoinRechargeData();
+    txData.to = 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad';
+    txData.value = 800;
+    const opReturnBuffer = txData.serialize();
+    const opReturnArray = [
+        opReturnBuffer
+    ];
+    let size = nerve.bitcoin.estimateTxSize(2, 1, 0, 0, 2, 0, opReturnArray, 1);
+    console.log('size', size);
+}
+
+// pbstConverter();
+// createNativeSegwitTxTest();
+// testTxSize();
+console.log(nerve.bitcoin.checkAddressType(false, 'n444mLdfyD1d347pFRyasP2EE37h3afQaT'));

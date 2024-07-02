@@ -5,17 +5,19 @@ const sdk = require('../api/sdk');
 const {NERVE_INFOS, Plus, timesDecimals} = require('./htgConfig');
 const {getNulsBalance, validateTx, broadcastTx} = require('./api/util');
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
+const {acc5} = require('./testAcc');
 
 // 设置追加手续费的账户
-let fromAddress = "NERVEepb6G878uaTbisv82kfmk196FnxYmcoLb";
-let pri = '';
+let pri = acc5().pri;
+let fromAddress = nerve.getAddressByPri(nerve.chainId(), pri);
+console.log(fromAddress);
 // let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
 // let pri = '';
 
 // 发出的提现交易hash
-let withdrawalTxHash = '56e05350d474eebcabd2665a903bfda9c9e48bbca672995e787c2302d439dd30';
+let withdrawalTxHash = '13455aaabb82607094e219ca952456e2536d6ff19848be97f7572aea1a309895';
 // 追加的NVT手续费，此处设置为追加2个NVT
-let addFeeAmount = '2';
+let addFeeAmount = '1';
 let feeChain = 'NVT';
 
 let remark = 'withdrawal add fee transaction remark...';
@@ -25,7 +27,7 @@ withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, feeChain,
 /**
  * 异构链提现追加手续费交易
  */
-async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, feeChain, remark) {
+async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, feeChain, remark, forBitCoin = false) {
     // 默认使用NVT作为跨链手续费
     if (!feeChain || feeChain == '') {
         feeChain = 'NVT';
@@ -48,14 +50,18 @@ async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAm
         throw "inputs、outputs组装错误";
     }
 
+    let txData = {
+        txHash: withdrawalTxHash
+    };
+    if (forBitCoin) {
+        txData.extend = '020000';
+    }
     let tAssemble = await nerve.transactionAssemble(
         inOrOutputs.data.inputs,
         inOrOutputs.data.outputs,
         remark,
         56,
-        {
-            txHash: withdrawalTxHash
-        }
+        txData
     );
     //获取hash
     let hash = await tAssemble.getHash();
@@ -68,8 +74,8 @@ async function withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAm
     let txhex = tAssemble.txSerialize().toString("hex");
     console.log(txhex.toString('hex'));
 
-    // let result = await nerve.broadcastTx(txhex);
-    // console.log(result);
+    let result = await nerve.broadcastTx(txhex);
+    console.log(result);
 }
 
 /**

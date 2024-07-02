@@ -321,6 +321,27 @@ function calcOpReturnLen(opReturnBytesLen) {
     return scriptLen + amountLen;
 }
 
+/**
+ * calc split number of Transaction Change Spliting by splitGranularity
+ *      change = fromTotal - transfer - fee
+ *      change = splitNum * splitGranularity
+ *      fee = txSize * feeRate
+ *      txSize = f(splitNum)
+ *      f(splitNum) = f(1) + 43 * (splitNum - 1) ==> Derived from btc.calcTxSizeWithdrawal(inputNum, splitNum)
+ *  In summary:
+ *      splitNum = (fromTotal - transfer - btc.calcTxSizeWithdrawal(inputNum, 1) * feeRate + 43 * feeRate) / (43 * feeRate + splitGranularity)
+ */
+function calcSplitNumP2WSH(fromTotal, transfer, feeRate, splitGranularity, inputNum) {
+    // numerator and denominator
+    const numerator = fromTotal - transfer - btc.calcTxSizeWithdrawal(inputNum, 1) * feeRate + 43 * feeRate;
+    const denominator = 43 * feeRate + splitGranularity;
+    let splitNum = (int) (numerator / denominator);
+    if (splitNum == 0 && numerator % denominator > 0) {
+        splitNum = 1;
+    }
+    return splitNum;
+}
+
 var btc = {
     initEccLibForNode() {
         const ecc = require('tiny-secp256k1');
@@ -663,17 +684,30 @@ var btc = {
         return length;
     },
 
-    calcTxSizeWithdrawal(utxoSize) {
+    calcTxSizeWithdrawal(utxoSize, outputNum = 1) {
         let m, n;
         if (nerve.chainId() == 9) {
             m = 10, n = 15;
         } else {
             m = 2, n = 3;
         }
-        return nerve.bitcoin.calcMultiSignSizeP2WSH(utxoSize, 1, [32], m, n);
+        return nerve.bitcoin.calcMultiSignSizeP2WSH(utxoSize, outputNum, [32], m, n);
     },
 
-    calcFeeWithdrawal(utxos, amount, feeRate) {
+    calcFeeWithdrawal(utxos, amount, feeRate, splitGranularity = 0) {
+        if (Array.isArray(utxos)) {
+            utxos.sort((a, b) => {
+                if (a.value !== b.value) {
+                    return a.value < b.value ? -1 : 1;
+                } else if (a.txid !== b.txid) {
+                    return a.txid < b.txid ? -1 : 1;
+                } else if (a.vout !== b.vout) {
+                    return Number(a.vout) < Number(b.vout) ? -1 : 1;
+                } else {
+                    return 0;
+                }
+            });
+        }
         let _fee = 0, total = 0, totalSpend = 0;
         let resultList = [];
         amount = Number(amount)
@@ -681,7 +715,12 @@ var btc = {
             let utxo = utxos[i];
             total = total + utxo.amount;
             resultList.push(utxo);
-            _fee = this.calcTxSizeWithdrawal(resultList.length) * feeRate;
+            if (splitGranularity > 0) {
+                const splitNum = calcSplitNumP2WSH(total, amount, feeRate, splitGranularity, resultList.length);
+                _fee = this.calcTxSizeWithdrawal(resultList.length, splitNum) * feeRate;
+            } else {
+                _fee = this.calcTxSizeWithdrawal(resultList.length) * feeRate;
+            }
             totalSpend = amount + _fee;
             if (total >= totalSpend) {
                 break;
