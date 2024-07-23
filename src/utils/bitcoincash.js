@@ -1,3 +1,4 @@
+
 const nerve = require("../index");
 const MAX_SAFE_INTEGER = 9007199254740991
 
@@ -21,7 +22,7 @@ function encodingLength(number) {
  *      change = splitNum * splitGranularity
  *      fee = txSize * feeRate
  *      txSize = f(splitNum)
- *      f(splitNum) = f(1) + 43 * (splitNum - 1) ==> Derived from btc.calcTxSizeWithdrawal(inputNum, splitNum)
+ *      f(splitNum) = f(1) + 43 * (splitNum - 1) ==> Derived from bch.calcTxSizeWithdrawal(inputNum, splitNum)
  *  In summary:
  *      splitNum = (fromTotal - transfer - btc.calcTxSizeWithdrawal(inputNum, 1) * feeRate + 43 * feeRate) / (43 * feeRate + splitGranularity)
  */
@@ -29,7 +30,7 @@ function calcSplitNumP2SH(fromTotal, transfer, feeRate, splitGranularity, inputN
     // numerator and denominator
     const numerator = fromTotal - transfer - calcTxSizeWithdrawal(inputNum, 1) * feeRate + 43 * feeRate;
     const denominator = 43 * feeRate + splitGranularity;
-    let splitNum = (int) (numerator / denominator);
+    let splitNum = numerator / denominator;
     if (splitNum == 0 && numerator % denominator > 0) {
         splitNum = 1;
     }
@@ -37,51 +38,14 @@ function calcSplitNumP2SH(fromTotal, transfer, feeRate, splitGranularity, inputN
 }
 
 function calcFeeMultiSign(inputNum, outputNum, opReturnBytesLen, m, n) {
-    let op_mLen =1;
-    let op_nLen =1;
-    let pubKeyLen = 33;
-    let pubKeyLenLen = 1;
-    let op_checkmultisigLen = 1;
-
-    let redeemScriptLength = op_mLen + (n * (pubKeyLenLen + pubKeyLen)) + op_nLen + op_checkmultisigLen; //105 n=3
-    let redeemScriptVarInt = encodingLength(redeemScriptLength);//1 n=3
-
-    let op_pushDataLen = 1;
-    let sigHashLen = 1;
-    let signLen=64;
-    let signLenLen = 1;
-    let zeroByteLen = 1;
-
-    let mSignLen = m * (signLenLen + signLen + sigHashLen); //132 m=2
-
-    let scriptLength = zeroByteLen + mSignLen + op_pushDataLen + redeemScriptVarInt + redeemScriptLength;//236 m=2
+    let redeemScriptLength = 1 + (n * (33 + 1)) + 1 + 1;
+    let redeemScriptVarInt = encodingLength(redeemScriptLength);
+    let scriptLength = 2 + (m * (1 + 1 + 69 + 1 + 1)) + redeemScriptVarInt + redeemScriptLength;
     let scriptVarInt = encodingLength(scriptLength);
+    let inputLength = 40 + scriptVarInt + scriptLength;
 
-    let preTxIdLen = 32;
-    let preIndexLen = 4;
-    let sequenceLen = 4;
-
-    let inputLength = preTxIdLen + preIndexLen + sequenceLen + scriptVarInt + scriptLength;//240 n=3,m=2
-
-
-    let opReturnLen = 0;
-    if (opReturnBytesLen != 0)
-        opReturnLen = calcOpReturnLen(opReturnBytesLen);
-
-    let outputValueLen=8;
-    let unlockScriptLen = 25; //If sending to multiSignAddr, it will be 23.
-    let unlockScriptLenLen =1;
-    let outPutLen = outputValueLen + unlockScriptLenLen + unlockScriptLen;
-
-    let inputCountLen=1;
-    let outputCountLen=1;
-    let txVerLen = 4;
-    let nLockTimeLen = 4;
-    let txFixedLen = inputCountLen + outputCountLen + txVerLen + nLockTimeLen;
-
-    let length;
-    length = txFixedLen + inputLength * inputNum + outPutLen * (outputNum + 1) + opReturnLen;
-
+    let totalOpReturnLen = calcOpReturnLen(opReturnBytesLen);
+    let length = 10 + inputLength * inputNum +  43 * (outputNum + 1) + totalOpReturnLen;
     return length;
 }
 
@@ -105,10 +69,11 @@ function calcTxSizeWithdrawal(utxoSize, outputNum = 1) {
     } else {
         m = 2, n = 3;
     }
-    return calcFeeMultiSign(utxoSize, outputNum, 64, m, n);
+    return calcFeeMultiSign(utxoSize, outputNum, 32, m, n);
 }
 
-var fch = {
+var bch = {
+
     getFeeRate() {
         return 1;
     },
@@ -152,4 +117,4 @@ var fch = {
     },
 }
 
-module.exports = fch;
+module.exports = bch;
