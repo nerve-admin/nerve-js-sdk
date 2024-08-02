@@ -9,22 +9,23 @@ const {acc0, acc1, acc2, acc3, acc4} = require('./testAcc');
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 提现账户信息
-let fromAddress = "TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad";
 let pri = acc4().pri;
+let fromAddress = nerve.getAddressByPri(nerve.chainId(), pri);
+console.log(fromAddress);
 
 // 提现接收地址
-let toAddress = 'FBejsS6cJaBrAwPcMjFJYH7iy6Krh2fkRD';
+let toAddress = 'bchtest:qqla4yswdp3f903jfdpc6egfzglvmrs7nussfx247n';
 // 提现金额
-let withdrawalAmount = '0.02';
+let withdrawalAmount = '0.001';
 // 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107, TRX:108)
-let heterogeneousChainId = 202;
+let heterogeneousChainId = 203;
 // 提现资产信息 5-171: BTC, 5-168: FCH
 let withdrawalAssetChainId = 5;
-let withdrawalAssetId = 168;
+let withdrawalAssetId = 184;
 // 提现资产小数位
 let withdrawalDecimals = 8;
 // 提现手续费(NVT)
-let withdrawalFee = '1';
+let withdrawalFee = '10';
 let feeChain = 'NVT';
 
 let remark = 'withdrawal transaction remark...';
