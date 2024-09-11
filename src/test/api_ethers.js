@@ -287,8 +287,8 @@ module.exports = {
      * @param isToken   是否token资产
      */
     async calcOtherMainAssetOfWithdrawTest(provider, otherMainAssetCoin, otherMainAssetUSD, currentMainAssetUSD, isToken) {
+        // const gasPrice = new ethers.utils.BigNumber('5000000000');
         const gasPrice = await this.getWithdrawGas(provider);
-        // const gasPrice = new ethers.utils.BigNumber('2321765047');
         console.log(ethers.utils.formatUnits(gasPrice, 9), 'gasPrice');
         const result = this.calcOtherMainAssetOfWithdraw(otherMainAssetCoin, otherMainAssetUSD, gasPrice, currentMainAssetUSD, isToken);
         return result
@@ -314,6 +314,7 @@ module.exports = {
         } else {
             gasLimit = new ethers.utils.BigNumber('190000');
         }
+        gasLimit = '252000';
         console.log(gasLimit.toString(), 'gasLimit');
         const otherMainAssetUSDBig = ethers.utils.parseUnits(otherMainAssetUSD.toString(), 18);
         const currentMainAssetUSDBig = ethers.utils.parseUnits(currentMainAssetUSD.toString(), 18);

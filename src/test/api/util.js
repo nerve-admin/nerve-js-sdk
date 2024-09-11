@@ -544,8 +544,8 @@ module.exports = {
    * @returns {Promise<AxiosResponse<any>>}
    */
   async getSymbolPriceOfUsdt(chainId, assetId, assetType = '') {
-    // return await http.postComplete('/', 'getQuotationUsdtPrice', [chainId, assetId, assetType])
-    return await http.postComplete('/', 'getBestSymbolPrice', [chainId, assetId, assetType])
+    return await http.postComplete('/', 'getQuotationUsdtPrice', [chainId, assetId, assetType])
+    // return await http.postComplete('/', 'getBestSymbolPrice', [chainId, assetId, assetType])
         .then((response) => {
           if (response.hasOwnProperty("result")) {
             return response.result;

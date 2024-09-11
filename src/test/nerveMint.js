@@ -8,9 +8,10 @@ const {acc0, acc1, acc2, acc3} = require('./testAcc');
 
 async function deploy() {
   let {pri, pub, fromAddress} = acc0();
-  let toAddress = 'TNVTdTSQ2wdoL5pCz97r3UYtcesxy79YhUDo8';
+  // let toAddress = 'TNVTdTSPmyc6wVo7DTBjsJJ4kCHuzCS4tqsHx';//dev
+  let toAddress = 'TNVTdTSQ2wdoL5pCz97r3UYtcesxy79YhUDo8';//testnet
   let amount = "900" + "000000000000000000";
-  let minutesForWhitelist = "60";
+  let minutesForWhitelist = "0";
 
   let tokenAmountForLp = "0";
   let lockDayForLp = "0";
@@ -31,10 +32,10 @@ async function deploy() {
     "feetick": "5-1",// mint fee asset
     "fee": "10" + "00000000",// mint fee amount
     "addr": "TNVTdTSPQmKV5o9dhsN6TiXKot4mPLQXQLyHz",// mint fee addr
-    "count": "3",// mint limits
-    "start": "" + (currentTime() + 60 * 15),// mint time
-    "unlock": "" + (currentTime() + 60 * 30),// mint asset unlock time
-    "whitelist": "TNVTdTSPQh3RLFhij1X8JiE5CyYgDcGcPReKF,TNVTdTSPTXQudD2FBSefpQRkXTyhhtSjyEVAF",
+    "count": "100",// mint limits
+    "start": "" + ((currentTime() + 60 * 3)),// mint time
+    "unlock": "" + ((currentTime() + 60 * 10)),// mint asset unlock time
+    // "whitelist": "TNVTdTSPQh3RLFhij1X8JiE5CyYgDcGcPReKF,TNVTdTSPTXQudD2FBSefpQRkXTyhhtSjyEVAF",
     "minutes": "" + minutesForWhitelist,//白名单mint时间
     "ratio": "" + radio,//LP Addition Ratio
     "days": "" + lockDayForLp//LP Lock Dayas
@@ -45,8 +46,9 @@ async function deploy() {
 }
 
 async function mint(pri, pub, fromAddress, pid) {
-  let toAddress = 'TNVTdTSQ2wdoL5pCz97r3UYtcesxy79YhUDo8';
-  let amount = "10" + "00000000";
+  // let toAddress = 'TNVTdTSPmyc6wVo7DTBjsJJ4kCHuzCS4tqsHx';//dev
+  let toAddress = 'TNVTdTSQ2wdoL5pCz97r3UYtcesxy79YhUDo8';//testnet
+  let amount = "80" + "00000000";
   let mint = {
     "p": "nerve-mint",
     "op": "mint",
@@ -59,10 +61,10 @@ async function mint(pri, pub, fromAddress, pid) {
 
 async function test() {
   let {pri, pub, fromAddress} = acc2();
-  let pid = 0;
+  let pid = 24;
   await mint(pri, pub, fromAddress, pid);
-  await mint(pri, pub, fromAddress, pid);
-  await mint(pri, pub, fromAddress, pid);
+  // await mint(pri, pub, fromAddress, pid);
+  // await mint(pri, pub, fromAddress, pid);
   // let {pri: pri1, pub: pub1, fromAddress: fromAddress1} = acc3();
   // await mint(pri1, pub1, fromAddress1, pid);
   // await mint(pri1, pub1, fromAddress1, pid);
@@ -71,6 +73,7 @@ async function test() {
 
 test();
 // deploy();
+// console.log(currentTime())
 
 /**
  * 转账交易
@@ -117,7 +120,14 @@ async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChain
   let txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
   console.log(txhex);
 
-  let result = await validateTx(txhex);
+  let results = await broadcastTx(txhex);
+  if (results && results.value) {
+    console.log("交易完成", JSON.stringify(results))
+  } else {
+    console.log("广播交易失败")
+  }
+
+  /*let result = await validateTx(txhex);
   if (result.success) {
     console.log(result.data.value);
     let results = await broadcastTx(txhex);
@@ -128,7 +138,7 @@ async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChain
     }
   } else {
     console.log("验证交易失败:" + JSON.stringify(result.error))
-  }
+  }*/
 }
 
 

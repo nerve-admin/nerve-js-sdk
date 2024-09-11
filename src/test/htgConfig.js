@@ -8,7 +8,7 @@ const HTGNET = 'test';
 const RPC_URL = {
     BNB: {
         test: "https://endpoints.omniatech.io/v1/bsc/testnet/public",
-        main: "https://bsc-dataseed1.defibit.io/"
+        main: "https://binance.llamarpc.com"
     },
     HT: {
         test: "https://http-testnet.hecochain.com",

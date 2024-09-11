@@ -1,6 +1,15 @@
 const axios = require('axios');
+const https = require('https');
 const nerve = require('../../index');
 axios.defaults.headers.post['Content-Type'] = 'application/json';
+// const agent = new https.Agent({
+//   rejectUnauthorized: false,
+//   host: '127.0.0.1',
+//   port: 1087
+// });
+const agent = new https.Agent({
+  rejectUnauthorized: false
+});
 
 /**
  * 封装post请求
@@ -15,7 +24,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       data.unshift(nerve.chainId());
       const params = {"jsonrpc": "2.0", "method": methodName, "params": data, "id": Math.floor(Math.random() * 1000)};
-      axios.post(url, params)
+      axios.post(url, params, { httpsAgent: agent })
         .then(response => {
           resolve(response.data)
         }, err => {

@@ -40,7 +40,7 @@ async function getPrice(chainId, assetId) {
 // withdrawalToONE(isMainnet);
 // withdrawalToMATIC(isMainnet);
 // withdrawalToKCS(isMainnet);
-// withdrawalToTRX(isMainnet);
+// withdrawalToTRX(isMainnet, 'TRX');
 // withdrawalToCRO(isMainnet);
 // withdrawalToFTM(isMainnet);
 // withdrawalToFTMByNVT(isMainnet);
@@ -66,7 +66,7 @@ async function getPrice(chainId, assetId) {
 // withdrawalToL2SomeoneByETH("OP", 115, isMainnet);
 // withdrawalToL2SomeoneByNVT("OP", 115, isMainnet);
 // withdrawalToL2SomeoneByETH("BASE", 129, isMainnet);
-// withdrawalToL2SomeoneByNVT("BASE", 129, isMainnet);
+withdrawalToL2SomeoneByNVT("BASE", 129, isMainnet);
 // withdrawalToL2SomeoneByETH("SCROLL", 130, isMainnet);
 // withdrawalToL2SomeoneByNVT("SCROLL", 130, isMainnet);
 
@@ -76,7 +76,7 @@ async function getPrice(chainId, assetId) {
 // withdrawalToL2SomeoneByNVT("BLAST", 139, isMainnet);
 
 // withdrawalToSomeoneByNVT("REI", isMainnet);
-withdrawalToSomeoneByOwnMainAsset("REI", isMainnet);
+// withdrawalToSomeoneByOwnMainAsset("REI", isMainnet);
 
 async function getWithdrawGas(provider) {
     return provider.getGasPrice().then((gasPrice) => {
@@ -108,11 +108,9 @@ async function withdrawalToL2SomeoneByNVT(chain, htgChainId, isMainnet) {
     let nerveChainId = isMainnet ? 9 : 5;
     // let ethRpc = isMainnet ? "https://geth.nerve.network" : "https://rpc.ankr.com/eth_goerli";
     let ethRpc = isMainnet ? "https://eth.drpc.org/" : "https://rpc.ankr.com/eth_goerli";
-    // let feeNumber = await calcFee(chain, isMainnet, true, "NVT");
-    // console.log("提现到"+chain+"网络需要的NVT:" + feeNumber);
-    let feeNumber = 1;
-    // let nvtCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 1, 'FEE');
-    let nvtCoinPrice = '0.00928501';
+    let feeNumber = await calcFee(chain, isMainnet, true, "NVT");
+    console.log("提现到"+chain+"网络需要的NVT:" + feeNumber);
+    let nvtCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 1, 'FEE');
     let ethCoinPrice = await util.getSymbolPriceOfUsdt(nerveChainId, 2);
     console.log(nvtCoinPrice, "nvtCoinPrice");
     console.log(ethCoinPrice, "ethCoinPrice");
@@ -174,8 +172,8 @@ async function withdrawalToKCS(isMainnet) {
     console.log("提现到KCS网络:" + feeNumber);
 }
 
-async function withdrawalToTRX(isMainnet) {
-    let feeNumber = await calcFee("TRX", isMainnet, true, "NVT");
+async function withdrawalToTRX(isMainnet, feeChain = "NVT") {
+    let feeNumber = await calcFee("TRX", isMainnet, true, feeChain);
     console.log("提现到TRX网络:" + feeNumber);
 }
 
