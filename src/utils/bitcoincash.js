@@ -1,5 +1,6 @@
 
 const nerve = require("../index");
+const BigNumber = require("fch-sdk/src/utils/bignumber");
 const MAX_SAFE_INTEGER = 9007199254740991
 
 function checkUInt53(n) {
@@ -72,10 +73,79 @@ function calcTxSizeWithdrawal(utxoSize, outputNum = 1) {
     return calcFeeMultiSign(utxoSize, outputNum, 32, m, n);
 }
 
+function computerSatoshi(amount) {
+    let totalInputAmount = new BigNumber(amount)
+    return totalInputAmount.times(100000000).toNumber();
+}
+
+function msgBytesLength(msg, encoding) {
+    if (!msg) {
+        msg = '';
+    }
+    if (!encoding) {
+        encoding = 'utf8';
+    }
+    if (typeof (msg) == 'string') {
+        if (msg != '') {
+            return Buffer.from(msg, encoding).length;
+        }
+        return 0;
+    } else {
+        throw 'only string';
+    }
+}
+
+function calcTxSize(inputNum, outputNum, opReturnBytesLen) {
+
+    let baseLength = 10;
+    let inputLength = 141 * inputNum;
+    let outputLength = 34 * (outputNum + 1); // Include change output
+
+    let opReturnLen = 0;
+    if (opReturnBytesLen != 0)
+        opReturnLen = calcOpReturnLen(opReturnBytesLen);
+
+    return baseLength + inputLength + outputLength + opReturnLen;
+}
+
+function calcOpReturnLen(opReturnBytesLen) {
+    let dataLen;
+    if (opReturnBytesLen < 76) {
+        dataLen = opReturnBytesLen + 1;
+    } else if (opReturnBytesLen < 256) {
+        dataLen = opReturnBytesLen + 2;
+    } else {
+        dataLen = opReturnBytesLen + 3;
+    }
+    let scriptLen = (dataLen + 1) + encodingLength(dataLen + 1);
+    let amountLen = 8;
+    return scriptLen + amountLen;
+}
+
 var bch = {
 
     getFeeRate() {
         return 1;
+    },
+
+    calcTxFee(inputNum, msg, encoding) {
+        return calcTxSize(inputNum, 1, msgBytesLength(msg, encoding));
+    },
+
+    calcFeeAndUTXO(utxos, amount, msg, encoding) {
+        let _fee = 0, total = 0;
+        let resultList = [];
+        for (let i = 0; i < utxos.length; i++) {
+            let utxo = utxos[i];
+            total = total + utxo.satoshis;
+            resultList.push(utxo);
+            _fee = this.calcTxFee(resultList.length, msg, encoding);
+            let totalSpend = amount + _fee;
+            if (total >= totalSpend) {
+                break;
+            }
+        }
+        return {utxo: resultList, fee: _fee};
     },
 
     calcFeeWithdrawal(utxos, amount, feeRate, splitGranularity = 0) {
