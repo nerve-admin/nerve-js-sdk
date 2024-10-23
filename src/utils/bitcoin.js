@@ -2,6 +2,11 @@ const {ECPairFactory} = require('ecpair');
 const bufferutils_1 = require('bitcoinjs-lib/src/bufferutils');
 const bitcoin = require('bitcoinjs-lib');
 const bitcore = require('bitcore-lib');
+const {
+    BTCWallet, _getAddressType, formatPsbtHex,
+    toPsbtNetwork,
+    UNISAT_AddressType
+} = require("./BTCWallet");
 const http = require("../test/api/https");
 const nerve = require("../index");
 let ECPair;
@@ -342,6 +347,38 @@ var btc = {
             ECPair = ECPairFactory(ecc);
             bitcoin.initEccLib(ecc);
         });
+    },
+
+    extractTransaction(signPsbtHex) {
+        return bitcoin.Psbt.fromHex(signPsbtHex).extractTransaction().toHex();
+    },
+
+    /**
+     * @desc dapp signPsbt签名，签名psbtHex
+     * @param {string} _psbtHex 需要签名的psbtHex（dapp传过来）
+     * @param {string} options JSON字符串（）
+     * @param {string} address 账户地址
+     * @param {string} networkType 当前网络环境 测试网->beta 主网->main
+     * @param {string} priHex 私钥
+     * @param {string} platform ios or android
+     * @param flag
+     * */
+    signPsbt(_psbtHex, options, address, networkType = "beta", priHex) {
+        try {
+            formatPsbtHex(_psbtHex);
+            const _options = options && JSON.parse(options) || {};
+            const psbtNetwork = toPsbtNetwork(networkType);
+            const psbt = bitcoin.Psbt.fromHex(_psbtHex,{network:psbtNetwork});
+            const type = _getAddressType(address, networkType);
+            const wallet = new BTCWallet(priHex, UNISAT_AddressType[type], networkType);
+            const autoFinalized = (!(_options && _options.autoFinalized == false));
+            const toSignInputs = wallet.formatOptionsToSignInputs(_psbtHex, options);
+            const signPsbt = wallet.signPsbt(psbt, {toSignInputs, autoFinalized});
+            const psbtHex = signPsbt.toHex();
+            return psbtHex;
+        } catch (error) {
+            throw error;
+        }
     },
 
     getAddressByPub(pubKey, isMainnet) {
