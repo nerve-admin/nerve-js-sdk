@@ -108,20 +108,6 @@ function calcTxSize(inputNum, outputNum, opReturnBytesLen) {
     return baseLength + inputLength + outputLength + opReturnLen;
 }
 
-function calcOpReturnLen(opReturnBytesLen) {
-    let dataLen;
-    if (opReturnBytesLen < 76) {
-        dataLen = opReturnBytesLen + 1;
-    } else if (opReturnBytesLen < 256) {
-        dataLen = opReturnBytesLen + 2;
-    } else {
-        dataLen = opReturnBytesLen + 3;
-    }
-    let scriptLen = (dataLen + 1) + encodingLength(dataLen + 1);
-    let amountLen = 8;
-    return scriptLen + amountLen;
-}
-
 var bch = {
 
     getFeeRate() {

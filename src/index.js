@@ -326,3 +326,5 @@ const btc = require("./utils/bitcoin");
 module.exports.bitcoin = btc;
 const fch = require("./utils/freecash");
 module.exports.fch = fch;
+const bch = require("./utils/bitcoincash");
+module.exports.bch = bch;
