@@ -4,6 +4,9 @@ $ npm i nerve-sdk-js
 ```
 
 # build
+
+> nvm use 16.15.1
+
 ```angular2
 webpack --mode production --config webpack.conf.js --progress
 
