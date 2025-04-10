@@ -87,7 +87,9 @@
     "sha256": "^0.2.0",
     "stream-browserify": "^3.0.0",
     "tiny-secp256k1": "^2.2.3",
-    "webpack": "^5.40.0"
+    "webpack": "^5.40.0",
+    "tbc-lib-js": "^1.0.21",
+    "@types/node": "^22.10.1"
   },
   "optionalDependencies": {
     "secp256k1": "3.7.1"

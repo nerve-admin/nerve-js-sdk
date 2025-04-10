@@ -328,3 +328,5 @@ const fch = require("./utils/freecash");
 module.exports.fch = fch;
 const bch = require("./utils/bitcoincash");
 module.exports.bch = bch;
+const tbcLib = require("./utils/tbc/tbc");
+module.exports.tbcLib = tbcLib;

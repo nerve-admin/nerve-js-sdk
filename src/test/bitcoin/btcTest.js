@@ -98,16 +98,17 @@ async function createNativeSegwitTxTest() {
 /**
  * Taproot地址跨链转入NERVE
  */
+// createTaprootTxTest();
 async function createTaprootTxTest() {
     const mainnet = false;
-    const pubkeyHex = "021581e09eb49bfdb52e147ddeb943219fdfc15f04cb49686a37d7a757800fb591";
-    const senderAddress = 'tb1ps240r4jpxcnauxm0vk2dy0nh5wuzaua2luppf096keq8ym4eyx8qktkd7q';
-    const utxos = await nerve.bitcoin.getUtxos(mainnet, senderAddress, 10800);
-    const receiveAddress = "2NDu3vcpjyiMgvRjDpQfbyh9uF2McfDJ3NF";
+    const pubkeyHex = "03bf7f76fed8161c20fc54404cfb29725fb9a415990fe9cb786a84d00c11a0324c";
+    const senderAddress = 'tb1p8katkhwv8c5rgtph90xx0y87c9rtz63upecrckhd52k54nsv3jcsav8tfc';
+    const utxos = await nerve.bitcoin.getUtxos(mainnet, senderAddress, 100000);
+    const receiveAddress = "tb1qtskq8773jlhjqm7ad6a8kxhxleznp0nech0wpk0nxt45khuy0vmqwzeumf";
     const feeRate = await nerve.bitcoin.getFeeRate(mainnet);
     const txData = new BitcoinRechargeData();
     txData.to = 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad';
-    txData.value = 10800;
+    txData.value = 100000;
     const opReturnBuffer = txData.serialize();
     const opReturnArray = [
         opReturnBuffer
@@ -115,16 +116,6 @@ async function createTaprootTxTest() {
     const sendAmount = txData.value;
     const pbstHex = nerve.bitcoin.createTaprootTx(mainnet, pubkeyHex, utxos, receiveAddress, sendAmount, feeRate, opReturnArray);
     console.log('pbstHex', pbstHex);
-}
-
-function dataTest() {
-    const txData = new BitcoinRechargeData();
-    txData.to = 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad';
-    txData.value = 10800;
-    txData.extend0 = '2024-01-25 17:49';
-    txData.feeTo = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
-    console.log(txData.serialize().toString('hex'));
-    txData.test();
 }
 
 /*
@@ -486,7 +477,19 @@ function testTxSize() {
     console.log('size', size);
 }
 
+function dataTest() {
+    const txData = new BitcoinRechargeData();
+    txData.to = 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad';
+    txData.value = 0;
+    txData.extend0 = '2024-03-25 17:49';
+    txData.extend1 = '1707b71efdc207a476e7fefd6f7fa880a2201032c2b1d0a3cc20118ded505da410800';
+    // txData.feeTo = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
+    console.log(txData.serialize().toString('hex'));
+    // txData.test();
+}
+
+dataTest();
 // pbstConverter();
 // createNativeSegwitTxTest();
 // testTxSize();
-console.log(nerve.bitcoin.checkAddressType(false, 'n444mLdfyD1d347pFRyasP2EE37h3afQaT'));
+// console.log(nerve.bitcoin.checkAddressType(false, 'n444mLdfyD1d347pFRyasP2EE37h3afQaT'));
