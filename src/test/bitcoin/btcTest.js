@@ -479,10 +479,12 @@ function testTxSize() {
 
 function dataTest() {
     const txData = new BitcoinRechargeData();
-    txData.to = 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad';
+    // TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad
+    // NERVEepb6D8u4vJ22GbJJ5DaWLEoLKT76BiX5F 
+    txData.to = 'NERVEepb6D8u4vJ22GbJJ5DaWLEoLKT76BiX5F';
     txData.value = 0;
-    txData.extend0 = '2024-03-25 17:49';
-    txData.extend1 = '1707b71efdc207a476e7fefd6f7fa880a2201032c2b1d0a3cc20118ded505da410800';
+    txData.extend0 = '2025-04-11 15:22:31';
+    txData.extend1 = '29a753233bf4f3b546b5eacd0a8ec7a7a236bf7b987f51390a7cac90bb1d8bcf660000';
     // txData.feeTo = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
     console.log(txData.serialize().toString('hex'));
     // txData.test();

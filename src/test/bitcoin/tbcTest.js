@@ -2,12 +2,12 @@ require('dotenv').config();
 const nerve = require('../../index');
 const {BitcoinRechargeData} = require('../../model/BitcoinRechargeData');
 const tbcLib = nerve.tbcLib;
-const network = "testnet";
-//const network = "mainnet"
+// const network = "testnet";
+const network = "mainnet"
 
 //计算多签地址
 const multiSigAddress = 'FBeMrqQWFkhBJt6rA2yKxVWg9Jeiww76Pr';
-const privateKey = tbcLib.tbc.PrivateKey.fromString(process.env._8KFu);
+const privateKey = tbcLib.tbc.PrivateKey.fromString(process.env._JE);
 const tbc_from = tbcLib.tbc.Address.fromPrivateKey(privateKey).toString();
 
 //普通地址向多签地址转tbc
@@ -54,5 +54,22 @@ async function transferToMultiWithFT(network = 'testnet', privateKey, tbc_from, 
     await tbcLib.API.broadcastTXraw(transferTX, network);
 }
 
-// transferToMulti(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.023, 'test233333333');
-// transferToMultiWithFT(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.111, '1707b71efdc207a476e7fefd6f7fa880a2201032c2b1d0a3cc20118ded505da4', 'test233333333');
+// transferToMulti(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.001, 'test233333333');
+// transferToMultiWithFT(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.001, '29a753233bf4f3b546b5eacd0a8ec7a7a236bf7b987f51390a7cac90bb1d8bcf', 'test233333333');
+
+function transferTBCData(nerveTo, tbcAmount, extend) {
+    const txData = new BitcoinRechargeData(); 
+    txData.to = nerveTo;
+    txData.value = tbcAmount;
+    txData.extend0 = extend;
+    return txData.serialize().toString('hex');
+}
+
+function transferTokenData(nerveTo, tokenAmount, tokenContract, extend, tbcAmount = 0) {
+    const txData = new BitcoinRechargeData(); 
+    txData.to = nerveTo;
+    txData.value = tbcAmount;
+    txData.extend0 = extend;
+    txData.extend1 = tokenContract + '' + tokenAmount;
+    return txData.serialize().toString('hex');
+}
