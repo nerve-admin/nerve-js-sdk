@@ -6,7 +6,9 @@ const tbcLib = nerve.tbcLib;
 const network = "mainnet"
 
 //计算多签地址
-const multiSigAddress = 'FBeMrqQWFkhBJt6rA2yKxVWg9Jeiww76Pr';
+// devnet: FBeMrqQWFkhBJt6rA2yKxVWg9Jeiww76Pr
+// testnet: FJ5buUdNQ8FBpwh3ZT2W1peVUidHRvje2m
+const multiSigAddress = 'FJ5buUdNQ8FBpwh3ZT2W1peVUidHRvje2m';
 const privateKey = tbcLib.tbc.PrivateKey.fromString(process.env._JE);
 const tbc_from = tbcLib.tbc.Address.fromPrivateKey(privateKey).toString();
 
@@ -54,9 +56,23 @@ async function transferToMultiWithFT(network = 'testnet', privateKey, tbc_from, 
     await tbcLib.API.broadcastTXraw(transferTX, network);
 }
 
-// transferToMulti(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.001, 'test233333333');
+transferToMulti(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.021, 'test233333333');
 // transferToMultiWithFT(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.001, '29a753233bf4f3b546b5eacd0a8ec7a7a236bf7b987f51390a7cac90bb1d8bcf', 'test233333333');
 
+/**
+ * DAPP接口调用参考
+ * sendTransaction
+ * const amount = 1000; // TBC转账金额-右移精度
+ * const nerveTo = ""; // Nerve网络接收地址
+ * const extend = "test23333333";
+ * const tbcTo = ""; // TBC网络接收地址
+ * params = [{flag:"P2PKH", satoshis: amount, address: tbcTo, ramark: transferTBCData(nerveTo, amount, extend)}];
+ * 
+ * @param {Nerve接收地址} nerveTo 
+ * @param {跨入的TBC金额-右移精度} tbcAmount 
+ * @param {扩展备注-选填，可填任意值} extend 
+ * @returns 
+ */
 function transferTBCData(nerveTo, tbcAmount, extend) {
     const txData = new BitcoinRechargeData(); 
     txData.to = nerveTo;
@@ -65,6 +81,23 @@ function transferTBCData(nerveTo, tbcAmount, extend) {
     return txData.serialize().toString('hex');
 }
 
+/**
+ * DAPP接口调用参考
+ * sendTransaction
+ * const nerveTo = ""; // Nerve网络接收地址
+ * const tokenValue = 30000; // Token转账金额-右移精度
+ * const tokenContract = ""; // Token合约地址
+ * const tbcTo = ""; // TBC网络接收地址
+ * const extend = "test23333333";
+ * const tbcValue = 0; // 大于0则同时跨链tbc资产-右移精度
+ * params = [{flag:"FT_TRANSFER", ft_contract_address: tokenContract, ft_amount: tokenValue, address: tbcTo, tbc_amount: tbcValue, ramark: transferTokenData(nerveTo, tokenValue, tokenContract, extend, tbcValue)}];
+ * @param {Nerve接收地址} nerveTo 
+ * @param {跨入的TOKEN金额-右移精度} tokenAmount 
+ * @param {token合约地址} tokenContract 
+ * @param {扩展备注-选填，可填任意值，swapbox用于填写订单号} extend 
+ * @param {跨入的TBC金额-右移精度-选填} tbcAmount 
+ * @returns 
+ */
 function transferTokenData(nerveTo, tokenAmount, tokenContract, extend, tbcAmount = 0) {
     const txData = new BitcoinRechargeData(); 
     txData.to = nerveTo;
