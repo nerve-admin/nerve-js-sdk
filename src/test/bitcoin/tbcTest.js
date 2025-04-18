@@ -9,7 +9,7 @@ const network = "mainnet"
 // devnet: FBeMrqQWFkhBJt6rA2yKxVWg9Jeiww76Pr
 // testnet: FJ5buUdNQ8FBpwh3ZT2W1peVUidHRvje2m
 const multiSigAddress = 'FJ5buUdNQ8FBpwh3ZT2W1peVUidHRvje2m';
-const privateKey = tbcLib.tbc.PrivateKey.fromString(process.env._JE);
+const privateKey = tbcLib.tbc.PrivateKey.fromString(process.env._8KFu);
 const tbc_from = tbcLib.tbc.Address.fromPrivateKey(privateKey).toString();
 
 //普通地址向多签地址转tbc
@@ -56,8 +56,8 @@ async function transferToMultiWithFT(network = 'testnet', privateKey, tbc_from, 
     await tbcLib.API.broadcastTXraw(transferTX, network);
 }
 
-transferToMulti(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.021, 'test233333333');
-// transferToMultiWithFT(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 0.001, '29a753233bf4f3b546b5eacd0a8ec7a7a236bf7b987f51390a7cac90bb1d8bcf', 'test233333333');
+transferToMulti(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPSShZokMfXRo82TP2Kq6Fc2nhMNmF7', 0.221, 'test233333333');
+// transferToMultiWithFT(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 2.21, '29a753233bf4f3b546b5eacd0a8ec7a7a236bf7b987f51390a7cac90bb1d8bcf', 'test233333333');
 
 /**
  * DAPP接口调用参考
@@ -78,7 +78,7 @@ function transferTBCData(nerveTo, tbcAmount, extend) {
     txData.to = nerveTo;
     txData.value = tbcAmount;
     txData.extend0 = extend;
-    return txData.serialize().toString('hex');
+    return '88888888' + txData.serialize().toString('hex');
 }
 
 /**
@@ -104,5 +104,5 @@ function transferTokenData(nerveTo, tokenAmount, tokenContract, extend, tbcAmoun
     txData.value = tbcAmount;
     txData.extend0 = extend;
     txData.extend1 = tokenContract + '' + tokenAmount;
-    return txData.serialize().toString('hex');
+    return '88888888' + txData.serialize().toString('hex');
 }
