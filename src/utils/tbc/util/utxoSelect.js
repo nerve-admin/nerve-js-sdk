@@ -4,6 +4,7 @@ exports.findMinFiveSum = findMinFiveSum;
 exports.findMinFourSum = findMinFourSum;
 exports.findMinThreeSum = findMinThreeSum;
 exports.findMinTwoSum = findMinTwoSum;
+exports.initialUtxoArray = initialUtxoArray;
 /**
  * Finds the minimum sum of five numbers in an array that is greater than or equal to a target value.
  * @param balances - The array of numbers.
@@ -11,7 +12,6 @@ exports.findMinTwoSum = findMinTwoSum;
  * @returns The indices of the five numbers that form the minimum sum.
  */
 function findMinFiveSum(balances, target) {
-    balances.sort((a, b) => Number(a - b));
     const n = balances.length;
     let minFive = [];
     let minSum = BigInt(Number.MAX_SAFE_INTEGER);
@@ -20,7 +20,11 @@ function findMinFiveSum(balances, target) {
             let left = j + 1;
             let right = n - 1;
             while (left < right - 1) {
-                const sum = balances[i] + balances[j] + balances[left] + balances[right] + balances[right - 1];
+                const sum = balances[i] +
+                    balances[j] +
+                    balances[left] +
+                    balances[right] +
+                    balances[right - 1];
                 if (sum >= target && sum < minSum) {
                     minSum = sum;
                     minFive = [i, j, left, right - 1, right];
@@ -43,7 +47,6 @@ function findMinFiveSum(balances, target) {
  * @returns The indices of the four numbers that form the minimum sum.
  */
 function findMinFourSum(balances, target) {
-    balances.sort((a, b) => Number(a - b));
     const n = balances.length;
     let minFour = [];
     let minSum = BigInt(Number.MAX_SAFE_INTEGER);
@@ -75,7 +78,6 @@ function findMinFourSum(balances, target) {
  * @returns The indices of the three numbers that form the minimum sum.
  */
 function findMinThreeSum(balances, target) {
-    balances.sort((a, b) => Number(a - b));
     const n = balances.length;
     let minThree = [];
     let minSum = BigInt(Number.MAX_SAFE_INTEGER);
@@ -105,7 +107,6 @@ function findMinThreeSum(balances, target) {
  * @returns The indices of the two numbers that form the minimum sum.
  */
 function findMinTwoSum(balances, target) {
-    balances.sort((a, b) => Number(a - b));
     const n = balances.length;
     let minTwo = [];
     let minSum = BigInt(Number.MAX_SAFE_INTEGER);
@@ -125,4 +126,21 @@ function findMinTwoSum(balances, target) {
         }
     }
     return minTwo.length === 2 ? minTwo : null;
+}
+/**
+ * Sets all elements in the balances array to zero except for those at positions specified in the index array.
+ * This is useful for filtering UTXOs, keeping only the ones at specified indices.
+ *
+ * @param balances - The array of UTXO balances to be filtered.
+ * @param index - Array of indices whose corresponding balances should be preserved.
+ * @returns The modified balances array with non-indexed positions set to zero.
+ */
+function initialUtxoArray(balances, index) {
+    const indexSet = new Set(index);
+    for (let i = 0; i < balances.length; i++) {
+        if (!indexSet.has(i)) {
+            balances[i] = BigInt(0);
+        }
+    }
+    return balances;
 }

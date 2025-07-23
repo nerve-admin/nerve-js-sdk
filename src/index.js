@@ -190,6 +190,13 @@ module.exports = {
     return tAssemble.txSerialize().toString('hex');
   },
 
+  async transactionSerializeWithPS(pri, pub, tAssemble) {
+    const hash = tAssemble.getHash().toString('hex');
+    let signData = await sdk.getSignDataWithPS(hash, pri);
+    tAssemble.signatures = this.appSplicingPubWithPS(signData.signValue, pub);
+    return tAssemble.txSerialize().toString('hex');
+  },
+
   /**
    * @disc: App签名，拼接公钥
    * @date: 2019-12-03 16:01
@@ -197,6 +204,17 @@ module.exports = {
    */
   appSplicingPub: function appSplicingPub(signValue, pubHex) {
     return sdk.appSplicingPub(signValue, pubHex);
+  },
+
+  appSplicingPubWithPS: function appSplicingPubWithPS(signValue, pubHex) {
+    return sdk.appSplicingPubWithPS(signValue, pubHex);
+  },
+
+  /**
+   * 交易签名原数据(使用personal_sign)
+   */
+  getSignMessageWithPS(hashHex) {
+    return sdk.getSignMessageWithPS(hashHex);
   },
 
   /**

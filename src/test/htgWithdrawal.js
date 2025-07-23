@@ -1,42 +1,44 @@
 const nerve = require('../index');
-nerve.testnet();
-// nerve.mainnet();
+// nerve.testnet();
+nerve.mainnet();
 const sdk = require('../api/sdk');
 const {NERVE_INFOS, Plus, timesDecimals} = require('./htgConfig');
 const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt, getHeterogeneousMainAsset} = require('./api/util');
-const {acc0, acc1, acc2, acc3, acc4} = require('./testAcc');
+require('dotenv').config();
 
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 提现账户信息
-let pri = acc4().pri;
+let pri = process.env.tron_test;
 let fromAddress = nerve.getAddressByPri(nerve.chainId(), pri);
 console.log(fromAddress);
 
 // 提现接收地址
 // let toAddress = 'bchtest:qqla4yswdp3f903jfdpc6egfzglvmrs7nussfx247n';
-let toAddress = 'FBejsS6cJaBrAwPcMjFJYH7iy6Krh2fkRD';
+let toAddress = 'TMZBDFxu5WE8VwYSj2p3vVuBxxKMSqZDc8';
 // 提现金额
-let withdrawalAmount = '0.001';
+let withdrawalAmount = '0.01';
 // 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107, TRX:108)
-let heterogeneousChainId = 202;
-// 提现资产信息 5-171: BTC, 5-168: FCH, 5-184: BCH
-let withdrawalAssetChainId = 5;
-let withdrawalAssetId = 168;
+let heterogeneousChainId = 108;
+// 提现资产信息 5-171: BTC, 5-168: FCH, 5-184: BCH, 9-889:TBC, 9-195:USDT
+let withdrawalAssetChainId = 9;
+let withdrawalAssetId = 219;
 // 提现资产小数位
-let withdrawalDecimals = 8;
+let withdrawalDecimals = 6;
 // 提现手续费(NVT)
-let withdrawalFee = '1';
+let withdrawalFee = '1700';
 let feeChain = 'NVT';
 
-let remark = 'withdrawal transaction remark...';
+let remark = 'withdrawal transaction remarkkkkk...';
 //调用
 withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId, withdrawalAssetChainId, withdrawalAssetId, withdrawalAmount, withdrawalDecimals, withdrawalFee, feeChain, remark);
 // test();
 
 async function test() {
-    let result = await getHeterogeneousMainAsset(102);
-    console.log(JSON.stringify(result));
+    console.log('process.env.tron_test_addr', process.env.tron_test_addr);
+    
+    // let result = await getHeterogeneousMainAsset(102);
+    // console.log(JSON.stringify(result));
 }
 /**
  * 异构链提现交易
@@ -79,9 +81,9 @@ async function withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId,
     let hash = await tAssemble.getHash();
 
     //交易签名
-    let txSignature = await sdk.getSignData(hash.toString('hex'), pri);
+    let txSignature = await sdk.getSignDataWithPS(hash.toString('hex'), pri);
     //通过拼接签名、公钥获取HEX
-    let signData = await sdk.appSplicingPub(txSignature.signValue, sdk.getPub(pri));
+    let signData = await sdk.appSplicingPubWithPS(txSignature.signValue, sdk.getPub(pri));
     tAssemble.signatures = signData;
     let txhex = tAssemble.txSerialize().toString("hex");
     console.log(txhex.toString('hex'));

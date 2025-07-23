@@ -5,8 +5,12 @@ let P2PHKSignature = function () {
   this.signData = null;
 };
 
-let TransactionSignatures = function () {
+let TransactionSignatures = function (_isPersonalSign) {
   this.signatures = null;
+  this.isPersonalSign = false;
+  if (_isPersonalSign) {
+      this.isPersonalSign = _isPersonalSign;
+  }
   this.serialize = function () {
     let bw = new Serializers();
     if (this.signatures && this.signatures.length > 0) {
@@ -16,18 +20,25 @@ let TransactionSignatures = function () {
         bw.getBufWriter().write(signature.pubkey);
         bw.writeBytesWithLength(signature.signData);
       }
+      if (this.isPersonalSign) {
+        bw.writeBoolean(this.isPersonalSign);
+      }
     }
     return bw.getBufWriter().toBuffer();
   };
 
   this.parse = function (bufferReader) {
     this.signatures = [];
-    while (!bufferReader.isFinished()) {
+    this.isPersonalSign = false;
+    while (!bufferReader.isFinished() && bufferReader.remainLength() > 32) {
       let length = bufferReader.readUInt8();
       let sign = new P2PHKSignature();
       sign.pubkey = bufferReader.slice(length);
       sign.signData = bufferReader.readBytesByLength();
       this.signatures.push(sign);
+    }
+    if (!bufferReader.isFinished()) {
+      this.isPersonalSign = bufferReader.readBoolean();
     }
   };
 

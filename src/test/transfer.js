@@ -1,20 +1,23 @@
 const nerve = require('../index');
-nerve.testnet();
 const {getNulsBalance, countFee, inputsOrOutputs, validateTx, broadcastTx} = require('./api/util');
+nerve.customnet(5, "http://127.0.0.1:17004/jsonrpc");
+require('dotenv').config();
 
 /**
  * @disc: 转账 dome
  * @date: 2020-05-20 13:47
  * @author: Wave
  */
-let pri = '';
+let pri = process.env.acc4;
 let pub = nerve.getPubByPri(pri);
-let fromAddress = "TNVTdTSPNEpLq2wnbsBcD8UDTVMsArtkfxWgz";
+let fromAddress = nerve.getAddressByPri(nerve.chainId(), pri);
+console.log('fromAddress', fromAddress);
+
 let toAddress = 'TNVTdTSPUZYyUW8ThLzJXWdgWaDFSy5trakjk';
 let amount = 800000000;
 let remark = 'transfer transaction remark...';
 //调用
-transferTransaction(pri, pub, fromAddress, toAddress, 2, 1, amount, remark);
+transferTransaction(pri, pub, fromAddress, toAddress, 5, 1, amount, remark);
 
 /**
  * 转账交易
@@ -47,7 +50,7 @@ async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChain
 
   let newAmount = transferInfo.amount + transferInfo.fee;
   if (balanceInfo.data.balance < newAmount) {
-    console.log("余额不住，请更换账户");
+    console.log("余额不足，请更换账户");
     return;
   }
 
@@ -65,9 +68,9 @@ async function transferTransaction(pri, pub, fromAddress, toAddress, assetsChain
     transferInfo.fee = newFee;
     inOrOutputs = await inputsOrOutputs(transferInfo, balanceInfo.data, 2);
     tAssemble = await nerve.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 2);
-    txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
+    txhex = await nerve.transactionSerializeWithPS(pri, pub, tAssemble);
   } else {
-    txhex = await nerve.transactionSerialize(pri, pub, tAssemble);
+    txhex = await nerve.transactionSerializeWithPS(pri, pub, tAssemble);
   }
   console.log(txhex);
 

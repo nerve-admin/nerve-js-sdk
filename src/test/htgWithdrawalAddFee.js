@@ -1,28 +1,28 @@
 const nerve = require('../index');
-// nerve.mainnet();
-nerve.testnet();
+nerve.mainnet();
+// nerve.testnet();
 const sdk = require('../api/sdk');
 const {NERVE_INFOS, Plus, timesDecimals} = require('./htgConfig');
 const {getNulsBalance, validateTx, broadcastTx} = require('./api/util');
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
-const {acc4} = require('./testAcc');
+require('dotenv').config();
 
 // 设置追加手续费的账户
-let pri = acc4().pri;
+let pri = process.env.tron_test;
 let fromAddress = nerve.getAddressByPri(nerve.chainId(), pri);
 console.log(fromAddress);
 // let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
 // let pri = '';
 
 // 发出的提现交易hash
-let withdrawalTxHash = '078e2a6db5ed1995c1ea6b087d8de87331e483dd9696a91435fbb1b4b1e9b8e3';
+let withdrawalTxHash = '2b3c54d082d19cb9bb585722b29fb51345088cb7d5912714629cabbc98e1d6c6';
 // 追加的NVT手续费，此处设置为追加2个NVT
-let addFeeAmount = '500';
+let addFeeAmount = '270';
 let feeChain = 'NVT';
 
 let remark = 'withdrawal add fee transaction remark...';
 //调用
-withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, feeChain, remark, true);
+withdrawalAddFeeTest(pri, fromAddress, withdrawalTxHash, addFeeAmount, feeChain, remark, false);
 
 /**
  * 异构链提现追加手续费交易

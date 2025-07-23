@@ -47,14 +47,14 @@ class MultiSig {
      * @param privateKey The private key used to sign the transaction
      * @returns The raw serialized transaction string
      */
-    static createMultiSigWallet(address_from, pubKeys, signatureCount, publicKeyCount, utxos, privateKey) {
+    static createMultiSigWallet(address_from, pubKeys, signatureCount, publicKeyCount, tbc_amount, utxos, privateKey) {
         const address = MultiSig.getMultiSigAddress(pubKeys, signatureCount, publicKeyCount);
         const script_asm = MultiSig.getMultiSigLockScript(address);
         const tx = new tbc.Transaction();
         tx.from(utxos);
         tx.addOutput(new tbc.Transaction.Output({
             script: tbc.Script.fromASM(script_asm),
-            satoshis: 5000,
+            satoshis: Math.floor(tbc_amount * 1e6),
         }));
         for (let i = 0; i < publicKeyCount; i++) {
             tx.addOutput(new tbc.Transaction.Output({
@@ -126,7 +126,7 @@ class MultiSig {
      * @param utxos An array of unspent transaction outputs to be used as inputs
      * @returns The raw serialized transaction string
      */
-    static buildMultiSigTransaction_sendTBC(address_from, address_to, amount_tbc, utxos, additionalInfo, feeSatoshis = 300) {
+    static buildMultiSigTransaction_sendTBC(address_from, address_to, amount_tbc, utxos, additionalInfo) {
         const script_asm_from = MultiSig.getMultiSigLockScript(address_from);
         const amount_satoshis = Math.floor(amount_tbc * Math.pow(10, 6));
         let count = 0;
@@ -135,23 +135,12 @@ class MultiSig {
             count += utxos[i].satoshis;
             amounts.push(utxos[i].satoshis);
         }
-        const tx = new tbc.Transaction().from(utxos).fee(feeSatoshis);
-        if (address_to.startsWith("1")) {
-            tx.to(address_to, amount_satoshis).addOutput(new tbc.Transaction.Output({
-                script: tbc.Script.fromASM(script_asm_from),
-                satoshis: count - amount_satoshis - feeSatoshis,
-            }));
-        }
-        else {
-            const script_asm_to = MultiSig.getMultiSigLockScript(address_to);
-            tx.addOutput(new tbc.Transaction.Output({
-                script: tbc.Script.fromASM(script_asm_to),
-                satoshis: amount_satoshis,
-            })).addOutput(new tbc.Transaction.Output({
-                script: tbc.Script.fromASM(script_asm_from),
-                satoshis: count - amount_satoshis - feeSatoshis,
-            }));
-        }
+        const tx = new tbc.Transaction().from(utxos);
+        tx.addOutput(new tbc.Transaction.Output({
+            script: tbc.Script.fromASM(script_asm_from),
+            satoshis: count - amount_satoshis - 1000,
+        }))
+            .to(address_to, amount_satoshis);
         //Additional infromation output
         if (additionalInfo) {
             let additionalInfoScript = tbc.Script.fromASM('OP_FALSE OP_RETURN');
@@ -163,6 +152,61 @@ class MultiSig {
         }
         const txraw = tx.uncheckedSerialize();
         return { txraw, amounts };
+    }
+    /**
+     * Build a multi-signature transaction
+     * @param address_from The address from which the transaction is sent
+     * @param address_to The address to which the transaction is sent
+     * @param amount_tbc The amount to be sent in TBC
+     * @param utxos An array of unspent transaction outputs to be used as inputs
+     * @returns The raw serialized transaction string
+     */
+    static buildMultiSigTransaction_sendTBCToMultiSig(address_from, address_to, amount_tbc, utxos, additionalInfo) {
+        const script_asm_from = MultiSig.getMultiSigLockScript(address_from);
+        const script_asm_to = MultiSig.getMultiSigLockScript(address_to);
+        const amount_satoshis = Math.floor(amount_tbc * Math.pow(10, 6));
+        let count = 0;
+        let amounts = [];
+        for (let i = 0; i < utxos.length; i++) {
+            count += utxos[i].satoshis;
+            amounts.push(utxos[i].satoshis);
+        }
+        const tx_source = new tbc.Transaction().from(utxos);
+        tx_source.addOutput(new tbc.Transaction.Output({
+            script: tbc.Script.fromASM(script_asm_to),
+            satoshis: amount_satoshis,
+        }));
+        tx_source
+            .addOutput(new tbc.Transaction.Output({
+            script: tbc.Script.fromASM(script_asm_from),
+            satoshis: count - amount_satoshis - 1000,
+        }));
+        //Additional infromation output
+        if (additionalInfo) {
+            let additionalInfoScript = tbc.Script.fromASM('OP_FALSE OP_RETURN');
+            additionalInfoScript = additionalInfoScript.add(additionalInfo);
+            tx_source.addOutput(new tbc.Transaction.Output({
+                script: additionalInfoScript,
+                satoshis: 0
+            }));
+        }
+        const tx_source_raw = tx_source.uncheckedSerialize();
+        if (count - amount_satoshis - 1100 > 80) {
+            const tx = new tbc.Transaction();
+            tx.addInputFromPrevTx(tx_source, 1)
+                .addOutput(new tbc.Transaction.Output({
+                script: tbc.Script.fromASM(script_asm_from),
+                satoshis: count - amount_satoshis - 1100,
+            }));
+            const tx_raw = tx.uncheckedSerialize();
+            return [
+                { txraw: tx_source_raw, amounts },
+                { txraw: tx_raw, amounts: [count - amount_satoshis - 1000] },
+            ];
+        }
+        else {
+            return [{ txraw: tx_source_raw, amounts }];
+        }
     }
     /**
      * Sign a multi-signature transaction
@@ -188,7 +232,22 @@ class MultiSig {
         return sigs;
     }
     /**
-     * Create a multi-signature transaction from a raw transaction string
+   * Sign multi-signature transactions
+   * @param address_from The address from which the transaction is sent
+   * @param multiSigTxraws The raw serialized transaction string
+   * @param privateKey The private key used to sign the transaction
+   * @returns An array of signatures
+   */
+    static batchSignMultiSigTransaction_sendTBC(address_from, multiSigTxraws, privateKey) {
+        let allSigs = [];
+        for (let txIndex = 0; txIndex < multiSigTxraws.length; txIndex++) {
+            const sigs = MultiSig.signMultiSigTransaction_sendTBC(address_from, multiSigTxraws[txIndex], privateKey);
+            allSigs.push(sigs);
+        }
+        return allSigs;
+    }
+    /**
+     * Finish a multi-signature transaction
      * @param txraw The raw serialized transaction string
      * @param sigs An array of signatures
      * @param pubkeys An array of public keys
@@ -218,6 +277,21 @@ class MultiSig {
             });
         }
         return tx.uncheckedSerialize();
+    }
+    /**
+     * Finish multi-signature transactions
+     * @param txraws The raw serialized transaction string
+     * @param sigs An array of signatures
+     * @param pubkeys An array of public keys
+     * @returns The raw serialized transaction string
+     */
+    static batchFinishMultiSigTransaction_sendTBC(txraws, sigs, pubKeys) {
+        let finishedTxs = [];
+        for (let txIndex = 0; txIndex < txraws.length; txIndex++) {
+            const finishedTx = MultiSig.finishMultiSigTransaction_sendTBC(txraws[txIndex], sigs[txIndex], pubKeys);
+            finishedTxs.push(finishedTx);
+        }
+        return finishedTxs;
     }
     /**
      * Transfer FT from a multi-signature address to another address
@@ -259,6 +333,13 @@ class MultiSig {
         const { amountHex, changeHex } = FT.buildTapeAmount(amountbn, tapeAmountSetIn);
         const script_asm = MultiSig.getMultiSigLockScript(address_to);
         const tx = new tbc.Transaction().from(ftutxos).from(utxo);
+        if (tbc_amount && Number(tbc_amount) > 0) {
+            const amount_satoshis = Math.floor(tbc_amount * Math.pow(10, 6));
+            tx.addOutput(new tbc.Transaction.Output({
+                script: tbc.Script.fromASM(script_asm),
+                satoshis: amount_satoshis,
+            }));
+        }
         const hash = tbc.crypto.Hash.sha256ripemd160(tbc.crypto.Hash.sha256(tbc.Script.fromASM(script_asm).toBuffer())).toString("hex");
         const codeScript = FT.buildFTtransferCode(code, hash);
         tx.addOutput(new tbc.Transaction.Output({
@@ -282,14 +363,6 @@ class MultiSig {
                 satoshis: 0,
             }));
         }
-        if (tbc_amount) {
-            const amount_satoshis = Math.floor(tbc_amount * Math.pow(10, 6));
-            tx.addOutput(new tbc.Transaction.Output({
-                script: tbc.Script.fromASM(script_asm),
-                satoshis: amount_satoshis,
-            }));
-        }
-
         if (additionalInfo) {
             //Additional infromation output
             let additionalInfoScript = tbc.Script.fromASM('OP_FALSE OP_RETURN');
@@ -332,14 +405,11 @@ class MultiSig {
      * @param privateKey The private key used to sign the transaction
      * @returns The raw serialized transaction string
      */
-    static buildMultiSigTransaction_transferFT(address_from, address_to, ft, ft_amount, utxo, ftutxos, preTXs, prepreTxDatas, contractTX, privateKey, tbc_amount, additionalInfo, feeSatoshis = 0) {
+    static buildMultiSigTransaction_transferFT(address_from, address_to, ft, ft_amount, utxo, ftutxos, preTXs, prepreTxDatas, contractTX, privateKey, tbc_amount, additionalInfo) {
         const code = ft.codeScript;
         const tape = ft.tapeScript;
         const decimal = ft.decimal;
         const tapeAmountSetIn = [];
-        if (ft_amount < 0) {
-            throw new Error("Invalid amount");
-        }
         const script_asm_from = MultiSig.getMultiSigLockScript(address_from);
         const hash_from = tbc.crypto.Hash.sha256ripemd160(tbc.crypto.Hash.sha256(tbc.Script.fromASM(script_asm_from).toBuffer())).toString("hex");
         const amountbn = BigInt(Math.floor(ft_amount * Math.pow(10, decimal)));
@@ -360,6 +430,42 @@ class MultiSig {
         }
         const { amountHex, changeHex } = FT.buildTapeAmount(amountbn, tapeAmountSetIn, 1);
         const tx = new tbc.Transaction().from(utxo).from(ftutxos);
+        let amount_satoshis = 0;
+        if (tbc_amount) {
+            amount_satoshis = Math.floor(tbc_amount * Math.pow(10, 6));
+        }
+        switch (ftutxos.length) {
+            case 1:
+                tx.addOutput(new tbc.Transaction.Output({
+                    script: tbc.Script.fromASM(script_asm_from),
+                    satoshis: utxo.satoshis - amount_satoshis - 4000,
+                }));
+                break;
+            case 2:
+                tx.addOutput(new tbc.Transaction.Output({
+                    script: tbc.Script.fromASM(script_asm_from),
+                    satoshis: utxo.satoshis - amount_satoshis - 5500,
+                }));
+                break;
+            case 3:
+                tx.addOutput(new tbc.Transaction.Output({
+                    script: tbc.Script.fromASM(script_asm_from),
+                    satoshis: utxo.satoshis - amount_satoshis - 7000,
+                }));
+                break;
+            case 4:
+                tx.addOutput(new tbc.Transaction.Output({
+                    script: tbc.Script.fromASM(script_asm_from),
+                    satoshis: utxo.satoshis - amount_satoshis - 8500,
+                }));
+                break;
+            case 5:
+                tx.addOutput(new tbc.Transaction.Output({
+                    script: tbc.Script.fromASM(script_asm_from),
+                    satoshis: utxo.satoshis - amount_satoshis - 10000,
+                }));
+                break;
+        }
         let codeScript;
         if (address_to.startsWith("1")) {
             codeScript = FT.buildFTtransferCode(code, address_to);
@@ -389,53 +495,11 @@ class MultiSig {
                 satoshis: 0,
             }));
         }
-        let amount_satoshis = 0;
         if (tbc_amount) {
-            amount_satoshis = Math.floor(tbc_amount * Math.pow(10, 6));
-            if (address_to.startsWith("1")) {
-                tx.addOutput(new tbc.Transaction.Output({
-                    script: tbc.Script.buildPublicKeyHashOut(address_to),
-                    satoshis: amount_satoshis,
-                }));
-            }
-            else {
-                tx.addOutput(new tbc.Transaction.Output({
-                    script: tbc.Script.fromASM(MultiSig.getMultiSigLockScript(address_to)),
-                    satoshis: amount_satoshis,
-                }));
-            }
-        }
-        switch (ftutxos.length) {
-            case 1:
-                tx.addOutput(new tbc.Transaction.Output({
-                    script: tbc.Script.fromASM(script_asm_from),
-                    satoshis: utxo.satoshis - amount_satoshis - (feeSatoshis < 4000 ? 4000 : feeSatoshis),
-                }));
-                break;
-            case 2:
-                tx.addOutput(new tbc.Transaction.Output({
-                    script: tbc.Script.fromASM(script_asm_from),
-                    satoshis: utxo.satoshis - amount_satoshis - (feeSatoshis < 5500 ? 5500 : feeSatoshis),
-                }));
-                break;
-            case 3:
-                tx.addOutput(new tbc.Transaction.Output({
-                    script: tbc.Script.fromASM(script_asm_from),
-                    satoshis: utxo.satoshis - amount_satoshis - (feeSatoshis < 7000 ? 7000 : feeSatoshis),
-                }));
-                break;
-            case 4:
-                tx.addOutput(new tbc.Transaction.Output({
-                    script: tbc.Script.fromASM(script_asm_from),
-                    satoshis: utxo.satoshis - amount_satoshis - (feeSatoshis < 8500 ? 8500 : feeSatoshis),
-                }));
-                break;
-            case 5:
-                tx.addOutput(new tbc.Transaction.Output({
-                    script: tbc.Script.fromASM(script_asm_from),
-                    satoshis: utxo.satoshis - amount_satoshis - (feeSatoshis < 10000 ? 10000 : feeSatoshis),
-                }));
-                break;
+            tx.addOutput(new tbc.Transaction.Output({
+                script: tbc.Script.buildPublicKeyHashOut(address_to),
+                satoshis: amount_satoshis,
+            }));
         }
         //Additional infromation output
         if (additionalInfo) {
@@ -449,8 +513,8 @@ class MultiSig {
         for (let i = 0; i < ftutxos.length; i++) {
             tx.setInputScript({
                 inputIndex: i + 1,
-            }, (tx) => {
-                const unlockingScript = ft.getFTunlockSwap(privateKey, tx, preTXs[i], prepreTxDatas[i], contractTX, i + 1, ftutxos[i].outputIndex);
+            }, (tx_source) => {
+                const unlockingScript = ft.getFTunlockSwap(privateKey, tx_source, preTXs[i], prepreTxDatas[i], contractTX, i + 1, ftutxos[i].outputIndex);
                 return unlockingScript;
             });
         }
@@ -475,6 +539,21 @@ class MultiSig {
         let sigs = [];
         sigs[0] = tx.getSignature(0, privateKey);
         return sigs;
+    }
+    /**
+     * Sign multi-signature transactions for transferring FT
+     * @param multiSig_address The multi-signature address
+     * @param multiSigTxraws The raw serialized transaction strings
+     * @param privateKey The private key used to sign the transaction
+     * @returns An array of signatures
+     */
+    static batchSignMultiSigTransaction_transferFT(multiSig_address, multiSigTxraws, privateKey) {
+        let allSigs = [];
+        for (let txIndex = 0; txIndex < multiSigTxraws.length; txIndex++) {
+            const sigs = MultiSig.signMultiSigTransaction_transferFT(multiSig_address, multiSigTxraws[txIndex], privateKey);
+            allSigs.push(sigs);
+        }
+        return allSigs;
     }
     /**
      * Finish a multi-signature transaction for transferring FT
@@ -505,6 +584,21 @@ class MultiSig {
             return unlockingScript;
         });
         return tx.uncheckedSerialize();
+    }
+    /**
+     * Finish multi-signature transactions for transferring FT
+     * @param txraws The raw serialized transaction strings
+     * @param sigs An array of signatures
+     * @param pubkeys The public keys
+     * @returns The raw serialized transaction strings
+     */
+    static batchFinishMultiSigTransaction_transferFT(txraws, sigs, pubKeys) {
+        let finishedTxs = [];
+        for (let txIndex = 0; txIndex < txraws.length; txIndex++) {
+            const finishedTx = MultiSig.finishMultiSigTransaction_transferFT(txraws[txIndex], sigs[txIndex], pubKeys);
+            finishedTxs.push(finishedTx);
+        }
+        return finishedTxs;
     }
     /**
      * Get multi-signature address
@@ -571,7 +665,7 @@ class MultiSig {
     static getMultiSigLockScript(address) {
         const buf = Buffer.from(tbc.encoding.Base58.decode(address));
         const { signatureCount, publicKeyCount } = MultiSig.getSignatureAndPublicKeyCount(address);
-        if (signatureCount < 1 || signatureCount > 7) {
+        if (signatureCount < 1 || signatureCount > 6) {
             throw new Error("Invalid signatureCount.");
         }
         else if (publicKeyCount < 3 || publicKeyCount > 10) {

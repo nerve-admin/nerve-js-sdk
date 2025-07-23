@@ -6,10 +6,14 @@ let P2PHKSignature = function () {
     this.signData = null;
 };
 
-let MultiTransactionSignatures = function (_m, _pubkeyArray) {
+let MultiTransactionSignatures = function (_m, _pubkeyArray, _isPersonalSign) {
     this.m = _m;
     this.pubkeyArray = _pubkeyArray;
     this.signatures = null;
+    this.isPersonalSign = false;
+    if (_isPersonalSign) {
+        this.isPersonalSign = _isPersonalSign;
+    }
     this.serialize = function () {
         let bw = new Serializers();
         bw.getBufWriter().writeUInt8(this.m);
@@ -24,6 +28,9 @@ let MultiTransactionSignatures = function (_m, _pubkeyArray) {
                 bw.getBufWriter().write(signature.pubkey);
                 bw.writeBytesWithLength(signature.signData);
             }
+            if (this.isPersonalSign) {
+                bw.writeBoolean(this.isPersonalSign);
+            }
         }
         return bw.getBufWriter().toBuffer();
     };
@@ -36,12 +43,16 @@ let MultiTransactionSignatures = function (_m, _pubkeyArray) {
             this.pubkeyArray.push(bufferReader.readBytesByLength())
         }
         this.signatures = [];
-        while (!bufferReader.isFinished()) {
+        this.isPersonalSign = false;
+        while (!bufferReader.isFinished() && bufferReader.remainLength() > 32) {
             let length = bufferReader.readUInt8();
             let sign = new P2PHKSignature();
             sign.pubkey = bufferReader.slice(length);
             sign.signData = bufferReader.readBytesByLength();
             this.signatures.push(sign);
+        }
+        if (!bufferReader.isFinished()) {
+            this.isPersonalSign = bufferReader.readBoolean();
         }
     };
 

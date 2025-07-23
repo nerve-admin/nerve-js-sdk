@@ -53,6 +53,11 @@ BufferReader.prototype.readBytesByLength = function () {
 BufferReader.prototype.isFinished = function () {
     return this.buf.length == this.cursor;
 };
+
+BufferReader.prototype.remainLength = function () {
+    return this.buf.length - this.cursor;
+};
+
 BufferReader.prototype.readBoolean = function () {
     var result = this.buf.readUInt8(this.cursor);
     this.cursor += 1;

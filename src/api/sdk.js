@@ -14,6 +14,9 @@ const secp256k1 = require("secp256k1");
 const programEncodePacked = require("../model/ProgramEncodePacked");
 const BufferReader = require("../utils/bufferreader");
 const ethers = require("ethers");
+const Signature = require("elliptic/lib/elliptic/ec/signature");
+const message = "Tip: You are signing a NerveNetwork transaction. Please confirm your transaction information carefully. Once the transaction is broadcast on the blockchain, there is no way to cancel your transaction.\n\n提示：您正在签署一笔NerveNetwork交易，请仔细确认您的交易信息。交易一旦在区块链上广播，将无法取消。\n\nTransaction Hash:\n";
+
 
 /**
  * 将数字转为6个字节的字节数组
@@ -414,6 +417,29 @@ module.exports = {
         return {"pub": pub.toString('hex'), "signValue": sigHex};
     },
 
+    getSignMessageWithPS: function (hashHex) {
+        let data = message + hashHex;
+        const hexMessage = `0x${Buffer.from(data, 'utf8').toString('hex')}`;
+        return hexMessage;
+    },
+
+    async getSignDataWithPS(hashHex, priHex) {
+        let pub = this.getPub(priHex);
+        let data = message + hashHex;
+        let dataBuffer = Buffer.from(data, 'utf-8');
+        
+        // 本地签名 OR 调用插件personal_sign
+        // let signature = await window.ethereum.request({method: 'personal_sign', params: ['0x'+dataBuffer.toString('hex'), account]});
+        let wallet = new ethers.Wallet(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + priHex), 32));
+        let signature = await wallet.signMessage(dataBuffer);
+    
+        signature = signature.slice(2) // 去掉0x
+        const r = signature.slice(0, 64);
+        const s = signature.slice(64, 128);
+        let signatureDER = new Signature({r, s}).toDER("hex");
+        return {"pub": pub.toString('hex'), "signValue": signatureDER};
+    },
+
     /**
      * App签名，拼接公钥
      * @param signValue
@@ -426,6 +452,13 @@ module.exports = {
         return bw.getBufWriter().toBuffer();
     },
 
+    appSplicingPubWithPS: function appSplicingPubWithPS(signValue, pubHex) {
+        let bw = new Serializers();
+        bw.writeBytesWithLength(Buffer.from(pubHex, 'hex'));
+        bw.writeBytesWithLength(Buffer.from(signValue, 'hex'));
+        bw.writeBoolean(true)
+        return bw.getBufWriter().toBuffer();
+    },
 
     /**
      * 签名 tx

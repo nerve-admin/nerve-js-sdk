@@ -1,7 +1,11 @@
 let TxSignatures = function (bufferReader) {
   this.list = [];
-  while (!bufferReader.isFinished()) {
+  this.isPersonalSign = false;
+  while (!bufferReader.isFinished() && bufferReader.remainLength() > 32) {
     this.list.push(new Item(bufferReader));
+  }
+  if (!bufferReader.isFinished()) {
+    this.isPersonalSign = bufferReader.readBoolean();
   }
 };
 let Item = function (bufferReader) {
@@ -11,14 +15,15 @@ let Item = function (bufferReader) {
 };
 
 TxSignatures.prototype.getPrintInfo = function () {
-  let result = "[";
+  let result = '"list": [';
   for (let i = 0; i < this.list.length; i++) {
     if (i > 0) {
       result += ",";
     }
     result += this.list[i].getPrintInfo();
   }
-  result += "]";
+  result += ']';
+  result += ', "isPersonalSign": ' + this.isPersonalSign;
   return result;
 };
 Item.prototype.getPrintInfo = function () {

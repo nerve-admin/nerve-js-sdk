@@ -8,8 +8,9 @@ const network = "mainnet"
 //计算多签地址
 // devnet: FBeMrqQWFkhBJt6rA2yKxVWg9Jeiww76Pr
 // testnet: FJ5buUdNQ8FBpwh3ZT2W1peVUidHRvje2m
-const multiSigAddress = 'FJ5buUdNQ8FBpwh3ZT2W1peVUidHRvje2m';
-const privateKey = tbcLib.tbc.PrivateKey.fromString(process.env._8KFu);
+// mainnet: jvBaMk4qKjXaQFYgBmS7HkwwktsYDdBxfa
+const multiSigAddress = 'jvBaMk4qKjXaQFYgBmS7HkwwktsYDdBxfa';
+const privateKey = tbcLib.tbc.PrivateKey.fromString(process.env._8KFu);// 1DaqS9YD6VVtDkAzXDnaDQg61DcuXC8KFu
 const tbc_from = tbcLib.tbc.Address.fromPrivateKey(privateKey).toString();
 
 //普通地址向多签地址转tbc
@@ -56,8 +57,10 @@ async function transferToMultiWithFT(network = 'testnet', privateKey, tbc_from, 
     await tbcLib.API.broadcastTXraw(transferTX, network);
 }
 
-transferToMulti(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPSShZokMfXRo82TP2Kq6Fc2nhMNmF7', 0.221, 'test233333333');
-// transferToMultiWithFT(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad', 2.21, '29a753233bf4f3b546b5eacd0a8ec7a7a236bf7b987f51390a7cac90bb1d8bcf', 'test233333333');
+// doge: 29a753233bf4f3b546b5eacd0a8ec7a7a236bf7b987f51390a7cac90bb1d8bcf
+// usdt: b7d03431efe6a85271a47b557c8bacad9b7fe7c3c8c15ce10a075b59d9a39326
+transferToMulti(network, privateKey, tbc_from, multiSigAddress, 'NERVEepb6CwyEWh9mhnmPTJcuWpRzmYvoS7tLm', 0.5, 'tbc nerve fee transfer');
+// transferToMultiWithFT(network, privateKey, tbc_from, multiSigAddress, 'TNVTdTSPNruAy8kuDvg6AxuWp8xUuWqvqCNti', 1.01, '29a753233bf4f3b546b5eacd0a8ec7a7a236bf7b987f51390a7cac90bb1d8bcf', 'test233333333');
 
 /**
  * DAPP接口调用参考
@@ -106,3 +109,13 @@ function transferTokenData(nerveTo, tokenAmount, tokenContract, extend, tbcAmoun
     txData.extend1 = tokenContract + '' + tokenAmount;
     return '88888888' + txData.serialize().toString('hex');
 }
+
+function parseData() {
+    const hex = '0500017ab79bd5c00354e7d4f346749ad7d2c1f8bae031000000553239613735333233336266346633623534366235656163643061386563376137613233366266376239383766353133393061376361633930626231643862636631303030303030303030303030303030303030303000000000';
+    const txData = new BitcoinRechargeData(); 
+    txData.parse(Buffer.from(hex, 'hex'));
+    console.log(JSON.stringify(txData));
+    
+}
+
+// parseData();
