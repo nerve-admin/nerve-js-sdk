@@ -197,6 +197,11 @@ module.exports = {
     return tAssemble.txSerialize().toString('hex');
   },
 
+  async getSignDataWithPS(hashHex, priHex) {
+    let signData = await sdk.getSignDataWithPS(hashHex, priHex);
+    return signData;
+  },
+
   /**
    * @disc: App签名，拼接公钥
    * @date: 2019-12-03 16:01

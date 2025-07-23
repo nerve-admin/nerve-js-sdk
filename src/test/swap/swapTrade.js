@@ -6,20 +6,22 @@ const rpcUtil = require('../api/util');
 // 设置网络环境
 // nerve.mainnet();
 // nerve.testnet();
-nerve.customnet(5, "http://192.168.1.171:17004/jsonrpc");
+nerve.customnet(5, "http://127.0.0.1:17004/jsonrpc");
+require('dotenv').config({ path: '../.env'});
 
 // 账户信息
-let fromAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";
-let pri = '';
-let amountIn = "10000000000";// 卖出的资产数量
-let tokenPath = [nerve.swap.token(5, 1),  nerve.swap.token(5, 6)];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
+let pri = process.env.acc4;
+let fromAddress = nerve.getAddressByPri(nerve.chainId(), pri);
+console.log(fromAddress);
+let amountIn = "300000000";// 卖出的资产数量
+let tokenPath = [nerve.swap.token(5, 1),  nerve.swap.token(5, 5)];// 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
 let amountOutMin = "0";// 最小买进的资产数量
 let feeTo = null;// 交易手续费取出一部分给指定的接收地址
 let deadline = nerve.swap.currentTime() + 300;// 过期时间
-let toAddress = "TNVTdTSPRnXkDiagy7enti1KL75NU5AxC9sQA";// 资产接收地址
-let remark = 'swap trade remark pt';
+let toAddress = "TNVTdTSPJJMGh7ijUGDqVZyucbeN1z4jqb1ad";// 资产接收地址
+let remark = 'swap trade remark kkkkkk';
 // 调用
-test();
+testWithPS();
 async function testP() {
     let a = await rpcUtil.getNulsBalance(fromAddress, 9, 1);
     console.log(a);
@@ -35,6 +37,24 @@ async function test() {
     console.log('signedTx hex: ' + signedTx.data.hex);
     // 广播交易
     let result = await nerve.broadcastTx(signedTx.data.hex);
+    console.log('result: ' + result);
+}
+
+async function testWithPS() {
+    let tx = await nerve.swap.swapTrade(fromAddress, amountIn, tokenPath, amountOutMin,
+        feeTo, deadline, toAddress, remark);
+    console.log('hash: ' + tx.hash);
+    console.log('hex: ' + tx.hex);
+    let txObj = nerve.deserializationTx(tx.hex);
+    // 签名交易
+    let txSignature = await nerve.getSignDataWithPS(tx.hash, pri);
+    //通过拼接签名、公钥获取HEX
+    let signData = await nerve.appSplicingPubWithPS(txSignature.signValue, nerve.getPubByPri(pri));
+    txObj.signatures = signData;
+    let txhex = txObj.txSerialize().toString("hex");
+    console.log(txhex.toString('hex'));
+    // 广播交易
+    let result = await nerve.broadcastTx(txhex);
     console.log('result: ' + result);
 }
 

@@ -1,6 +1,7 @@
 const nerve = require('../index');
 // nerve.testnet();
-nerve.mainnet();
+// nerve.mainnet();
+nerve.customnet(5, "http://127.0.0.1:17004/jsonrpc");
 const sdk = require('../api/sdk');
 const {NERVE_INFOS, Plus, timesDecimals} = require('./htgConfig');
 const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt, getHeterogeneousMainAsset} = require('./api/util');
@@ -9,24 +10,24 @@ require('dotenv').config();
 let NERVE_INFO = nerve.chainId() == 9 ? NERVE_INFOS.mainnet : nerve.chainId() == 5 ? NERVE_INFOS.testnet : null;
 
 // 提现账户信息
-let pri = process.env.tron_test;
+let pri = process.env.acc4;
 let fromAddress = nerve.getAddressByPri(nerve.chainId(), pri);
 console.log(fromAddress);
 
 // 提现接收地址
 // let toAddress = 'bchtest:qqla4yswdp3f903jfdpc6egfzglvmrs7nussfx247n';
-let toAddress = 'TMZBDFxu5WE8VwYSj2p3vVuBxxKMSqZDc8';
+let toAddress = '0xC9aFB4fA1D7E2B7D324B7cb1178417FF705f5996';
 // 提现金额
-let withdrawalAmount = '0.01';
+let withdrawalAmount = '33.31';
 // 提现异构链网络ID(ETH:101, BSC:102, HECO:103, OKT:104, ONE:105, MATIC:106, KCS:107, TRX:108)
-let heterogeneousChainId = 108;
+let heterogeneousChainId = 141;
 // 提现资产信息 5-171: BTC, 5-168: FCH, 5-184: BCH, 9-889:TBC, 9-195:USDT
-let withdrawalAssetChainId = 9;
-let withdrawalAssetId = 219;
+let withdrawalAssetChainId = 5;
+let withdrawalAssetId = 1;
 // 提现资产小数位
-let withdrawalDecimals = 6;
+let withdrawalDecimals = 8;
 // 提现手续费(NVT)
-let withdrawalFee = '1700';
+let withdrawalFee = '20';
 let feeChain = 'NVT';
 
 let remark = 'withdrawal transaction remarkkkkk...';
