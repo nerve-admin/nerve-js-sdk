@@ -418,6 +418,9 @@ module.exports = {
     },
 
     getSignMessageWithPS: function (hashHex) {
+        if (hashHex.startsWith('0x')) {
+            hashHex = hashHex.substring(2);
+        }
         let data = message + hashHex;
         const hexMessage = `0x${Buffer.from(data, 'utf8').toString('hex')}`;
         return hexMessage;

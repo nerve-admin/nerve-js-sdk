@@ -2,7 +2,6 @@ const nerve = require('../index');
 // nerve.testnet();
 // nerve.mainnet();
 nerve.customnet(5, "http://127.0.0.1:17004/jsonrpc");
-const sdk = require('../api/sdk');
 const {NERVE_INFOS, Plus, timesDecimals} = require('./htgConfig');
 const {getNulsBalance, validateTx, broadcastTx, getSymbolPriceOfUsdt, getHeterogeneousMainAsset} = require('./api/util');
 require('dotenv').config();
@@ -82,9 +81,9 @@ async function withdrawalTest(pri, fromAddress, toAddress, heterogeneousChainId,
     let hash = await tAssemble.getHash();
 
     //交易签名
-    let txSignature = await sdk.getSignDataWithPS(hash.toString('hex'), pri);
+    let txSignature = await nerve.getSignDataWithPS(hash.toString('hex'), pri);
     //通过拼接签名、公钥获取HEX
-    let signData = await sdk.appSplicingPubWithPS(txSignature.signValue, sdk.getPub(pri));
+    let signData = await nerve.appSplicingPubWithPS(txSignature.signValue, nerve.getPubByPri(pri));
     tAssemble.signatures = signData;
     let txhex = tAssemble.txSerialize().toString("hex");
     console.log(txhex.toString('hex'));

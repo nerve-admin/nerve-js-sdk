@@ -45,6 +45,7 @@ async function testWithPS() {
         feeTo, deadline, toAddress, remark);
     console.log('hash: ' + tx.hash);
     console.log('hex: ' + tx.hex);
+
     let txObj = nerve.deserializationTx(tx.hex);
     // 签名交易
     let txSignature = await nerve.getSignDataWithPS(tx.hash, pri);
@@ -52,6 +53,7 @@ async function testWithPS() {
     let signData = await nerve.appSplicingPubWithPS(txSignature.signValue, nerve.getPubByPri(pri));
     txObj.signatures = signData;
     let txhex = txObj.txSerialize().toString("hex");
+    
     console.log(txhex.toString('hex'));
     // 广播交易
     let result = await nerve.broadcastTx(txhex);

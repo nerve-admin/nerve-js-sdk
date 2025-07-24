@@ -44,7 +44,16 @@ function personSignTest() {
     console.log(fromAddress);
 }
 
-testEthPersonalSign();
+function hashTest() {
+    let hashHex = '0xd86cf03a175cdaf761d2eda25a98ce404d96ce0db2a4f25b25d46d604c7cdc5c';
+    if (hashHex.startsWith('0x')) {
+        hashHex = hashHex.substring(2);
+    }
+    console.log('hash', hashHex);
+}
+
+hashTest();
+// testEthPersonalSign();
 
 function callOnWindows() {
     // 检查 MetaMask 是否可用
@@ -60,8 +69,7 @@ function callOnWindows() {
             console.log('Connected account:', account);
 
             // 要签名的消息
-            // const message = "WARNNING: You are signing a transaction on the nerve network. Please confirm the risk before signing.\n\n注意：你正在对 Nerve Network 网络的交易签名，请确认风险后再签名。\n\nTransaction Hash:\nd86cf03a175cdaf761d2eda25a98ce404d96ce0db2a4f25b25d46d604c7cdc5c";
-            const message = "Tip: You are signing a NerveNetwork transaction. Please confirm your transaction information carefully. Once the transaction is broadcast on the blockchain, there is no way to cancel your transaction.\n\n提示：您正在签署一笔NerveNetwork交易，请仔细确认您的交易信息。交易一旦在区块链上广播，将无法取消。\n\nTransaction Hash:\nd86cf03a175cdaf761d2eda25a98ce404d96ce0db2a4f25b25d46d604c7cdc5c";
+            const message = nerve.getSignMessageWithPS('d86cf03a175cdaf761d2eda25a98ce404d96ce0db2a4f25b25d46d604c7cdc5c');
             // 转换为十六进制（personal_sign 要求）
             const hexMessage = `0x${Buffer.from(message, 'utf8').toString('hex')}`;
 

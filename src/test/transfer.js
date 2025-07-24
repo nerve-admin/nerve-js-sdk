@@ -1,6 +1,7 @@
 const nerve = require('../index');
 const {getNulsBalance, countFee, inputsOrOutputs, validateTx, broadcastTx} = require('./api/util');
-nerve.customnet(5, "http://127.0.0.1:17004/jsonrpc");
+// nerve.customnet(5, "http://127.0.0.1:17004/jsonrpc");
+nerve.testnet();
 require('dotenv').config();
 
 /**
