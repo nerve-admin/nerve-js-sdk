@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require('axios').default;
 const https = require('https');
 const nerve = require('../../index');
 axios.defaults.headers.post['Content-Type'] = 'application/json';

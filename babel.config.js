@@ -7,6 +7,7 @@ module.exports = {
     }], '@babel/preset-react'
   ],
   plugins: [
-    ["@babel/plugin-transform-modules-commonjs", { "strictMode": false }]
+    '@babel/plugin-proposal-class-properties',
+    ["@babel/plugin-transform-modules-commonjs", { "strictMode": false }],
   ],
 };

@@ -1,6 +1,6 @@
 const nuls = require('../index');
 const {getNulsBalance, inputsOrOutputs, getConsensusNode, validateTx, broadcastTx} = require('./api/util');
-const axios = require('axios');
+const axios = require('axios').default;
 /**
  * @disc: 退出保证金 dome
  * @date: 2019-10-18 10:39

@@ -3,7 +3,7 @@ const txsignatures = require("./model/txsignatures");
 const sdk = require('./api/sdk');
 const txs = require('./model/txs');
 const eccrypto = require("./crypto/eciesCrypto");
-const axios = require('axios');
+const axios = require('axios').default;
 let API_CHAIN_ID;
 
 module.exports = {

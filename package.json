@@ -1,6 +1,6 @@
 {
   "name": "nerve-sdk-js",
-  "version": "1.0.45",
+  "version": "1.0.47",
   "description": "nerve nerve-js nerve-sdk nerve-js-sdk",
   "main": "index.js",
   "files": [
@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "cleanLib": "./node_modules/.bin/rimraf lib",
-    "bableBuild": "./node_modules/.bin/babel src --out-dir lib",
-    "prepublish": "npm run cleanLib && npm run bableBuild",
+    "babelBuild": "npx babel src --out-dir lib",
+    "prepublish": "npm run cleanLib && npm run babelBuild",
     "test": "node ./src/test"
   },
   "repository": {

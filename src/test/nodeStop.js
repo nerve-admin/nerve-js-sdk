@@ -1,6 +1,8 @@
 const nuls = require('../index');
 const {getNulsBalance, countFee, inputsOrOutputs, validateTx, broadcastTx, getConsensusNode} = require('./api/util');
-const axios = require('axios');
+const axios = require('axios').default;
+
+console.log(axios.post, '---');
 
 /**
  * @disc: 注销节点 dome
@@ -14,7 +16,7 @@ let fromAddress = "TNVTdN9i4JSE9C1PrZZzuQpvrzdhXakSw3UxY";
 let remark = 'stop agent....';
 
 //调用注销节点
-stopAgent(pri, pub, fromAddress, 4, 1, '6e1f8aaa80f64244a024db0a1979495fb77455fa60650da48b01761e7defa908');
+// stopAgent(pri, pub, fromAddress, 4, 1, '6e1f8aaa80f64244a024db0a1979495fb77455fa60650da48b01761e7defa908');
 
 /**
  * 注销节点
