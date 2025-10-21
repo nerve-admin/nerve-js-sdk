@@ -60,6 +60,7 @@
     "@babel/plugin-transform-runtime": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.14.5",
+    "@types/node": "^22.10.1",
     "acorn": "7.1.1",
     "axios": "^1.6.8",
     "babel-plugin-transform-runtime": "^6.23.0",
@@ -79,17 +80,16 @@
     "elliptic": "6.5.3",
     "es6-promise": "3.0.2",
     "ethers": "^4.0.47",
-    "fch-sdk": "^1.0.6",
+    "fch-sdk": "^1.0.9",
     "jsrsasign": "8.0.20",
     "nan": "2.11.1",
     "randombytes": "2.0.6",
     "rimraf": "^2.6.3",
     "sha256": "^0.2.0",
     "stream-browserify": "^3.0.0",
-    "tiny-secp256k1": "^2.2.3",
-    "webpack": "^5.40.0",
     "tbc-lib-js": "^1.0.21",
-    "@types/node": "^22.10.1"
+    "tiny-secp256k1": "^2.2.3",
+    "webpack": "^5.40.0"
   },
   "optionalDependencies": {
     "secp256k1": "3.7.1"

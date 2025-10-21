@@ -47,9 +47,11 @@ String.prototype.startWith = function (str) {
 
 const _l1GasUsedOnScroll = new ethers.utils.BigNumber(21000);
 const _l1GasUsedOnOptimismOrBase = new ethers.utils.BigNumber(18000);
+const _l1GasUsedOnBlast = new ethers.utils.BigNumber(18000);
 const _l1GasUsedOnManta = new ethers.utils.BigNumber(18000);
 const scalarOnScroll = new ethers.utils.BigNumber(1150000000);
 const dynamicOverheadOnOptimismOrBase = 684000000;
+const dynamicOverheadOnBlast = 1100000;
 const precision = new ethers.utils.BigNumber(1000000000);
 const dynamicOverheadOnManta = new ethers.utils.BigNumber(1);
 
@@ -59,6 +61,10 @@ function getL1FeeOnScroll(_l1GasUsed, ethNetworkGasPrice) {
 
 function getL1FeeOnOptimismOrBase(_l1GasUsed, ethNetworkGasPrice) {
     return _l1GasUsed.mul(dynamicOverheadOnOptimismOrBase).mul(ethNetworkGasPrice).div(precision);
+}
+
+function getL1FeeOnBlast(_l1GasUsed, ethNetworkGasPrice) {
+    return _l1GasUsed.mul(dynamicOverheadOnBlast).mul(ethNetworkGasPrice).div(precision);
 }
 
 function getL1FeeOnManta(_l1GasUsed, ethNetworkGasPrice) {
@@ -575,7 +581,7 @@ module.exports = {
 
     getL1Fee: function (htgChainId, ethNetworkGasPrice) {
         switch (htgChainId) {
-            case 139:
+            case 139: return getL1FeeOnBlast(_l1GasUsedOnBlast, ethNetworkGasPrice);
             case 138:
             case 136:
             case 115:
