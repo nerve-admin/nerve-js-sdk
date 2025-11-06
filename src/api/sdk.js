@@ -596,6 +596,6 @@ module.exports = {
         if (htgChainId <=300 || htgChainId >= 400) {
             throw "invaid htgChainId";
         }
-        return ethers.utils.parseUnits('0.002', decimals);
+        return ethers.utils.parseUnits('0.003', decimals);
     }
 };
