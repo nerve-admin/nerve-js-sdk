@@ -325,6 +325,10 @@ module.exports = {
 
   getL1Fee(htgChainId, ethNetworkGasPrice) {
     return sdk.getL1Fee(htgChainId, ethNetworkGasPrice);
+  },
+
+  getNulsL1Fee(htgChainId, decimals) {
+    return sdk.getNulsL1Fee(htgChainId, decimals);
   }
 
 };

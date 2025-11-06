@@ -590,5 +590,12 @@ module.exports = {
             case 133: return getL1FeeOnManta(_l1GasUsedOnManta, ethNetworkGasPrice);
             default: return new ethers.utils.BigNumber(0);
         }
+    },
+
+    getNulsL1Fee: function (htgChainId, decimals) {
+        if (htgChainId <=300 || htgChainId >= 400) {
+            throw "invaid htgChainId";
+        }
+        return ethers.utils.parseUnits('0.002', decimals);
     }
 };
